@@ -1,0 +1,41 @@
+language: generic
+
+matrix:
+  include:
+    - env:
+        - TARGET=arm-unknown-linux-gnueabi
+        - LINKER=arm-linux-gnueabi-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-arm-linux-gnueabi
+            - libc6-armel-cross
+            - libc6-dev-armel-cross
+    - env:
+        - TARGET=arm-unknown-linux-gnueabihf
+        - LINKER=arm-linux-gnueabihf-gcc
+      addons:
+        apt:
+          packages: &armhf
+            - gcc-arm-linux-gnueabihf
+            - libc6-armhf-cross
+            - libc6-dev-armhf-cross
+    - env:
+        - TARGET=armv7-unknown-linux-gnueabihf
+        - LINKER=arm-linux-gnueabihf-gcc
+      addons:
+        apt:
+          packages: *armhf
+
+install:
+  - export PATH="$PATH:$HOME/.cargo/bin"
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain=nightly
+  - rustup target add $TARGET
+  - |
+    mkdir -p ~/.cargo
+    echo >> ~/.cargo/config
+    echo "[target.$TARGET]" >> ~/.cargo/config
+    echo "linker = \"$LINKER\"" >> ~/.cargo/config
+
+script:
+  - cargo build --target $TARGET --verbose --release
