@@ -5,11 +5,13 @@ extern crate toml;
 extern crate log;
 extern crate env_logger;
 
-mod raspi;
+mod c9000;
 mod config;
 mod logging;
 mod server;
 mod connection;
+mod message;
+mod scheduler;
 
 use std::thread;
 
@@ -19,11 +21,17 @@ fn main() {
     //let mut generator = raspi::Generator::new();
     //generator.send("Hello World!");
 
-    let mut server = server::Server::new();
-    let res = thread::spawn(move || server.run());
-
-
-    res.join();
     info!("Starting RustPager");
-    println!("Hello, world!");
+
+    let config = config::Config::load();
+
+    let scheduler = scheduler::Scheduler::new();
+
+    let scheduler1 = scheduler.clone();
+    thread::spawn(move || scheduler1.run());
+
+    let server = server::Server::new(&config);
+    let res = thread::spawn(move || server.run(scheduler));
+
+    res.join().unwrap();
 }

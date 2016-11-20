@@ -1,5 +1,5 @@
 [master]
-host = 127.0.0.1
+server = "44.225.164.2"
 port = 1337
 
 [raspi]

@@ -15,6 +15,7 @@ impl Config {
         let file = File::open(filename);
 
         let mut file = if file.is_err() {
+            info!("Creating config.toml from default config.");
             let mut new_file = File::create(filename).expect("Couldn't create config.toml");
 
             let default_config = include_bytes!("config.toml.default");
@@ -24,7 +25,7 @@ impl Config {
             File::open(filename).expect("Couldn't open config.toml")
         }
         else {
-            file.expect("Couldn't open config.toml")
+            file.unwrap()
         };
 
         let mut s = String::new();

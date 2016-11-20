@@ -1,7 +1,6 @@
 use sysfs_gpio::{Pin, Direction};
 use std::{thread, time};
 use std::ops::DerefMut;
-//use std::cell::RefCell;
 use serial;
 
 pub struct Generator {
