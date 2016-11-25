@@ -12,6 +12,7 @@ mod server;
 mod connection;
 mod message;
 mod scheduler;
+mod timeslots;
 
 use std::thread;
 

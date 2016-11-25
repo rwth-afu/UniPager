@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock, Mutex};
 use std::collections::VecDeque;
 
+use timeslots::TimeSlots;
 use message::Message;
 
 #[derive(Clone)]
@@ -10,14 +11,16 @@ pub struct Scheduler {
 }
 
 struct SchedulerState {
-    pub time: u16
+    slots: TimeSlots
 }
 
 impl Scheduler {
     pub fn new() -> Scheduler {
         Scheduler {
             queue: Arc::new(Mutex::new(VecDeque::new())),
-            state: Arc::new(RwLock::new(SchedulerState { time: 0 }))
+            state: Arc::new(RwLock::new(SchedulerState {
+                slots: TimeSlots::new()
+            })),
         }
     }
 
@@ -27,17 +30,13 @@ impl Scheduler {
         }
     }
 
+    pub fn set_time_slots(&self, slots: TimeSlots) {
+        info!("Set time slots: {:?}", slots);
+        self.state.write().unwrap().slots = slots;
+    }
+
     pub fn enqueue(&self, msg: Message) {
         info!("Enqueue new message: {:?}", msg);
         self.queue.lock().unwrap().push_back(msg);
-    }
-
-    pub fn time(&self) -> u16 {
-        self.state.read().unwrap().time
-    }
-
-    pub fn correct_time(&self, correction: u16) {
-        let time = &(self.state.get_mut().unwrap().time);
-        *time = *time + correction;
     }
 }
