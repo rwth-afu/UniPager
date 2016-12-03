@@ -3,7 +3,13 @@ use log;
 
 pub fn init() {
     let format = |record: &log::LogRecord| {
-        format!("{} - {}", record.level(), record.args())
+        let color = match record.level() {
+            log::LogLevel::Error => "\x1B[31m",
+            log::LogLevel::Warn => "\x1B[33m",
+            log::LogLevel::Info => "\x1B[32m",
+            _ => ""
+        };
+        format!("\r{}{}\x1B[39m - {}", color, record.level(), record.args())
     };
 
     let mut builder = env_logger::LogBuilder::new();
