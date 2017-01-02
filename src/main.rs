@@ -1,51 +1,49 @@
-extern crate sysfs_gpio;
+#![feature(proc_macro)]
+
 extern crate serial;
-extern crate toml;
+extern crate env_logger;
+extern crate raspi;
+extern crate ws;
+extern crate tiny_http;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
 #[macro_use]
 extern crate log;
-extern crate env_logger;
-extern crate rustyline;
 
-mod baseband;
-mod c9000;
-mod raspager;
 mod config;
 mod logging;
 mod server;
 mod connection;
-mod message;
-mod scheduler;
-mod timeslots;
-mod prompt;
 mod transmitter;
-mod generator;
+mod pocsag;
+mod frontend;
 
 use std::thread;
 
 fn main() {
     logging::init();
 
-    //let mut generator = raspi::Generator::new();
-    //generator.send("Hello World!");
-
-    let mut transmitter = raspager::Transmitter::new();
-    transmitter.run();
-    // let mut transmitter = baseband::Transmitter::new();
-
     info!("Starting RustPager");
 
     let config = config::Config::load();
 
-    let scheduler = scheduler::Scheduler::new();
+    let scheduler = pocsag::Scheduler::new();
 
     let scheduler1 = scheduler.clone();
-    thread::spawn(move || scheduler1.run(transmitter));
+    thread::spawn(move || {
+        //let mut transmitter = transmitter::raspager::Transmitter::new();
+        let mut transmitter = transmitter::baseband::Transmitter::new();
+        transmitter.run();
+        scheduler1.run(transmitter)
+    });
 
     let server = server::Server::new(&config);
     let scheduler2 = scheduler.clone();
     let res = thread::spawn(move || server.run(scheduler2));
 
-    prompt::run(scheduler);
+    thread::spawn(frontend::run);
 
     res.join().unwrap();
 }

@@ -1,4 +1,4 @@
-use generator::Generator;
+use pocsag::Generator;
 
 pub struct Transmitter {
 
@@ -18,7 +18,7 @@ impl ::transmitter::Transmitter for Transmitter {
     fn send(&mut self, gen: Generator) {
         info!("Sending data...");
 
-        for byte in gen {
+        for word in gen {
 
         }
         info!("Data sent.");

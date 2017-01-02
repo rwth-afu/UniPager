@@ -1,17 +1,22 @@
 const XTAL_FREQ: u32 = 4915200;
 
+#[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 enum OutputDivider { Disabled = 0, DivideBy2 = 1, DivideBy4 = 2, DivideBy8 = 3 }
 
+#[allow(dead_code, non_camel_case_types)]
 #[derive(Copy, Clone, Debug)]
 enum Prescaler { Scale4_5 = 0, Scale8_9 = 1 }
 
+#[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 enum Modulation { FSK = 0, GFSK = 1, ASK = 2, OOK = 3}
 
+#[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
 pub enum MuxOut { RegReady = 3, DigitalLock = 4 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Adf7012Config {
     output_divider: OutputDivider,
@@ -56,7 +61,7 @@ impl Adf7012Config {
             xtal_disable: false,
             xtal_doubler: false,
             r_divider: 1,
-            freq_err_correction: 0,
+            freq_err_correction: -47,
 
             prescaler: Prescaler::Scale4_5,
             integer_n: 179,

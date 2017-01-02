@@ -1,9 +1,9 @@
 use std::str::FromStr;
 use std::time::Duration;
 
-#[derive(Debug)] pub enum MessageSpeed { Baud(usize) }
-#[derive(Debug)] pub enum MessageType { SyncRequest, SyncOrder, Slots, Numeric, AlphaNum }
-#[derive(Debug)] pub enum MessageFunc { Numeric, Tone, Activation, AlphaNum }
+#[derive(Copy, Clone, Debug)] pub enum MessageSpeed { Baud(usize) }
+#[derive(Copy, Clone, Debug)] pub enum MessageType { SyncRequest, SyncOrder, Slots, Numeric, AlphaNum }
+#[derive(Copy, Clone, Debug)] pub enum MessageFunc { Numeric = 0, Tone = 1, Activation = 2, AlphaNum = 3 }
 
 #[derive(Debug)]
 pub struct Message {
@@ -12,7 +12,7 @@ pub struct Message {
     pub speed: MessageSpeed,
     pub addr: u32,
     pub func: MessageFunc,
-    pub text: String
+    pub data: String
 }
 
 impl Message {

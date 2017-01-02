@@ -1,55 +1,84 @@
 use std::fs::File;
 use std::io::{Read, Write};
-use toml;
+use serde_json;
 
-#[derive(Debug)]
+const CONFIG_FILE: &'static str = "config.json";
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct C9000Config {
+    pub baudrate: u32
+}
+
+impl Default for C9000Config {
+    fn default() -> C9000Config {
+        C9000Config {
+            baudrate: 38400
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RasPagerConfig {
+    pub freq_correction: i32
+}
+
+impl Default for RasPagerConfig {
+    fn default() -> RasPagerConfig {
+        RasPagerConfig {
+            freq_correction: 0
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MasterConfig {
+    pub server: String,
+    pub port: u16
+}
+
+impl Default for MasterConfig {
+    fn default() -> MasterConfig {
+        MasterConfig {
+            server: String::from("44.225.164.2"),
+            port: 1337
+        }
+    }
+}
+
+#[derive(Default, Serialize, Deserialize, Debug)]
 pub struct Config {
-    data: toml::Value,
-    filename: String
+    pub master: MasterConfig,
+    pub c9000: Option<C9000Config>,
+    pub raspager: Option<RasPagerConfig>
 }
 
 impl Config {
     pub fn load() -> Config {
-        let filename = "config.toml";
+         match File::open(CONFIG_FILE) {
+             Ok(mut file) => {
+                 let mut data = String::new();
+                 file.read_to_string(&mut data)
+                     .expect("Failed to read config file");
 
-        let file = File::open(filename);
-
-        let mut file = if file.is_err() {
-            info!("Creating config.toml from default config.");
-            let mut new_file = File::create(filename).expect("Couldn't create config.toml");
-
-            let default_config = include_bytes!("config.toml.default");
-            new_file.write_all(default_config).expect("Couldn't write to config.toml");
-            drop(new_file);
-
-            File::open(filename).expect("Couldn't open config.toml")
+                 serde_json::from_str(&data)
+                     .unwrap_or(Config::default())
+             },
+             Err(_) => {
+                 info!("Creating config file from default config.");
+                 let config = Config::default();
+                 config.save();
+                 config
+             }
         }
-        else {
-            file.unwrap()
-        };
-
-        let mut s = String::new();
-        file.read_to_string(&mut s).unwrap();
-
-        let mut parser = toml::Parser::new(&s);
-        let result = parser.parse().expect("Invalid config.toml");
-
-        Config { filename: String::from(filename), data: toml::Value::Table(result) }
     }
 
-    pub fn get<'a>(&'a self, path: &'a str) -> Option<&'a toml::Value> {
-        self.data.lookup(path)
-    }
+    pub fn save(&self) {
+        let data = serde_json::to_vec(self).unwrap();
 
-    pub fn get_str<'a>(&'a self, path: &'a str) -> Option<&'a str> {
-        self.get(path).and_then(|v| v.as_str()).and_then(|v| if v.is_empty() { None } else { Some(v) })
-    }
+        let mut new_file = File::create(CONFIG_FILE)
+            .expect("Couldn't create config file");
 
-    pub fn get_int(&self, path: &str) -> Option<i64> {
-        self.get(path).and_then(|v| v.as_integer())
-    }
-
-    pub fn get_bool(&self, path: &str) -> Option<bool> {
-        self.get(path).and_then(|v| v.as_bool())
+        new_file.write_all(data.as_slice())
+            .expect("Couldn't write to config file");
     }
 }

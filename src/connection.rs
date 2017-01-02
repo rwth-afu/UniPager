@@ -2,9 +2,8 @@ use std::net::TcpStream;
 use std::io::{BufReader, BufWriter, BufRead, Write};
 use std::str::{FromStr};
 
-use timeslots::TimeSlots;
-use scheduler::Scheduler;
-use message::{Message, MessageSpeed, MessageType, MessageFunc};
+use pocsag::{Scheduler, TimeSlots};
+use pocsag::{Message, MessageSpeed, MessageType, MessageFunc};
 
 pub struct Connection {
     reader: BufReader<TcpStream>,
@@ -15,7 +14,8 @@ pub struct Connection {
 enum AckStatus {
     Success,
     Error,
-    Retry
+    Retry,
+    Nothing
 }
 
 impl Connection {
@@ -52,7 +52,8 @@ impl Connection {
         let response = match status {
             AckStatus::Success => b"+\r\n",
             AckStatus::Error => b"-\r\n",
-            AckStatus::Retry => b"%\r\n"
+            AckStatus::Retry => b"%\r\n",
+            AckStatus::Nothing => return
         };
         self.writer.write(response).unwrap();
         self.writer.flush().unwrap();
@@ -86,7 +87,7 @@ impl Connection {
         let msg_speed = parts.next().and_then(|str| MessageSpeed::from_str(&str).ok());
         let msg_addr = parts.next().and_then(|str| u32::from_str_radix(&str, 16).ok());
         let msg_func = parts.next().and_then(|str| MessageFunc::from_str(&str).ok());
-        let msg_text: String = parts.collect::<Vec<&str>>().join(":");
+        let msg_data: String = parts.collect::<Vec<&str>>().join(":");
 
         if msg_id.is_some() && msg_type.is_some() && msg_addr.is_some() && msg_func.is_some() {
             let msg = Message {
@@ -95,13 +96,13 @@ impl Connection {
                 speed: msg_speed.unwrap_or(MessageSpeed::Baud(1200)),
                 addr: msg_addr.unwrap(),
                 func: msg_func.unwrap(),
-                text: msg_text
+                data: msg_data
             };
 
             let next_id = (msg.id as u16 + 1) % 256;
             self.scheduler.enqueue(msg);
             self.send(&*format!("#{:02x} +", next_id));
-            AckStatus::Success
+            AckStatus::Nothing
         }
         else {
             error!("Malformed message received: {}", data);

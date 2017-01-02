@@ -1,6 +1,0 @@
-[master]
-server = "44.225.164.2"
-port = 1337
-
-[raspi]
-baudrate = 38400

@@ -1,9 +1,8 @@
-use sysfs_gpio::{Pin, Direction};
 use std::{thread, time};
-use std::ops::DerefMut;
 
-use generator::Generator;
-use raspager::adf7012::{Adf7012Config, MuxOut};
+use pocsag::Generator;
+use transmitter::raspager::adf7012::{Adf7012Config, MuxOut};
+use raspi::{Gpio, Pin, Direction, Model};
 
 const RF_FREQ: u32 = 439987500;
 
@@ -23,7 +22,6 @@ pub struct Transmitter {
     clk: Pin,
     sdata: Pin,
     muxout: Pin,
-    txclk: Pin,
     clkout: Pin,
     atclk: Pin,
     atdata: Pin,
@@ -34,50 +32,42 @@ pub struct Transmitter {
 
 impl Transmitter  {
     pub fn new() -> Transmitter {
+        info!("Initializing RasPager transmitter.");
+        info!("Detected {}", Model::get());
+        let gpio = Gpio::new().expect("Failed to map GPIO");
+
         let tx = Transmitter {
-            le: Pin::new(17),
-            ce: Pin::new(4),
-            clk: Pin::new(22),
-            sdata: Pin::new(27),
-            muxout: Pin::new(9),
-            txclk: Pin::new(11),
-            clkout: Pin::new(10),
-            atclk: Pin::new(7),
-            atdata: Pin::new(8),
-            handshake: Pin::new(24),
-            ptt: Pin::new(23),
+            le: gpio.pin(17, Direction::Output),
+            ce: gpio.pin(4, Direction::Output),
+            clk: gpio.pin(22, Direction::Output),
+            sdata: gpio.pin(27, Direction::Output),
+            muxout: gpio.pin(9, Direction::Input),
+            clkout: gpio.pin(10, Direction::Output),
+            atclk: gpio.pin(7, Direction::Output),
+            atdata: gpio.pin(8, Direction::Output),
+            handshake: gpio.pin(24, Direction::Input),
+            ptt: gpio.pin(23, Direction::Input),
             config: Adf7012Config::new()
         };
-
-        for pin in vec![&tx.le, &tx.ce, &tx.clk, &tx.sdata, &tx.clkout, &tx.atdata, &tx.atclk] {
-            pin.export().expect("Unable to export pin");
-            pin.set_direction(Direction::Low).expect("Unable to set pin as low output");
-        }
-
-        for pin in vec![&tx.muxout, &tx.txclk, &tx.handshake, &tx.ptt] {
-            pin.export().expect("Unable to export pin");
-            pin.set_direction(Direction::In).expect("Unable to set pin as input");
-        }
 
         tx
     }
 
     pub fn run(&mut self) {
-        info!("run");
         self.reset();
         self.config.set_freq(RF_FREQ);
         self.write_config();
     }
 
     fn ptt_on(&mut self) -> bool {
-        self.ce.set_value(1).unwrap();
-        self.config.set_pa_enable(true);
-        self.config.set_pa_output_level(63);
+        self.ce.set_high();
+        self.config.set_pa_enable(false);
+        self.config.set_pa_output_level(0);
         self.config.set_muxout(MuxOut::RegReady);
         self.write_config();
         delay_ms(100);
 
-        if self.muxout.get_value().unwrap() != 0 {
+        if self.muxout.read() {
             if self.lock_pll() {
                 self.config.set_pa_enable(true);
                 self.config.set_pa_output_level(63);
@@ -92,18 +82,23 @@ impl Transmitter  {
             }
         }
         else {
-            error!("ADF7012 not ready");
+            warn!("ADF7012 not ready");
             false
         }
     }
 
     fn ptt_off(&mut self) {
+        while self.ptt.read() {
+            debug!("PTT still high");
+            delay_ms(100);
+        }
+
         self.config.set_pa_enable(false);
         self.config.set_pa_output_level(0);
         self.write_config();
 
         delay_ms(100);
-        self.ce.set_value(0).unwrap();
+        self.ce.set_low();
     }
 
     fn lock_pll(&mut self) -> bool {
@@ -116,8 +111,8 @@ impl Transmitter  {
         self.write_config();
         delay_ms(500);
 
-        while self.muxout.get_value().unwrap() == 0 {
-            info!("Trying to lock {} {}", adj, bias);
+        while !self.muxout.read() {
+            debug!("Trying to lock {} {}", adj, bias);
             self.config.set_vco_adjust(adj);
             self.config.set_vco_bias(bias);
             self.write_config();
@@ -137,12 +132,12 @@ impl Transmitter  {
             }
         }
 
-        info!("PLL locked");
+        debug!("PLL locked");
         true
     }
 
     fn write_config(&mut self) {
-        info!("write config: {:?}", self.config);
+        debug!("write config: {:?}", self.config);
         let registers = vec![self.config.r0(), self.config.r1(),
                              self.config.r2(), self.config.r3()];
 
@@ -152,63 +147,73 @@ impl Transmitter  {
     }
 
     fn write_register(&mut self, register: u32) {
-        self.clk.set_value(0).unwrap();
+        self.clk.set_low();
         delay_us(2);
-        self.le.set_value(0).unwrap();
+        self.le.set_low();
         delay_us(10);
 
         for i in (0..32).rev() {
-            let bit = if (register & (1 << i)) != 0 { 1 } else { 0 };
-            self.sdata.set_value(bit).unwrap();
+            let bit = (register & (1 << i)) != 0;
+            self.sdata.set(bit);
             delay_us(10);
-            self.clk.set_value(1).unwrap();
+            self.clk.set_high();
             delay_us(30);
-            self.clk.set_value(0).unwrap();
+            self.clk.set_low();
             delay_us(30);
         }
 
         delay_us(10);
-        self.le.set_value(1).unwrap();
+        self.le.set_high();
     }
 
     fn reset(&mut self) {
-        self.ce.set_value(0).unwrap();
-        self.le.set_value(1).unwrap();
-        self.clk.set_value(1).unwrap();
-        self.sdata.set_value(1).unwrap();
+        self.ce.set_low();
+        self.le.set_high();
+        self.clk.set_high();
+        self.sdata.set_high();
         delay_ms(5);
-        self.ce.set_value(1).unwrap();
+        self.ce.set_high();
         delay_ms(100);
     }
 }
 
 impl ::transmitter::Transmitter for Transmitter {
     fn send(&mut self, gen: Generator) {
-        info!("Sending data...");
+        // try multiple times until the PLL is locked
+        let mut pll_locked = false;
+        for _ in 0..5 {
+            pll_locked = self.ptt_on();
+            if pll_locked { break; }
+        }
 
-        if !self.ptt_on() {
+        if !pll_locked {
+            error!("Could not transmit message: PLL locking failed");
+            self.ptt_off();
+            delay_ms(200);
             return;
         }
 
-        for byte in gen {
+        for word in gen {
             for i in (0..32).rev() {
-                while self.handshake.get_value().unwrap() == 0 {
+                while !self.handshake.read() {
+                    debug!("ATmega Buffer full");
                     delay_us(100);
                 }
 
-                let bit = if (byte & (1 << i)) != 0 { 1 } else { 0 };
-                self.atdata.set_value(bit).unwrap();
+                let bit = (word & (1 << i)) != 0;
+                self.atdata.set(bit);
 
                 delay_us(20);
-                self.atclk.set_value(1).unwrap();
+                self.atclk.set_high();
                 delay_us(100);
-                self.atclk.set_value(0).unwrap();
+                self.atclk.set_low();
                 delay_us(50);
             }
         }
+
+        self.atdata.set_low();
+
         self.ptt_off();
         delay_ms(200);
-
-        info!("Data sent.");
     }
 }

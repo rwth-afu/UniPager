@@ -2,10 +2,8 @@ use std::sync::{Arc, RwLock, Mutex};
 use std::collections::VecDeque;
 use std::{thread, time};
 
-use timeslots::TimeSlots;
-use message::Message;
+use pocsag::{TimeSlots, Message, Generator};
 use transmitter::Transmitter;
-use generator::Generator;
 
 #[derive(Clone)]
 pub struct Scheduler {
@@ -35,10 +33,12 @@ impl Scheduler {
 
             if let Some(message) = message {
                 let generator = Generator::new(vec![message]);
+                info!("Transmitting...");
                 transmitter.send(generator);
+                info!("Transmission completed.")
             }
 
-            thread::sleep(time::Duration::from_millis(500));
+            thread::sleep(time::Duration::from_millis(1000));
         }
     }
 

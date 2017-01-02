@@ -5,7 +5,7 @@ use std::thread;
 
 use config::Config;
 use connection::Connection;
-use scheduler::Scheduler;
+use pocsag::scheduler::Scheduler;
 
 pub struct Server {
     listener: TcpListener,
@@ -14,8 +14,8 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: &Config) -> Server {
-        let port = config.get_int("master.port").unwrap_or(1337) as u16;
-        let master = config.get_str("master.server").and_then(|str| IpAddr::from_str(str).ok());
+        let port = config.master.port as u16;
+        let master = IpAddr::from_str(&*config.master.server).ok();
 
         if let Some(addr) = master {
             info!("Listening for {} on port {}.", addr, port);
