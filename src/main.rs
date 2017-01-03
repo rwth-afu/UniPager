@@ -31,19 +31,24 @@ fn main() {
 
     let scheduler = pocsag::Scheduler::new();
 
-    let scheduler1 = scheduler.clone();
-    thread::spawn(move || {
-        //let mut transmitter = transmitter::raspager::Transmitter::new();
-        let mut transmitter = transmitter::baseband::Transmitter::new();
-        transmitter.run();
-        scheduler1.run(transmitter)
-    });
+    thread::spawn(frontend::run);
 
     let server = server::Server::new(&config);
-    let scheduler2 = scheduler.clone();
-    let res = thread::spawn(move || server.run(scheduler2));
+    let scheduler1 = scheduler.clone();
+    let res = thread::spawn(move || server.run(scheduler1));
 
-    thread::spawn(frontend::run);
+    thread::spawn(move || {
+        match config.transmitter {
+            config::Transmitter::Dummy =>
+                scheduler.run(transmitter::DummyTransmitter::new(&config)),
+            config::Transmitter::Baseband =>
+                scheduler.run(transmitter::BasebandTransmitter::new(&config)),
+            config::Transmitter::Raspager =>
+                scheduler.run(transmitter::RaspagerTransmitter::new(&config)),
+            config::Transmitter::C9000 =>
+                scheduler.run(transmitter::C9000Transmitter::new(&config))
+        };
+    });
 
     res.join().unwrap();
 }

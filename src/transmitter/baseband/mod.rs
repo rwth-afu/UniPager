@@ -1,3 +1,3 @@
 mod transmitter;
 
-pub use self::transmitter::Transmitter;
+pub use self::transmitter::BasebandTransmitter;

@@ -30,7 +30,7 @@ impl Server {
 }
 
 impl ws::Handler for Server {
-    fn on_open(&mut self, handshake: ws::Handshake) -> ws::Result<()> {
+    fn on_open(&mut self, _: ws::Handshake) -> ws::Result<()> {
         self.send_response(Response::Config(Config::default()))
     }
 

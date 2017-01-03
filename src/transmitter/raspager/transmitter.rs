@@ -1,10 +1,10 @@
 use std::{thread, time};
 
+use config::Config;
 use pocsag::Generator;
+use transmitter::Transmitter;
 use transmitter::raspager::adf7012::{Adf7012Config, MuxOut};
 use raspi::{Gpio, Pin, Direction, Model};
-
-const RF_FREQ: u32 = 439987500;
 
 #[inline]
 fn delay_us(micros: u32) {
@@ -16,7 +16,7 @@ fn delay_ms(millis: u64) {
     thread::sleep(time::Duration::from_millis(millis));
 }
 
-pub struct Transmitter {
+pub struct RaspagerTransmitter {
     le: Pin,
     ce: Pin,
     clk: Pin,
@@ -30,13 +30,13 @@ pub struct Transmitter {
     config: Adf7012Config
 }
 
-impl Transmitter  {
-    pub fn new() -> Transmitter {
+impl RaspagerTransmitter  {
+    pub fn new(config: &Config) -> RaspagerTransmitter {
         info!("Initializing RasPager transmitter.");
         info!("Detected {}", Model::get());
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
-        let tx = Transmitter {
+        let mut tx = RaspagerTransmitter {
             le: gpio.pin(17, Direction::Output),
             ce: gpio.pin(4, Direction::Output),
             clk: gpio.pin(22, Direction::Output),
@@ -50,13 +50,12 @@ impl Transmitter  {
             config: Adf7012Config::new()
         };
 
-        tx
-    }
+        tx.reset();
+        tx.config.set_freq_err_correction(config.raspager.freq_corr);
+        tx.config.set_freq(config.raspager.freq);
+        tx.write_config();
 
-    pub fn run(&mut self) {
-        self.reset();
-        self.config.set_freq(RF_FREQ);
-        self.write_config();
+        tx
     }
 
     fn ptt_on(&mut self) -> bool {
@@ -177,7 +176,7 @@ impl Transmitter  {
     }
 }
 
-impl ::transmitter::Transmitter for Transmitter {
+impl Transmitter for RaspagerTransmitter {
     fn send(&mut self, gen: Generator) {
         // try multiple times until the PLL is locked
         let mut pll_locked = false;

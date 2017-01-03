@@ -3,23 +3,25 @@ use std::{thread, time};
 use std::ops::DerefMut;
 use serial;
 
+use config::Config;
 use pocsag::Generator;
+use transmitter::Transmitter;
 
-pub struct Transmitter {
+pub struct C9000Transmitter {
     reset_pin: Pin,
     ptt_pin: Pin,
     send_pin: Pin,
     serial: Box<serial::SerialPort>
 }
 
-impl Transmitter  {
-    pub fn new() -> Transmitter {
+impl C9000Transmitter  {
+    pub fn new(config: &Config) -> C9000Transmitter {
         info!("Initializing C9000 transmitter.");
         info!("Detected {}", Model::get());
         let serial = serial::open("/dev/ttyAMA0").expect("Unable to open serial port");
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
-        let transmitter = Transmitter {
+        let transmitter = C9000Transmitter {
             reset_pin: gpio.pin(17, Direction::Output),
             ptt_pin: gpio.pin(27, Direction::Output),
             send_pin: gpio.pin(22, Direction::Output),
@@ -28,13 +30,9 @@ impl Transmitter  {
 
         transmitter
     }
-
-    pub fn run(&mut self) {
-
-    }
 }
 
-impl ::transmitter::Transmitter for Transmitter {
+impl Transmitter for C9000Transmitter {
     fn send(&mut self, gen: Generator) {
         info!("Sending data...");
 

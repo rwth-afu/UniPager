@@ -18,14 +18,16 @@ impl Default for C9000Config {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct RasPagerConfig {
-    pub freq_correction: i32
+pub struct RaspagerConfig {
+    pub freq: u32,
+    pub freq_corr: i16
 }
 
-impl Default for RasPagerConfig {
-    fn default() -> RasPagerConfig {
-        RasPagerConfig {
-            freq_correction: 0
+impl Default for RaspagerConfig {
+    fn default() -> RaspagerConfig {
+        RaspagerConfig {
+            freq: 439987500,
+            freq_corr: 0
         }
     }
 }
@@ -45,11 +47,26 @@ impl Default for MasterConfig {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub enum Transmitter {
+    Dummy,
+    C9000,
+    Raspager,
+    Baseband
+}
+
+impl Default for Transmitter {
+    fn default() -> Transmitter {
+        Transmitter::Dummy
+    }
+}
+
 #[derive(Default, Serialize, Deserialize, Debug)]
 pub struct Config {
     pub master: MasterConfig,
-    pub c9000: Option<C9000Config>,
-    pub raspager: Option<RasPagerConfig>
+    pub transmitter: Transmitter,
+    pub raspager: RaspagerConfig,
+    pub c9000: C9000Config
 }
 
 impl Config {
