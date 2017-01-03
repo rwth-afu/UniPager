@@ -22,10 +22,18 @@ mod frontend;
 
 use std::thread;
 
-fn main() {
-    logging::init();
+fn print_version() {
+    println!("RustPager {}", env!("CARGO_PKG_VERSION"));
+    println!("Copyright (c) 2016 RWTH Amateurfunk Gruppe\n");
+    println!("This program comes with ABSOLUTELY NO WARRANTY.");
+    println!("This is free software, and you are welcome to redistribute");
+    println!("and modify it under the conditions of the GNU GPL v3 or later.");
+    println!("<https://www.gnu.org/licenses/gpl-3.0.txt>\n");
+}
 
-    info!("Starting RustPager");
+fn main() {
+    print_version();
+    logging::init();
 
     let config = config::Config::load();
 
