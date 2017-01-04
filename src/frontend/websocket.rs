@@ -19,8 +19,7 @@ impl ws::Handler for Server {
         if let Some(req) = req {
             self.tx.send(req);
         }
-
-        self.out.send(msg)
+        Ok(())
     }
 }
 

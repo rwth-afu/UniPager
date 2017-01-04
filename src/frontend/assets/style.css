@@ -1,5 +1,119 @@
+html {
+    font-size: 16px;
+}
+
 body {
     font-family: Helvetica, Arial, sans-serif;
+}
+
+#wrapper {
+    margin: 0 40px;
+}
+
+a {
+    color: #2196F3;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+input {
+    font-size: 1rem;
+    padding: 4px;
+    border-width: 0 0 1px 0;
+    border-color: #E0E0E0;
+    border-style: solid;
+    transition: border-color 0.5s linear;
+}
+
+input:focus {
+    padding-bottom: 3px;
+    border-color: #26a0e5;
+    border-bottom-width: 2px;
+    outline: 0;
+}
+
+.form-group {
+    display: inline-flex;
+    margin: 0;
+    flex-flow: column;
+}
+
+.form-group label {
+    display: block;
+    padding-left: 2px;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.form-row {
+    display: flex;
+    flex-flow: row;
+    align-items: flex-end;
+}
+
+.form-row > div {
+    margin: 0 5px;
+}
+
+.form-row > div:first-child { margin-left: 0; }
+.form-row > div:last-child { margin-right: 0; }
+
+button {
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: #2196F3;
+    color: #fff;
+    padding: 7px 15px;
+    border: none;
+}
+
+button:focus { outline: 0; }
+button:hover { background-color: #1976D2; }
+button:active { background-color: #0D47A1; }
+
+button.green { background-color: #4CAF50; }
+button.green:hover { background-color: #388E3C; }
+button.green:active { background-color: #0D47A1; }
+
+button.orange { background-color: #FFC107; color: rgba(0,0,0,.5); }
+button.orange:hover { background-color: #FFA000; }
+button.orange:active { background-color: #FF6F00; }
+
+button.red { background-color: #F44336; }
+button.red:hover { background-color: #D32F2F; }
+button.red:active { background-color: ##B71C1C; }
+
+#boxes {
+    display: flex;
+    margin: 1rem 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.box {
+    margin: 5px;
+    border-radius: 2px;
+    box-shadow: 0px 1px 2px 2px #dbdbdb;
+}
+
+.box h3 {
+    color: #fff;
+    font-size: 1.1rem;
+    background-color: #607D8B;
+    padding: 15px;
+    margin: 0;
+    font-weight: normal;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+}
+
+.box-content {
+    padding: 15px;
 }
 
 #log {
@@ -7,9 +121,23 @@ body {
     color: #F5F5F5;
     background-color: #212121;
     padding: 20px;
-    margin: 0 20px;
     height: 400px;
-    overflow: scroll;
+    overflow-y: scroll;
+    border-radius: 2px;
+    box-shadow: 0px 1px 2px 2px #dbdbdb;
+}
+
+#log::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+#log::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+#log::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.5);
 }
 
 .log-level {
@@ -23,3 +151,14 @@ body {
 .log-debug { color: #9E9E9E; }
 .log-warn { color: #FFC107; }
 .log-error { color: #F44336; }
+
+footer {
+    margin: 1rem 0;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+
+footer .logo {
+    margin-right: 20px;
+}

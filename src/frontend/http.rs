@@ -9,10 +9,11 @@ pub fn run() {
         };
 
         let (mime, data) = match req.url() {
-            "/main.js" => ("application/javascript", include_str!("assets/main.js")),
-            "/jquery.js" => ("application/javascript", include_str!("assets/jquery.js")),
-            "/style.css" => ("text/css", include_str!("assets/style.css")),
-            _ => ("text/html", include_str!("assets/index.html"))
+            "/main.js" => ("application/javascript", include_bytes!("assets/main.js").to_vec()),
+            "/jquery.js" => ("application/javascript", include_bytes!("assets/jquery.js").to_vec()),
+            "/style.css" => ("text/css", include_bytes!("assets/style.css").to_vec()),
+            "/logo.png" => ("image/png", include_bytes!("assets/logo.png").to_vec()),
+            _ => ("text/html", include_bytes!("assets/index.html").to_vec())
         };
 
         let res = tiny_http::Response::from_data(data).with_header(

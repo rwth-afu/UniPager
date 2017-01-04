@@ -8,26 +8,66 @@
     <script src="/main.js"></script>
   </head>
   <body>
-    <p id="received">
-      <strong>Received Messages:</strong>
-    </p>
+    <div id="wrapper">
+      <div id="boxes">
+        <div class="box">
+          <h3>Configuration</h3>
+          <div class="box-content">
+            <div class="form-group">
+              <label for="transmitter">Transmitter</label>
+              <select id="transmitter">
+                <option>Dummy</option>
+                <option>Baseband</option>
+                <option>RasPager</option>
+                <option>C9000</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="box">
+          <h3>Send Message</h3>
+          <div class="box-content form-row">
+            <div class="form-group">
+              <label for="addr">Address</label>
+              <input type="number" id="addr">
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <input type="text" id="message">
+            </div>
+            <button onclick="send()">Send</button>
+          </div>
+        </div>
 
-    <p>
-      <input type="number" id="addr">
-      <input type="text" id="message">
-      <button onclick="send()">Send</button>
-    </p>
+        <div class="box">
+          <h3>Commands</h3>
+          <div class="box-content">
+            <button class="red" onclick="shutdown()">Shutdown</button>
+            <button class="orange" onclick="restart()">Restart</button>
+          </div>
+        </div>
+      </div>
 
-    <p>
-        <button onclick="shutdown()">Shutdown</button>
-        <button onclick="restart()">Restart</button>
-    </p>
-    <div id="log"></div>
+      <div id="log"></div>
 
-    <footer>
-        <b>RustPager <span id="version"></span></b> &copy; 2016
-        <a href="http://www.afu.rwth-aachen.de">RWTH Amateurfunkgruppe</a> &bull;
-        <a href="https://github.com/rwth-afu/">GitHub</a>
-    </footer>
+      <footer>
+          <div class="logo">
+            <a href="http://www.afu.rwth-aachen.de"><img src="/logo.png"></a>
+          </div>
+          <div>
+            <p>
+              <b>RustPager <span id="version"></span></b>
+            </p>
+            <p>
+              &copy; 2016 RWTH Amateurfunkgruppe
+            </p>
+            <p>
+                <a href="https://github.com/rwth-afu/">GitHub</a>
+                &bull; <a href="https://github.com/7h0ma5/RustPager/issues">Report Issues</a>
+                &bull; <a href="https://www.afu.rwth-aachen.de/ueber-uns/spendenaufruf">Donate</a>
+            </p>
+          </div>
+      </footer>
+    </div>
   </body>
 </html>
