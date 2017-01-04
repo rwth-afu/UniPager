@@ -7,7 +7,8 @@ struct Logger {
 
 impl Log for Logger {
     fn enabled(&self, metadata: &LogMetadata) -> bool {
-        metadata.level() <= LogLevel::Info
+        metadata.level() <= LogLevel::Info &&
+        metadata.target().starts_with("rustpager")
     }
 
     fn log(&self, record: &LogRecord) {
@@ -18,10 +19,9 @@ impl Log for Logger {
                 LogLevel::Info => "\x1B[32m",
                 _ => ""
             };
-            println!("\r{}{}\x1B[39m - {}", color, record.level(), record.args())
+            println!("\r{}{}\x1B[39m - {}", color, record.level(), record.args());
+            self.responder.send(Response::Log(record.level() as u8, record.args().to_string()));
         }
-
-        self.responder.send(Response::Log(record.level() as u8, record.args().to_string()));
     }
 }
 
