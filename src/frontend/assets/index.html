@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>RustPager</title>
     <link type="text/css" rel="stylesheet" href="/style.css">
+    <script src="/jquery.js"></script>
     <script src="/main.js"></script>
   </head>
   <body>
@@ -16,5 +17,17 @@
       <input type="text" id="message">
       <button onclick="send()">Send</button>
     </p>
+
+    <p>
+        <button onclick="shutdown()">Shutdown</button>
+        <button onclick="restart()">Restart</button>
+    </p>
+    <div id="log"></div>
+
+    <footer>
+        <b>RustPager <span id="version"></span></b> &copy; 2016
+        <a href="http://www.afu.rwth-aachen.de">RWTH Amateurfunkgruppe</a> &bull;
+        <a href="https://github.com/rwth-afu/">GitHub</a>
+    </footer>
   </body>
 </html>

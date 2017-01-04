@@ -1,7 +1,6 @@
 #![feature(proc_macro)]
 
 extern crate serial;
-extern crate env_logger;
 extern crate raspi;
 extern crate ws;
 extern crate tiny_http;
@@ -24,7 +23,7 @@ use std::thread;
 
 fn print_version() {
     println!("RustPager {}", env!("CARGO_PKG_VERSION"));
-    println!("Copyright (c) 2016 RWTH Amateurfunk Gruppe\n");
+    println!("Copyright (c) 2016 RWTH Amateurfunkgruppe\n");
     println!("This program comes with ABSOLUTELY NO WARRANTY.");
     println!("This is free software, and you are welcome to redistribute");
     println!("and modify it under the conditions of the GNU GPL v3 or later.");
@@ -33,30 +32,64 @@ fn print_version() {
 
 fn main() {
     print_version();
-    logging::init();
+
+    let (responder, requests) = frontend::run();
+
+    logging::init(responder.clone());
 
     let config = config::Config::load();
 
-    let scheduler = pocsag::Scheduler::new();
-
-    thread::spawn(frontend::run);
+    let scheduler = pocsag::Scheduler::new(&config);
 
     let server = server::Server::new(&config);
-    let scheduler1 = scheduler.clone();
-    let res = thread::spawn(move || server.run(scheduler1));
 
+    let scheduler1 = scheduler.clone();
+    thread::spawn(move || server.run(scheduler1));
+
+    let config1 = config.clone();
+    let scheduler2 = scheduler.clone();
     thread::spawn(move || {
-        match config.transmitter {
+        match config1.transmitter {
             config::Transmitter::Dummy =>
-                scheduler.run(transmitter::DummyTransmitter::new(&config)),
+                scheduler2.run(transmitter::DummyTransmitter::new(&config1)),
             config::Transmitter::Baseband =>
-                scheduler.run(transmitter::BasebandTransmitter::new(&config)),
+                scheduler2.run(transmitter::BasebandTransmitter::new(&config1)),
             config::Transmitter::Raspager =>
-                scheduler.run(transmitter::RaspagerTransmitter::new(&config)),
+                scheduler2.run(transmitter::RaspagerTransmitter::new(&config1)),
             config::Transmitter::C9000 =>
-                scheduler.run(transmitter::C9000Transmitter::new(&config))
+                scheduler2.run(transmitter::C9000Transmitter::new(&config1))
         };
     });
 
-    res.join().unwrap();
+    use frontend::{Request, Response};
+    for req in requests {
+        match req {
+            Request::SendMessage { addr, data } => {
+                let msg = pocsag::Message {
+                    id: 0,
+                    mtype: pocsag::MessageType::AlphaNum,
+                    speed: pocsag::MessageSpeed::Baud(1200),
+                    addr: addr,
+                    func: pocsag::MessageFunc::AlphaNum,
+                    data: data
+                };
+                scheduler.enqueue(msg);
+            }
+            Request::GetConfig => {
+                responder.send(Response::Config(config.clone()));
+            },
+            Request::GetVersion => {
+                let version = env!("CARGO_PKG_VERSION").to_string();
+                responder.send(Response::Version(version));
+            },
+            Request::Shutdown =>
+                break,
+            Request::Restart =>
+                break,
+            req => {
+                warn!("Unimplemented request: {:?}", req);
+                responder.send(Response::Error("Unimplemented".to_string()));
+            }
+        }
+    }
 }

@@ -4,6 +4,7 @@ use std::{thread, time};
 
 use pocsag::{TimeSlots, Message, Generator};
 use transmitter::Transmitter;
+use config::Config;
 
 #[derive(Clone)]
 pub struct Scheduler {
@@ -16,7 +17,7 @@ struct SchedulerState {
 }
 
 impl Scheduler {
-    pub fn new() -> Scheduler {
+    pub fn new(config: &Config) -> Scheduler {
         Scheduler {
             queue: Arc::new(Mutex::new(VecDeque::new())),
             state: Arc::new(RwLock::new(SchedulerState {
@@ -43,12 +44,12 @@ impl Scheduler {
     }
 
     pub fn set_time_slots(&self, slots: TimeSlots) {
-        info!("Set time slots: {:?}", slots);
+        info!("{:?}", slots);
         self.state.write().unwrap().slots = slots;
     }
 
     pub fn enqueue(&self, msg: Message) {
-        info!("Enqueue new message: {:?}", msg);
+        info!("{:?}", msg);
         self.queue.lock().unwrap().push_back(msg);
     }
 }

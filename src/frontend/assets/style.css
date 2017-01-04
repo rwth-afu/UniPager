@@ -1,0 +1,25 @@
+body {
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+#log {
+    font-family: "Lucida Console", Monaco, monospace;
+    color: #F5F5F5;
+    background-color: #212121;
+    padding: 20px;
+    margin: 0 20px;
+    height: 400px;
+    overflow: scroll;
+}
+
+.log-level {
+    display: inline-block;
+    text-transform: uppercase;
+    font-weight: bold;
+    width: 60px;
+}
+
+.log-info { color: #4CAF50; }
+.log-debug { color: #9E9E9E; }
+.log-warn { color: #FFC107; }
+.log-error { color: #F44336; }

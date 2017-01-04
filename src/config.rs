@@ -4,7 +4,7 @@ use serde_json;
 
 const CONFIG_FILE: &'static str = "config.json";
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct C9000Config {
     pub baudrate: u32
 }
@@ -17,7 +17,7 @@ impl Default for C9000Config {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct RaspagerConfig {
     pub freq: u32,
     pub freq_corr: i16
@@ -32,7 +32,7 @@ impl Default for RaspagerConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct MasterConfig {
     pub server: String,
     pub port: u16
@@ -47,7 +47,7 @@ impl Default for MasterConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum Transmitter {
     Dummy,
     C9000,
@@ -61,7 +61,7 @@ impl Default for Transmitter {
     }
 }
 
-#[derive(Default, Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
     pub master: MasterConfig,
     pub transmitter: Transmitter,
