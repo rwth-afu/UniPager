@@ -22,7 +22,6 @@ pub struct RaspagerTransmitter {
     clk: Pin,
     sdata: Pin,
     muxout: Pin,
-    clkout: Pin,
     atclk: Pin,
     atdata: Pin,
     handshake: Pin,
@@ -32,7 +31,7 @@ pub struct RaspagerTransmitter {
 
 impl RaspagerTransmitter  {
     pub fn new(config: &Config) -> RaspagerTransmitter {
-        info!("Initializing RasPager transmitter.");
+        info!("Initializing RasPager transmitter...");
         info!("Detected {}", Model::get());
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
@@ -42,7 +41,6 @@ impl RaspagerTransmitter  {
             clk: gpio.pin(22, Direction::Output),
             sdata: gpio.pin(27, Direction::Output),
             muxout: gpio.pin(9, Direction::Input),
-            clkout: gpio.pin(10, Direction::Output),
             atclk: gpio.pin(7, Direction::Output),
             atdata: gpio.pin(8, Direction::Output),
             handshake: gpio.pin(24, Direction::Input),
@@ -53,6 +51,7 @@ impl RaspagerTransmitter  {
         tx.reset();
         tx.config.set_freq_err_correction(config.raspager.freq_corr);
         tx.config.set_freq(config.raspager.freq);
+        tx.config.set_pa_output_level(config.raspager.pa_output_level);
         tx.write_config();
 
         tx

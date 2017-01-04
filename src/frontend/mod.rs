@@ -5,7 +5,6 @@ pub use self::websocket::Responder;
 
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
-use log::LogLevel;
 
 use config::Config;
 
@@ -24,7 +23,6 @@ pub enum Response {
     Config(Config),
     Version(String),
     Log(u8, String),
-    Ok,
     Error(String)
 }
 

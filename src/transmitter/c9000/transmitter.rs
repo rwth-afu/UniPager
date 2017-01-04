@@ -1,6 +1,5 @@
 use raspi::{Gpio, Pin, Direction, Model};
 use std::{thread, time};
-use std::ops::DerefMut;
 use serial;
 
 use config::Config;
@@ -15,8 +14,8 @@ pub struct C9000Transmitter {
 }
 
 impl C9000Transmitter  {
-    pub fn new(config: &Config) -> C9000Transmitter {
-        info!("Initializing C9000 transmitter.");
+    pub fn new(_: &Config) -> C9000Transmitter {
+        info!("Initializing C9000 transmitter...");
         info!("Detected {}", Model::get());
         let serial = serial::open("/dev/ttyAMA0").expect("Unable to open serial port");
         let gpio = Gpio::new().expect("Failed to map GPIO");
@@ -27,6 +26,8 @@ impl C9000Transmitter  {
             send_pin: gpio.pin(22, Direction::Output),
             serial: Box::new(serial)
         };
+
+        transmitter.reset_pin.set_high();
 
         transmitter
     }
@@ -45,9 +46,15 @@ impl Transmitter for C9000Transmitter {
                 time::Duration::from_millis(1);
             }
 
-            //if self.serial.deref_mut().write(&[byte]).is_err() {
-            //    error!("Unable to write data to the serial port");
-            //}
+            let mut word = word;
+            for _ in 0..4 {
+                let byte = (word & 0xff) as u8;
+                word >>= 8;
+
+                if (*self.serial).write(&[byte]).is_err() {
+                    error!("Unable to write data to the serial port");
+                }
+            }
         }
 
         self.ptt_pin.set_low();

@@ -13,12 +13,8 @@ impl BasebandTransmitter {
 }
 
 impl Transmitter for BasebandTransmitter {
-    fn send(&mut self, gen: Generator) {
+    fn send(&mut self, _: Generator) {
         info!("Sending data...");
-
-        for word in gen {
-
-        }
         info!("Data sent.");
     }
 }

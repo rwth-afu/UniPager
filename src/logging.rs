@@ -1,6 +1,4 @@
 use log::{self, Log, LogRecord, LogLevel, LogLevelFilter, LogMetadata};
-use std::sync::mpsc::{channel, Sender, Receiver};
-use std::sync::{Arc, Mutex};
 use frontend:: {Responder, Response};
 
 struct Logger {
@@ -27,13 +25,9 @@ impl Log for Logger {
     }
 }
 
-pub fn init(responder: Responder) -> Receiver<(u8, String)> {
-    let (tx, rx) = channel();
-
+pub fn init(responder: Responder) {
     log::set_logger(|max_log_level| {
         max_log_level.set(LogLevelFilter::Info);
         Box::new(Logger { responder: responder })
     }).expect("Unable to setup logger");
-
-    rx
 }

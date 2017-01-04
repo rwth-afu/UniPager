@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use std::time::Duration;
 
 #[derive(Copy, Clone, Debug)] pub enum MessageSpeed { Baud(usize) }
 #[derive(Copy, Clone, Debug)] pub enum MessageType { SyncRequest, SyncOrder, Slots, Numeric, AlphaNum }

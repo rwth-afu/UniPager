@@ -17,7 +17,7 @@ struct SchedulerState {
 }
 
 impl Scheduler {
-    pub fn new(config: &Config) -> Scheduler {
+    pub fn new(_: &Config) -> Scheduler {
         Scheduler {
             queue: Arc::new(Mutex::new(VecDeque::new())),
             state: Arc::new(RwLock::new(SchedulerState {

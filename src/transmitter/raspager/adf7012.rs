@@ -52,6 +52,7 @@ pub struct Adf7012Config {
     pll_enable: bool
 }
 
+#[allow(dead_code)]
 impl Adf7012Config {
     pub fn new() -> Adf7012Config {
         Adf7012Config {
@@ -150,7 +151,12 @@ impl Adf7012Config {
     }
 
     pub fn set_pa_output_level(&mut self, value: u8) {
-        self.pa_output_level = value;
+        if value > 63 {
+            self.pa_output_level = 63;
+        }
+        else {
+            self.pa_output_level = value;
+        }
     }
 
     pub fn r0(&self) -> u32 {

@@ -11,6 +11,7 @@ pub struct Connection {
     scheduler: Scheduler
 }
 
+#[allow(dead_code)]
 enum AckStatus {
     Success,
     Error,

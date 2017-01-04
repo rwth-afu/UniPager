@@ -20,14 +20,16 @@ impl Default for C9000Config {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct RaspagerConfig {
     pub freq: u32,
-    pub freq_corr: i16
+    pub freq_corr: i16,
+    pub pa_output_level: u8
 }
 
 impl Default for RaspagerConfig {
     fn default() -> RaspagerConfig {
         RaspagerConfig {
             freq: 439987500,
-            freq_corr: 0
+            freq_corr: 0,
+            pa_output_level: 30
         }
     }
 }
