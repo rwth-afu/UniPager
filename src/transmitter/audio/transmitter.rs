@@ -2,17 +2,17 @@ use pocsag::Generator;
 use config::Config;
 use transmitter::Transmitter;
 
-pub struct BasebandTransmitter {
+pub struct AudioTransmitter {
 
 }
 
-impl BasebandTransmitter {
-    pub fn new(_: &Config) -> BasebandTransmitter {
-        BasebandTransmitter { }
+impl AudioTransmitter {
+    pub fn new(_: &Config) -> AudioTransmitter {
+        AudioTransmitter { }
     }
 }
 
-impl Transmitter for BasebandTransmitter {
+impl Transmitter for AudioTransmitter {
     fn send(&mut self, _: Generator) {
         info!("Sending data...");
         info!("Data sent.");

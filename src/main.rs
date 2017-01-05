@@ -52,8 +52,8 @@ fn main() {
         match config1.transmitter {
             config::Transmitter::Dummy =>
                 scheduler2.run(transmitter::DummyTransmitter::new(&config1)),
-            config::Transmitter::Baseband =>
-                scheduler2.run(transmitter::BasebandTransmitter::new(&config1)),
+            config::Transmitter::Audio =>
+                scheduler2.run(transmitter::AudioTransmitter::new(&config1)),
             config::Transmitter::Raspager =>
                 scheduler2.run(transmitter::RaspagerTransmitter::new(&config1)),
             config::Transmitter::C9000 =>

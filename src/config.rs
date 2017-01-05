@@ -52,9 +52,9 @@ impl Default for MasterConfig {
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum Transmitter {
     Dummy,
+    Audio,
     C9000,
-    Raspager,
-    Baseband
+    Raspager
 }
 
 impl Default for Transmitter {
