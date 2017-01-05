@@ -3,11 +3,18 @@ html {
 }
 
 body {
-    font-family: Helvetica, Arial, sans-serif;
+    margin: 0;
+    font-family: 'Roboto', Helvetica, Arial, sans-serif;
 }
 
 #wrapper {
-    margin: 0 40px;
+    margin: 40px;
+}
+
+@media screen and (max-width: 1000px) {
+    #wrapper {
+        margin: 20px;
+    }
 }
 
 a {
@@ -63,7 +70,6 @@ input:focus {
 
 button {
     font-size: 1rem;
-    font-weight: bold;
     background-color: #2196F3;
     color: #fff;
     padding: 7px 15px;
@@ -98,22 +104,22 @@ button.red:active { background-color: ##B71C1C; }
 .box {
     margin: 5px;
     border-radius: 2px;
-    box-shadow: 0px 1px 2px 2px #dbdbdb;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
 }
 
 .box h3 {
     color: #fff;
     font-size: 1.1rem;
     background-color: #607D8B;
-    padding: 15px;
+    padding: 18px 20px;
     margin: 0;
-    font-weight: normal;
+    font-weight: 300;
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
 }
 
 .box-content {
-    padding: 15px;
+    padding: 20px;
 }
 
 #log {
@@ -124,7 +130,7 @@ button.red:active { background-color: ##B71C1C; }
     height: 400px;
     overflow-y: scroll;
     border-radius: 2px;
-    box-shadow: 0px 1px 2px 2px #dbdbdb;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
 }
 
 #log::-webkit-scrollbar {
