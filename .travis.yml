@@ -1,10 +1,10 @@
 language: generic
-
 matrix:
   include:
     - env:
         - TARGET=arm-unknown-linux-gnueabi
         - LINKER=arm-linux-gnueabi-gcc
+        - PACKAGE=rustpager-arm.gz
       addons:
         apt:
           packages:
@@ -14,6 +14,7 @@ matrix:
     - env:
         - TARGET=arm-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
+        - PACKAGE=rustpager-armhf.gz
       addons:
         apt:
           packages: &armhf
@@ -23,6 +24,7 @@ matrix:
     - env:
         - TARGET=armv7-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
+        - PACKAGE=rustpager-armv7hf.gz
       addons:
         apt:
           packages: *armhf
@@ -39,3 +41,16 @@ install:
 
 script:
   - cargo build --target $TARGET --verbose --release
+
+before_deploy:
+  - gzip -c target/$TARGET/release/rustpager > $PACKAGE
+
+deploy:
+  provider: releases
+  api_key:
+    secure: Y0E2keSR4wzpBssjfcUooBF7n6dEdD1HqGs6dFIqO/Z7c3fF97b7cbfXTlO4myZ8zDwSJcQ5uXgojmb7aDhwbY0quPdK69d5zHTC525WqAkOE9hvCbHIJ9bZ+dt7ZmdL7DsNif25c9lTUAu8UyWLZ5LjbSLIaA/oEp2FZ/G01w2gNMPKvlsrN5Rt5R8+ffBDgh5ggBArJIfEdQJnBIMBfS+OmXyr/xAAafAi2dnFUe8x1KyOMMNCgOXGqprxN5tk05HrDyTFzXpzDYGeswg4aSzROdQ8H8T/qnra9CBHbRo91Bh3kjUkmGhvsJTMouXL42rgXLMwRH5M40lKDgbxWvSN4YPFRuAduxrZGwrthqo1JclSAZfgqrYn0Xweutuj/jfBHbAwuV24F+idEL4aGL/vLshHKhVWwJeboYRfHqgS+Ktlx+IWNXSRqfn9PYfKLAkuTQJmOEvmjTWVYtUi+AhaPWU2MWrT9qzGsQwKoCd1yIMGBEk34KehsYdmfHLHrgL3BVzBjhd+KNZyJcppCXDk28h6ZFxD7VIPrk2ksJnheHytU+o3MfOUNtjtZKnToZKkQDiQegYZwOs3WXbKdPeFkfFYnX5gtkgKJrX0mLfzA52Day1ZQMAHbkkggmE7eCHfuFL9xwtIakiHAUWZMdJ0zlsLbGUWxiR7pVl6+pQ=
+  file: ${PACKAGE}
+  skip_cleanup: true
+  on:
+    tags: true
+    repo: 7h0ma5/RustPager
