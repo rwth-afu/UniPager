@@ -15,7 +15,7 @@ impl Transmitter for DummyTransmitter {
     fn send(&mut self, gen: Generator) {
         info!("Sending data...");
         for word in gen {
-            debug!("{}", word);
+            info!("{:032b}", word);
         }
         info!("Data sent.");
     }

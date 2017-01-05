@@ -35,7 +35,7 @@ impl C9000Transmitter  {
         let transmitter = C9000Transmitter {
             reset_pin: gpio.pin(0, Direction::Output),
             ptt_pin: gpio.pin(2, Direction::Output),
-            send_pin: gpio.pin(3, Direction::Output),
+            send_pin: gpio.pin(3, Direction::Input),
             serial: Box::new(serial)
         };
 
