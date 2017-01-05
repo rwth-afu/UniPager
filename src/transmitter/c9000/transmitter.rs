@@ -41,19 +41,20 @@ impl Transmitter for C9000Transmitter {
 
         thread::sleep(time::Duration::from_millis(1));
 
-        for word in gen {
-            while !self.send_pin.read() {
+        for (i, word) in gen.enumerate() {
+            while (i % 40 == 0) && !self.send_pin.read() {
                 time::Duration::from_millis(1);
             }
 
-            let mut word = word;
-            for _ in 0..4 {
-                let byte = (word & 0xff) as u8;
-                word >>= 8;
+            let bytes = [(word & 0xff000000 >> 24) as u8,
+                         (word & 0x00ff0000 >> 16) as u8,
+                         (word & 0x0000ff00 >> 8) as u8,
+                         (word & 0x000000ff) as u8];
 
-                if (*self.serial).write(&[byte]).is_err() {
-                    error!("Unable to write data to the serial port");
-                }
+            if (*self.serial).write(&bytes).is_err() {
+                error!("Unable to write data to the serial port");
+                self.ptt_pin.set_low();
+                return;
             }
         }
 
