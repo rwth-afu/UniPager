@@ -1,6 +1,6 @@
 use raspi::{Gpio, Pin, Direction, Model};
 use std::{thread, time};
-use serial;
+use serial::{self, SerialPort};
 
 use config::Config;
 use pocsag::Generator;
@@ -17,13 +17,25 @@ impl C9000Transmitter  {
     pub fn new(_: &Config) -> C9000Transmitter {
         info!("Initializing C9000 transmitter...");
         info!("Detected {}", Model::get());
-        let serial = serial::open("/dev/ttyAMA0").expect("Unable to open serial port");
+
+        let mut serial = serial::open("/dev/ttyAMA0")
+            .expect("Unable to open serial port");
+
+        serial.configure(&serial::PortSettings {
+            baud_rate: serial::BaudRate::Baud38400,
+            char_size: serial::CharSize::Bits8,
+            parity: serial::Parity::ParityNone,
+            stop_bits: serial::StopBits::Stop1,
+            flow_control: serial::FlowControl::FlowNone
+        }).expect("Unable to configure serial port");
+
+
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
         let transmitter = C9000Transmitter {
-            reset_pin: gpio.pin(17, Direction::Output),
-            ptt_pin: gpio.pin(27, Direction::Output),
-            send_pin: gpio.pin(22, Direction::Output),
+            reset_pin: gpio.pin(0, Direction::Output),
+            ptt_pin: gpio.pin(2, Direction::Output),
+            send_pin: gpio.pin(3, Direction::Output),
             serial: Box::new(serial)
         };
 

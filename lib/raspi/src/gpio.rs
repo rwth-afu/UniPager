@@ -2,9 +2,9 @@ use libc;
 use std::intrinsics::{offset, volatile_load, volatile_store};
 use model::Model;
 
-#[derive(Clone, Copy)]
 pub struct Gpio {
-    pub base: *mut u32
+    pub base: *mut u32,
+    pin_mapping: Vec<usize>
 }
 
 impl Gpio {
@@ -15,9 +15,8 @@ impl Gpio {
         if base.is_none() { return None };
 
         let mapped_base = unsafe {
-            let mem_fd = libc::open("/dev/mem\0".as_ptr() as *const libc::c_char,
-                                    libc::O_RDWR|libc::O_SYNC);
-
+            let mem = "/dev/mem\0".as_ptr() as *const libc::c_char;
+            let mem_fd = libc::open(mem, libc::O_RDWR|libc::O_SYNC);
             if mem_fd < 0 { return None; }
 
             let mapped_base = libc::mmap(
@@ -31,18 +30,22 @@ impl Gpio {
 
             libc::close(mem_fd);
 
-            if mapped_base == libc::MAP_FAILED { return None; }
+            if mapped_base == libc::MAP_FAILED {
+                return None;
+            }
 
             mapped_base
         };
 
         Some(Gpio {
-            base: mapped_base as *mut u32
+            base: mapped_base as *mut u32,
+            pin_mapping: model.pin_mapping()
         })
     }
 
-    pub fn pin(&self, number: u8, direction: Direction) -> Pin {
-        Pin::new(*self, number, direction)
+    pub fn pin(&self, number: usize, direction: Direction) -> Pin {
+        let number = self.pin_mapping.get(number).unwrap();
+        Pin::new(self.base, *number, direction)
     }
 }
 
@@ -53,27 +56,27 @@ pub enum Direction {
 }
 
 pub struct Pin {
-    gpio: Gpio,
-    number: u8,
+    base: *mut u32,
+    number: usize,
     direction: Direction
 }
 
 impl Pin {
-    pub fn new(gpio: Gpio, number: u8, direction: Direction) -> Pin {
+    pub fn new(base: *mut u32, number: usize, direction: Direction) -> Pin {
         match direction {
             Direction::Input => unsafe {
-                let p = offset(gpio.base, (number/10) as isize) as *mut u32;
+                let p = offset(base, (number/10) as isize) as *mut u32;
                 *p &= !(0b111 << ((number % 10) * 3));
             },
             Direction::Output => unsafe {
-                let p = offset(gpio.base, (number/10) as isize) as *mut u32;
+                let p = offset(base, (number/10) as isize) as *mut u32;
                 *p &= !(0b111 << ((number % 10) * 3));
                 *p |= 0b1 << ((number % 10) * 3);
             }
         }
 
         Pin {
-            gpio: gpio,
+            base: base,
             number: number,
             direction: direction
         }
@@ -91,13 +94,13 @@ impl Pin {
         assert_eq!(self.direction, Direction::Output);
         if value {
             unsafe {
-                let gpio_set = offset(self.gpio.base, 7) as *mut u32;
+                let gpio_set = offset(self.base, 7) as *mut u32;
                 volatile_store(gpio_set, 1 << self.number);
             }
         }
         else {
             unsafe {
-                let gpio_clr = offset(self.gpio.base, 10) as *mut u32;
+                let gpio_clr = offset(self.base, 10) as *mut u32;
                 volatile_store(gpio_clr, 1 << self.number);
             }
         }
@@ -106,7 +109,7 @@ impl Pin {
     pub fn read(&self) -> bool {
         assert_eq!(self.direction, Direction::Input);
         unsafe {
-            let gpio_val = volatile_load(offset(self.gpio.base, 13) as *mut u32);
+            let gpio_val = volatile_load(offset(self.base, 13) as *mut u32);
             (gpio_val & (1 << self.number)) != 0
         }
     }

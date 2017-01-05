@@ -36,15 +36,15 @@ impl RaspagerTransmitter  {
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
         let mut tx = RaspagerTransmitter {
-            le: gpio.pin(17, Direction::Output),
-            ce: gpio.pin(4, Direction::Output),
-            clk: gpio.pin(22, Direction::Output),
-            sdata: gpio.pin(27, Direction::Output),
-            muxout: gpio.pin(9, Direction::Input),
-            atclk: gpio.pin(7, Direction::Output),
-            atdata: gpio.pin(8, Direction::Output),
-            handshake: gpio.pin(24, Direction::Input),
-            ptt: gpio.pin(23, Direction::Input),
+            le: gpio.pin(0, Direction::Output),
+            ce: gpio.pin(7, Direction::Output),
+            clk: gpio.pin(3, Direction::Output),
+            sdata: gpio.pin(2, Direction::Output),
+            muxout: gpio.pin(13, Direction::Input),
+            atclk: gpio.pin(11, Direction::Output),
+            atdata: gpio.pin(10, Direction::Output),
+            handshake: gpio.pin(5, Direction::Input),
+            ptt: gpio.pin(4, Direction::Input),
             config: Adf7012Config::new()
         };
 
