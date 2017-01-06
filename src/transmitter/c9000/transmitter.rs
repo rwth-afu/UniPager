@@ -55,7 +55,7 @@ impl Transmitter for C9000Transmitter {
 
         for (i, word) in gen.enumerate() {
             while (i % 40 == 0) && !self.send_pin.read() {
-                time::Duration::from_millis(1);
+                thread::sleep(time::Duration::from_millis(1));
             }
 
             let bytes = [(word & 0xff000000 >> 24) as u8,
