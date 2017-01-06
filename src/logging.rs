@@ -1,5 +1,5 @@
 use log::{self, Log, LogRecord, LogLevel, LogLevelFilter, LogMetadata};
-use frontend:: {Responder, Response};
+use frontend::{Responder, Response};
 
 struct Logger {
     responder: Responder

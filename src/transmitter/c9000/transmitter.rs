@@ -29,7 +29,6 @@ impl C9000Transmitter  {
             flow_control: serial::FlowControl::FlowNone
         }).expect("Unable to configure serial port");
 
-
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
         let transmitter = C9000Transmitter {
