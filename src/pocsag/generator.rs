@@ -14,14 +14,22 @@ enum State {
     Completed
 }
 
+/// POCASG Generator
+///
+/// Generates 32-bit POCSAG codewords from a Message vector.
 pub struct Generator {
+    // Current state of the state machine
     state: State,
+    // Messages to send
     messages: Vec<Message>,
+    // Current message being sent
     message: Option<Message>,
+    // Number of codewords left in current batch
     codewords: u8
 }
 
 impl Generator {
+    /// Create a new Generator
     pub fn new(messages: Vec<Message>) -> Generator {
         Generator {
             state: State::Preamble,
@@ -31,6 +39,7 @@ impl Generator {
         }
     }
 
+    // Get the next message and return the matching state.
     fn next_message(&mut self) -> State {
         self.message = self.messages.pop();
         match self.message {
@@ -40,6 +49,7 @@ impl Generator {
     }
 }
 
+// Calculate the CRC for a codeword and return the updated codeword.
 fn crc(codeword: u32) -> u32 {
     let mut crc = codeword;
     for i in 0..21 {
@@ -50,6 +60,7 @@ fn crc(codeword: u32) -> u32 {
     codeword | crc
 }
 
+// Calculate the parity bit for a codeword and return the updated codeword.
 fn parity(codeword: u32) -> u32 {
     let mut parity = codeword ^ (codeword >> 1);
     parity ^= parity >> 2;
@@ -60,27 +71,46 @@ fn parity(codeword: u32) -> u32 {
 }
 
 impl Iterator for Generator {
+    // The Iterator returns 32-bit codewords.
     type Item = u32;
 
     fn next(&mut self) -> Option<u32> {
         debug!("({}, {:?})", self.codewords, self.state);
+
         match (self.codewords, self.state) {
+            // Stop if no codewords are left and everything is completed.
             (0, State::Completed) => None,
+
+            // The preamble is completed.
+            // Send the sync word and start a new batch with 16 codewords.
             (0, State::Preamble) => {
                 self.codewords = 16;
                 self.state = self.next_message();
                 Some(SYNC_WORD)
             }
+
+            // No codewords left in the current batch.
+            // Send the sync word and start a new batch with 16 codewords.
             (0, _) => {
                 self.codewords = 16;
                 Some(SYNC_WORD)
             },
-            (_, State::Preamble) => { self.codewords -= 1; Some(0xAAAAAAAA) },
+
+            // There are still preamble codewords left to send.
+            (_, State::Preamble) => {
+                self.codewords -= 1;
+                Some(0xAAAAAAAA)
+            },
+
+            // Send the address word for the current message
             (codeword, State::AddressWord) => {
                 let &Message { addr, func, .. } = self.message.as_ref().unwrap();
                 self.codewords -= 1;
 
+                // Send idle words until the current batch position
+                // matches the position required by the address.
                 if ((addr & 0b111) << 1) as u8 == 16 - codeword {
+                    // Set the next state according to the message type
                     self.state = match func {
                         MessageFunc::Tone =>
                             self.next_message(),
@@ -92,6 +122,7 @@ impl Iterator for Generator {
                             State::MessageWord(0, encoding::ALPHANUM)
                     };
 
+                    // Encode the address word.
                     let addr = (addr & 0x001ffff8) << 10;
                     let func = (func as u32 & 0b11) << 11;
                     Some(parity(crc(addr | func)))
@@ -100,6 +131,8 @@ impl Iterator for Generator {
                     Some(IDLE_WORD)
                 }
             },
+
+            // Send the next message word of the current message.
             (_, State::MessageWord(pos, encoding)) => {
                 self.codewords -= 1;
                 let mut pos = pos;
@@ -108,17 +141,19 @@ impl Iterator for Generator {
                 let completed = {
                     let mut bytes = self.message.as_ref().unwrap().data.bytes();
 
+                    // Get the next symbol and shift it to start with correct bit.
                     let mut sym = bytes
                         .nth(pos / encoding.bits)
                         .map(encoding.encode)
                         .unwrap_or(encoding.trailing) >> pos % encoding.bits;
 
                     for _ in 0..20 {
-                        codeword <<= 1;
+                        // Add the next bit of the symbol to the codeword.
+                        codeword = (codeword << 1) | (sym & 1) as u32;
+
                         pos += 1;
 
-                        codeword |= (sym & 1) as u32;
-
+                        // If all bits are send, continue with the next symbol.
                         if pos % encoding.bits == 0 {
                             sym = bytes.next()
                                 .map(encoding.encode)
@@ -129,9 +164,11 @@ impl Iterator for Generator {
                         }
                     }
 
+                    // If no symbols are left, the message is completed.
                     bytes.next().is_none()
                 };
 
+                // Continue with the next message if the current one is completed.
                 self.state = match completed {
                     true => self.next_message(),
                     false => State::MessageWord(pos, encoding)
@@ -141,6 +178,8 @@ impl Iterator for Generator {
 
                 Some(parity(crc(0x80000000 | (codeword << 11))))
             },
+
+            // Everything is done. Send idle words until the batch is complete.
             (_, State::Completed) => {
                 self.codewords -= 1;
                 Some(IDLE_WORD)
