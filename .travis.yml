@@ -53,4 +53,4 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    repo: 7h0ma5/RustPager
+    repo: rwth-afu/RustPager

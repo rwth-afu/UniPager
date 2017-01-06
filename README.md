@@ -16,7 +16,7 @@ curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
 Clone the source:
 
 ```bash
-git clone https://github.com/7h0ma5/RustPager.git
+git clone https://github.com/rwth-afu/RustPager.git
 ```
 
 Start the build:
@@ -82,7 +82,7 @@ linker = "arm-linux-gnueabihf-gcc"
 Clone the source:
 
 ```bash
-git clone https://github.com/7h0ma5/RustPager.git
+git clone https://github.com/rwth-afu/RustPager.git
 ```
 
 Start the build:

@@ -1,7 +1,7 @@
 use pocsag::{Message, MessageFunc, Encoding, encoding};
 
 /// Preamble length in number of 32-bit codewords
-const PREAMBLE_LENGTH: u8 = 18;
+pub const PREAMBLE_LENGTH: u8 = 18;
 
 const SYNC_WORD: u32 = 0x7CD215D8;
 const IDLE_WORD: u32 = 0x7A89C197;
