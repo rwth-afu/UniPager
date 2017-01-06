@@ -10,7 +10,7 @@ use config::Config;
 
 #[derive(Debug, Deserialize)]
 pub enum Request {
-    UpdateConfig(Config),
+    SetConfig(Config),
     SendMessage { addr: u32, data: String },
     GetConfig,
     GetVersion,
@@ -22,8 +22,7 @@ pub enum Request {
 pub enum Response {
     Config(Config),
     Version(String),
-    Log(u8, String),
-    Error(String)
+    Log(u8, String)
 }
 
 pub fn run() -> (Responder, Receiver<Request>) {
