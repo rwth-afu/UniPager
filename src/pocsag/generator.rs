@@ -76,18 +76,29 @@ impl Iterator for Generator {
                 Some(SYNC_WORD)
             },
             (_, State::Preamble) => { self.codewords -= 1; Some(0xAAAAAAAA) },
-            (_, State::AddressWord) => {
-                self.codewords -= 1;
+            (codeword, State::AddressWord) => {
                 let &Message { addr, func, .. } = self.message.as_ref().unwrap();
+                self.codewords -= 1;
 
-                self.state = match func {
-                    MessageFunc::Tone => self.next_message(),
-                    MessageFunc::Numeric => State::MessageWord(0, encoding::NUMERIC),
-                    MessageFunc::AlphaNum => State::MessageWord(0, encoding::ALPHANUM),
-                    MessageFunc::Activation => State::MessageWord(0, encoding::ALPHANUM)
-                };
+                if ((addr & 0b111) << 1) as u8 == 16 - codeword {
+                    self.state = match func {
+                        MessageFunc::Tone =>
+                            self.next_message(),
+                        MessageFunc::Numeric =>
+                            State::MessageWord(0, encoding::NUMERIC),
+                        MessageFunc::AlphaNum =>
+                            State::MessageWord(0, encoding::ALPHANUM),
+                        MessageFunc::Activation =>
+                            State::MessageWord(0, encoding::ALPHANUM)
+                    };
 
-                Some(parity(crc(((addr & 0x001ffff8) << 10) | ((func as u32 & 0b11) << 11))))
+                    let addr = (addr & 0x001ffff8) << 10;
+                    let func = (func as u32 & 0b11) << 11;
+                    Some(parity(crc(addr | func)))
+                }
+                else {
+                    Some(IDLE_WORD)
+                }
             },
             (_, State::MessageWord(pos, encoding)) => {
                 self.codewords -= 1;
@@ -135,25 +146,5 @@ impl Iterator for Generator {
                 Some(IDLE_WORD)
             }
         }
-    }
-}
-
-#[test]
-pub fn test_generator() {
-    use pocsag::{MessageType, MessageSpeed, MessageFunc};
-
-    let msg = Message {
-        id: 0,
-        mtype: MessageType::AlphaNum,
-        speed: MessageSpeed::Baud(1200),
-        addr: 67544,
-        func: MessageFunc::AlphaNum,
-        data: String::from("Hello")
-    };
-
-    let messages = vec![msg];
-    let generator = Generator::new(messages);
-    for byte in generator {
-        println!("{:032b}", byte);
     }
 }
