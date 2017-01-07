@@ -52,8 +52,6 @@ impl C9000Transmitter  {
 
 impl Transmitter for C9000Transmitter {
     fn send(&mut self, gen: Generator) {
-        info!("Sending data...");
-
         self.ptt_pin.set_high();
 
         thread::sleep(time::Duration::from_millis(1));
@@ -76,7 +74,5 @@ impl Transmitter for C9000Transmitter {
         }
 
         self.ptt_pin.set_low();
-
-        info!("Data sent.");
     }
 }
