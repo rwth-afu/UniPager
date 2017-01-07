@@ -92,7 +92,7 @@ impl Config {
     }
 
     pub fn save(&self) {
-        let data = serde_json::to_vec(self).unwrap();
+        let data = serde_json::to_vec_pretty(self).unwrap();
 
         let mut new_file = File::create(CONFIG_FILE)
             .expect("Couldn't create config file");

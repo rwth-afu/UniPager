@@ -4,71 +4,128 @@
     <meta charset="utf-8">
     <title>RustPager</title>
     <link type="text/css" rel="stylesheet" href="/style.css">
-    <script src="/jquery.js"></script>
-    <script src="/main.js"></script>
+    <script src="/vue.js"></script>
   </head>
   <body>
     <div id="wrapper">
       <div id="boxes">
         <div class="box">
-          <h3>Configuration</h3>
+          <div class="box-header">
+            <h3>Configuration</h3>
+          </div>
           <div class="box-content">
             <div class="form-group">
               <label for="transmitter">Transmitter</label>
-              <select id="transmitter">
+              <select id="transmitter" v-model="config.transmitter">
                 <option>Dummy</option>
                 <option>Audio</option>
-                <option>RasPager</option>
+                <option>Raspager</option>
                 <option>C9000</option>
               </select>
             </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="master-server">Master IP</label>
+                <input type="text" id="master-server"
+                       v-model="config.master.server">
+                </div>
+                <div class="form-group">
+                  <label for="master">Port</label>
+                  <input type="number" id="master-port"
+                         v-model="config.master.port" class="u16-number"
+                         step="1" min="0" max="65535" number>
+                </div>
+            </div>
           </div>
         </div>
-        <div class="box">
-          <h3>Send Message</h3>
-          <div class="box-content form-row">
-            <div class="form-group">
-              <label for="addr">Address</label>
-              <input type="number" id="addr">
+
+        <div class="box" v-if="config.transmitter == 'Raspager'">
+          <div class="box-header">
+            <h3>Raspager Config</h3>
+          </div>
+          <div class="box-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="raspager-freq">Frequency</label>
+                <input type="number" id="raspager-freq"
+                       v-model="config.raspager.freq" class="u32-number" number>
+              </div>
+              <div class="form-group">
+                <label for="raspager-freq-corr">Frequency Correction</label>
+                <input type="number" id="raspager-freq-corr"
+                       v-model="config.raspager.freq_corr" class="u16-number"
+                       step="1" min="-1024" max="1023" number>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="message">Message</label>
-              <input type="text" id="message">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="raspager-pa-output-Level">PA Output Level</label>
+                <input type="number" id="raspager-pa-output-level"
+                       v-model="config.raspager.pa_output_level"
+                       step="1" min="0" max="63" number class="u8-number">
+              </div>
             </div>
-            <button onclick="send()">Send</button>
           </div>
         </div>
 
         <div class="box">
-          <h3>Commands</h3>
+          <div class="box-header">
+            <h3>Send Message</h3>
+          </div>
           <div class="box-content">
-            <button class="orange" onclick="restart()">Restart</button>
-            <button class="orange" onclick="default_config()">Default Config</button>
-            <button class="red" onclick="shutdown()">Shutdown</button>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="addr">Address</label>
+                <input type="number" id="addr" v-model="addr" class="u16-number">
+              </div>
+              <div class="form-group">
+                <label for="message">Message</label>
+                <input type="text" id="message" v-model="message">
+              </div>
+              <button @click="send_message">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="box-header">
+            <h3>Commands</h3>
+          </div>
+          <div class="box-content">
+            <button class="green" @click="save_config">Save Config</button>
+            <button class="orange" @click="default_config">Default Config</button>
+            <button class="orange" @click="restart">Restart</button>
+            <button class="red" @click="shutdown">Shutdown</button>
           </div>
         </div>
       </div>
 
-      <div id="log"></div>
+      <div id="log">
+        <p v-for="record in log">
+          <span class="log-level" v-bind:class="[record.level]">{{record.level}}</span>
+          {{record.msg}}
+        </p>
+      </div>
 
       <footer>
-          <div class="logo">
-            <a href="http://www.afu.rwth-aachen.de"><img src="/logo.png"></a>
-          </div>
-          <div>
-            <p>
-              <b>RustPager <span id="version"></span></b>
-            </p>
-            <p>
-              &copy; 2017 RWTH Amateurfunkgruppe
-            </p>
-            <p>
-                <a href="https://github.com/rwth-afu/">GitHub</a>
-                &bull; <a href="https://github.com/rwth-afu/RustPager/issues">Report Issues</a>
-                &bull; <a href="https://www.afu.rwth-aachen.de/ueber-uns/spendenaufruf">Donate</a>
-            </p>
-          </div>
+        <div class="logo">
+          <a href="http://www.afu.rwth-aachen.de"><img src="/logo.png" alt="Logo"></a>
+        </div>
+        <div>
+          <p>
+            <b>RustPager {{version}}</b>
+          </p>
+          <p>
+            &copy; 2017 RWTH Amateurfunkgruppe
+          </p>
+          <p>
+            <a href="https://github.com/rwth-afu/">GitHub</a>
+            &bull; <a href="https://github.com/rwth-afu/RustPager/issues">Report Issues</a>
+            &bull; <a href="https://www.afu.rwth-aachen.de/ueber-uns/spendenaufruf">Donate</a>
+          </p>
+        </div>
       </footer>
     </div>
+    <script src="/main.js"></script>
   </body>
 </html>

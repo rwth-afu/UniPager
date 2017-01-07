@@ -75,6 +75,19 @@ fn main() {
             match requests.recv().unwrap() {
                 Request::SetConfig(new_config) => {
                     config = new_config;
+                    config.save();
+                    info!("Config updated. Initiating restart.");
+                    restart = true;
+                    scheduler.stop();
+                    break;
+                },
+                Request::DefaultConfig => {
+                    config = Config::default();
+                    config.save();
+                    info!("Config set to default. Initiating restart.");
+                    restart = true;
+                    scheduler.stop();
+                    break;
                 },
                 Request::SendMessage { addr, data } => {
                     let msg = pocsag::Message {
@@ -95,15 +108,15 @@ fn main() {
                     responder.send(Response::Version(version));
                 },
                 Request::Shutdown => {
+                    info!("Initiating shutdown.");
                     restart = false;
                     scheduler.stop();
-                    info!("Initiating shutdown.");
                     break;
                 },
                 Request::Restart => {
+                    info!("Initiating restart.");
                     restart = true;
                     scheduler.stop();
-                    info!("Initiating restart.");
                     break;
                 }
             }

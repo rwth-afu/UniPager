@@ -11,6 +11,7 @@ use config::Config;
 #[derive(Debug, Deserialize)]
 pub enum Request {
     SetConfig(Config),
+    DefaultConfig,
     SendMessage { addr: u32, data: String },
     GetConfig,
     GetVersion,

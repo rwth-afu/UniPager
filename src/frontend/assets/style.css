@@ -28,10 +28,9 @@ a:hover {
 
 input {
     font-size: 1rem;
-    padding: 4px;
-    border-width: 0 0 1px 0;
-    border-color: #E0E0E0;
-    border-style: solid;
+    padding: 4px 0;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,.12);
     transition: border-color 0.5s linear;
 }
 
@@ -39,6 +38,18 @@ input:focus {
     padding-bottom: 3px;
     border-color: #26a0e5;
     border-bottom-width: 2px;
+    outline: 0;
+}
+
+select {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,.12);
+    font-size: 1rem;
+    padding: 4px 10px 4px 0;
+}
+
+select:focus {
     outline: 0;
 }
 
@@ -50,8 +61,8 @@ input:focus {
 
 .form-group label {
     display: block;
-    padding-left: 2px;
-    font-size: 0.8rem;
+    padding-left: 2px 0;
+    font-size: 0.75rem;
     color: #555;
 }
 
@@ -59,12 +70,12 @@ input:focus {
     display: flex;
     flex-flow: row;
     align-items: flex-end;
+    margin: 10px 0;
 }
 
-.form-row > div {
-    margin: 0 5px;
-}
-
+.form-row > div { margin: 0 5px; }
+.form-row:first-child { margin-top: 0; }
+.form-row:last-child { margin-bottom: 0; }
 .form-row > div:first-child { margin-left: 0; }
 .form-row > div:last-child { margin-right: 0; }
 
@@ -107,30 +118,35 @@ button.red:active { background-color: ##B71C1C; }
     box-shadow: 0 4px 16px rgba(0,0,0,.15);
 }
 
-.box h3 {
+.box-header {
+    padding: 15px 40px 15px 15px;
+    background-color: #2196F3;
     color: #fff;
-    font-size: 1.1rem;
-    background-color: #607D8B;
-    padding: 18px 20px;
-    margin: 0;
-    font-weight: 300;
     border-top-left-radius: 2px;
     border-top-right-radius: 2px;
 }
 
+.box-header h3 {
+    font-size: 1.05rem;
+    font-weight: 400;
+    line-height: normal;
+    padding: 0;
+    margin: 0;
+}
+
 .box-content {
-    padding: 20px;
+    padding: 15px;
 }
 
 #log {
     font-family: "Lucida Console", Monaco, monospace;
     color: #F5F5F5;
     background-color: #212121;
-    padding: 20px;
     height: 400px;
-    overflow-y: scroll;
     border-radius: 2px;
     box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    overflow-y: scroll;
+    padding: 20px;
 }
 
 #log::-webkit-scrollbar {
@@ -153,10 +169,10 @@ button.red:active { background-color: ##B71C1C; }
     width: 60px;
 }
 
-.log-info { color: #4CAF50; }
-.log-debug { color: #9E9E9E; }
-.log-warn { color: #FFC107; }
-.log-error { color: #F44336; }
+.log-level.info { color: #4CAF50; }
+.log-level.debug { color: #9E9E9E; }
+.log-level.warn { color: #FFC107; }
+.log-level.error { color: #F44336; }
 
 footer {
     margin: 1rem 0;
@@ -168,3 +184,7 @@ footer {
 footer .logo {
     margin-right: 20px;
 }
+
+input.u8-number { width: 3rem; }
+input.u16-number { width: 5rem; }
+input.u32-number { width: 8rem; }
