@@ -38,6 +38,7 @@ install:
     echo >> ~/.cargo/config
     echo "[target.$TARGET]" >> ~/.cargo/config
     echo "linker = \"$LINKER\"" >> ~/.cargo/config
+    echo "rustflags = [\"-C\", \"link-arg=-marm\"]" >> ~/.cargo/config
 
 script:
   - cargo build --target $TARGET --verbose --release

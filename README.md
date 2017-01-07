@@ -75,9 +75,11 @@ Create the file `~/.cargo/config` with the following content:
 ```toml
 [target.arm-unknown-linux-gnueabi]
 linker = "arm-linux-gnueabi-gcc"
+rustflags = ["-C", "link-arg=-marm"]
 
 [target.arm-unknown-linux-gnueabihf]
 linker = "arm-linux-gnueabihf-gcc"
+rustflags = ["-C", "link-arg=-marm"]
 
 [target.armv7-unknown-linux-gnueabihf]
 linker = "arm-linux-gnueabihf-gcc"
