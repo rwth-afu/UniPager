@@ -1,5 +1,6 @@
 use std::process::{Command, Stdio};
 use std::io::Write;
+use raspi::{Gpio, Pin, Direction, Model};
 
 use pocsag::Generator;
 use config::Config;
@@ -10,13 +11,23 @@ const SAMPLE_RATE: usize = 48000;
 const SAMPLES_PER_BIT: usize = SAMPLE_RATE/BAUD_RATE;
 
 pub struct AudioTransmitter {
-
+    ptt_pin: Pin
 }
 
 impl AudioTransmitter {
     pub fn new(_: &Config) -> AudioTransmitter {
         info!("Initializing audio transmitter...");
-        AudioTransmitter { }
+        info!("Detected {}", Model::get());
+
+        let gpio = Gpio::new().expect("Failed to map GPIO");
+
+        let transmitter = AudioTransmitter {
+            ptt_pin: gpio.pin(0, Direction::Output)
+        };
+
+        transmitter.ptt_pin.set_low();
+
+        transmitter
     }
 }
 
@@ -38,6 +49,8 @@ impl Transmitter for AudioTransmitter {
             }
         }
 
+        self.ptt_pin.set_high();
+
         let mut child = Command::new("aplay")
             .stdin(Stdio::piped())
             .args(&["-t", "raw", "-N", "-f", "U8", "-c", "1"])
@@ -51,6 +64,9 @@ impl Transmitter for AudioTransmitter {
             .expect("Failed to write to aplay stdin");
 
         child.wait().expect("Failed to wait for aplay");
+
+        self.ptt_pin.set_low();
+
         info!("Data sent.");
     }
 }

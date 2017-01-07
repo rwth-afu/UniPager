@@ -1,6 +1,6 @@
-use raspi::{Gpio, Pin, Direction, Model};
 use std::{thread, time};
 use serial::{self, SerialPort};
+use raspi::{Gpio, Pin, Direction, Model};
 
 use config::Config;
 use pocsag::Generator;

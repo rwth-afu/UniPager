@@ -54,7 +54,7 @@ impl Gpio {
 
 impl Drop for GpioBase {
     fn drop(&mut self) {
-        let res = unsafe { libc::munmap(self.0 as *mut libc::c_void, 0x1000) };
+        unsafe { libc::munmap(self.0 as *mut libc::c_void, 0x1000) };
     }
 }
 
