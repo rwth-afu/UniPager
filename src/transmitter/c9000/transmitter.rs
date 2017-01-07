@@ -10,6 +10,8 @@ pub struct C9000Transmitter {
     reset_pin: Pin,
     ptt_pin: Pin,
     send_pin: Pin,
+    status_led_pin: Pin,
+    connected_led_pin: Pin,
     serial: Box<serial::SerialPort>
 }
 
@@ -35,10 +37,14 @@ impl C9000Transmitter  {
             reset_pin: gpio.pin(0, Direction::Output),
             ptt_pin: gpio.pin(2, Direction::Output),
             send_pin: gpio.pin(3, Direction::Input),
+            status_led_pin: gpio.pin(10, Direction::Output),
+            connected_led_pin: gpio.pin(11, Direction::Output),
             serial: Box::new(serial)
         };
 
         transmitter.reset_pin.set_high();
+        transmitter.status_led_pin.set_high();
+        transmitter.connected_led_pin.set_high();
 
         transmitter
     }
