@@ -1,5 +1,9 @@
 # RustPager
 
+[![Build Status](https://img.shields.io/travis/rwth-afu/RustPager.svg?style=flat)](https://travis-ci.org/rwth-afu/RustPager)
+[![GitHub issues](https://img.shields.io/github/issues/rwth-afu/RustPager.svg?style=flat)](https://github.com/rwth-afu/RustPager/issues)
+[![GitHub release](https://img.shields.io/github/release/rwth-afu/RustPager.svg?style=flat)](https://github.com/rwth-afu/RustPager/releases)
+
 Universal POCSAG transmitter controller written in Rust.
 
 ## Web Interface
