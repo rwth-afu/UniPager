@@ -98,7 +98,7 @@ fn main() {
                         func: pocsag::MessageFunc::AlphaNum,
                         data: data
                     };
-                    scheduler.enqueue(msg);
+                    scheduler.message(msg);
                 },
                 Request::GetConfig => {
                     responder.send(Response::Config(config.clone()));

@@ -101,7 +101,7 @@ impl Connection {
             };
 
             let next_id = (msg.id as u16 + 1) % 256;
-            self.scheduler.enqueue(msg);
+            self.scheduler.message(msg);
             self.send(&*format!("#{:02x} +", next_id));
             AckStatus::Nothing
         }

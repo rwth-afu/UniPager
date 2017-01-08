@@ -1,4 +1,4 @@
-use pocsag::{Message, MessageFunc, Encoding, encoding};
+use pocsag::{Message, MessageFunc, MessageProvider, Encoding, encoding};
 
 /// Preamble length in number of 32-bit codewords
 pub const PREAMBLE_LENGTH: u8 = 18;
@@ -17,31 +17,31 @@ enum State {
 /// POCASG Generator
 ///
 /// Generates 32-bit POCSAG codewords from a Message vector.
-pub struct Generator {
+pub struct Generator<'a> {
     // Current state of the state machine
     state: State,
-    // Messages to send
-    messages: Vec<Message>,
+    // Message source
+    messages: &'a mut (MessageProvider + 'a),
     // Current message being sent
     message: Option<Message>,
     // Number of codewords left in current batch
     codewords: u8
 }
 
-impl Generator {
+impl<'a> Generator<'a> {
     /// Create a new Generator
-    pub fn new(messages: Vec<Message>) -> Generator {
+    pub fn new(messages: &'a mut MessageProvider, first_msg: Message) -> Generator<'a> {
         Generator {
             state: State::Preamble,
             messages: messages,
-            message: None,
+            message: Some(first_msg),
             codewords: PREAMBLE_LENGTH
         }
     }
 
     // Get the next message and return the matching state.
     fn next_message(&mut self) -> State {
-        self.message = self.messages.pop();
+        self.message = self.messages.next();
         match self.message {
             Some(_) => State::AddressWord,
             None => State::Completed
@@ -70,7 +70,7 @@ fn parity(codeword: u32) -> u32 {
     codeword | (parity & 1)
 }
 
-impl Iterator for Generator {
+impl<'a> Iterator for Generator<'a> {
     // The Iterator returns 32-bit codewords.
     type Item = u32;
 
@@ -85,7 +85,7 @@ impl Iterator for Generator {
             // Send the sync word and start a new batch with 16 codewords.
             (0, State::Preamble) => {
                 self.codewords = 16;
-                self.state = self.next_message();
+                self.state = State::AddressWord;
                 Some(SYNC_WORD)
             }
 

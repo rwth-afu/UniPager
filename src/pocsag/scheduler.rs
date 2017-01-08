@@ -1,14 +1,12 @@
 use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
 use std::sync::{Arc, Mutex};
-use std::collections::VecDeque;
-use std::{thread, time};
 
-use pocsag::{TimeSlots, Message, Generator};
+use pocsag::{TimeSlots, Message, MessageProvider, Generator};
 use transmitter::Transmitter;
 use config::Config;
 
 enum Command {
-    Enqueue(Message),
+    Message(Message),
     SetTimeSlots(TimeSlots),
     Stop
 }
@@ -21,8 +19,8 @@ pub struct Scheduler {
 
 struct SchedulerCore {
     rx: Receiver<Command>,
-    queue: VecDeque<Message>,
-    slots: TimeSlots
+    slots: TimeSlots,
+    stop: bool
 }
 
 impl Scheduler {
@@ -31,8 +29,8 @@ impl Scheduler {
 
         let core = SchedulerCore {
             rx: rx,
-            queue: VecDeque::new(),
-            slots: TimeSlots::new()
+            slots: TimeSlots::new(),
+            stop: false
         };
 
         Scheduler {
@@ -46,9 +44,9 @@ impl Scheduler {
         self.tx.send(Command::SetTimeSlots(slots)).unwrap();
     }
 
-    pub fn enqueue(&self, msg: Message) {
+    pub fn message(&self, msg: Message) {
         info!("{:?}", msg);
-        self.tx.send(Command::Enqueue(msg)).unwrap();
+        self.tx.send(Command::Message(msg)).unwrap();
     }
 
     pub fn stop(&self) {
@@ -64,24 +62,37 @@ impl SchedulerCore {
     pub fn run<T: Transmitter>(&mut self, mut transmitter: T) {
         info!("Scheduler started.");
         loop {
-            loop {
-                match self.rx.try_recv() {
-                    Ok(Command::Enqueue(msg)) => { self.queue.push_back(msg); },
+            let mut message = None;
+
+            while message.is_none() {
+                match self.rx.recv() {
+                    Ok(Command::Message(msg)) => { message = Some(msg); },
                     Ok(Command::SetTimeSlots(slots)) => { self.slots = slots; },
                     Ok(Command::Stop) => { return; },
-                    Err(TryRecvError::Empty) => { break; },
-                    Err(TryRecvError::Disconnected) => { return; }
+                    Err(_) => { return; }
                 }
             }
 
-            while let Some(message) = self.queue.pop_front() {
-                let generator = Generator::new(vec![message]);
+            if let Some(message) = message {
+                let generator = Generator::new(self, message);
                 info!("Transmitting...");
                 transmitter.send(generator);
-                info!("Transmission completed.")
+                info!("Transmission completed.");
             }
 
-            thread::sleep(time::Duration::from_millis(1000));
+            if self.stop { return; }
+        }
+    }
+}
+
+impl MessageProvider for SchedulerCore {
+    fn next(&mut self) -> Option<Message> {
+        match (*self).rx.try_recv() {
+            Ok(Command::Message(msg)) => Some(msg),
+            Ok(Command::SetTimeSlots(slots)) => { self.slots = slots; self.next() },
+            Ok(Command::Stop) => { self.stop = true; None },
+            Err(TryRecvError::Empty) => None,
+            Err(TryRecvError::Disconnected) => { self.stop = true; None }
         }
     }
 }
