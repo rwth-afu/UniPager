@@ -6,11 +6,7 @@
 
 Universal POCSAG transmitter controller written in Rust.
 
-## Web Interface
-The web interface is available on port `8073`. Port `8055` must also be
-open to allow websocket communication between the browser and RustPager.
-
-## Compiling
+## Compilation
 Install rust:
 
 ```bash
@@ -36,7 +32,7 @@ Run:
 ./target/release/rustpager
 ```
 
-## Cross Compiling
+## Cross Compilation
 
 Install rust:
 
@@ -97,6 +93,39 @@ cargo build --target $TARGET --release
 ```
 
 The cross-compiled binary will be created at `./target/$TARGET/release/rustpager`.
+
+## Installation
+
+### Systemd
+Move the RustPager binary to `/usr/local/bin/rustpager`. Create the directory
+`/etc/rustpager`. Create the file `/etc/systemd/system/rustpager.service` with
+the following content:
+
+```
+[Unit]
+Description=Rustpager POCSAG transmitter controller
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/rustpager
+WorkingDirectory=/etc/rustpager
+
+[Install]
+WantedBy=multi-user.target
+```
+
+To start RustPager enter `systemctl start rustpager`. To start RustPager
+automatically after booting enter `systemctl enable rustpager`.
+
+## Configuration
+The web interface for configuration is available on port `8073`. Port `8055`
+must also be open to allow websocket communication between the browser and
+RustPager.
+
+### Raspberry Pi
+Make sure that the serial port is activated. To do this add `enable_uart=1` to
+`/boot/config.txt`,remove `console=ttyAMA0,115200` from `/boot/cmdline.txt` and
+reboot.
 
 ## License
 
