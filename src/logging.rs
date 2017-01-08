@@ -19,7 +19,7 @@ impl Log for Logger {
                 LogLevel::Info => "\x1B[32m",
                 _ => ""
             };
-            println!("\r{}{}\x1B[39m - {}", color, record.level(), record.args());
+            println!("{}{}\x1B[39m - {}", color, record.level(), record.args());
             self.responder.send(Response::Log(record.level() as u8, record.args().to_string()));
         }
     }
