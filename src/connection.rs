@@ -21,12 +21,9 @@ enum AckStatus {
 
 impl Connection {
     pub fn new(stream: TcpStream, scheduler: Scheduler) -> Connection {
-        let stream1 = stream.try_clone().unwrap();
-        let stream2 = stream1.try_clone().unwrap();
-
         Connection {
-            reader: BufReader::new(stream1),
-            writer: BufWriter::new(stream2),
+            reader: BufReader::new(stream.try_clone().unwrap()),
+            writer: BufWriter::new(stream),
             scheduler: scheduler
         }
     }

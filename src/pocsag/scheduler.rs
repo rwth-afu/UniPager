@@ -1,5 +1,6 @@
 use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
 use std::sync::{Arc, Mutex};
+use std::thread;
 
 use pocsag::{TimeSlots, Message, MessageProvider, Generator};
 use transmitter::Transmitter;
@@ -40,12 +41,12 @@ impl Scheduler {
     }
 
     pub fn set_time_slots(&self, slots: TimeSlots) {
-        info!("{:?}", slots);
+        info!("Set {:?}", slots);
         self.tx.send(Command::SetTimeSlots(slots)).unwrap();
     }
 
     pub fn message(&self, msg: Message) {
-        info!("{:?}", msg);
+        info!("Received {:?}", msg);
         self.tx.send(Command::Message(msg)).unwrap();
     }
 
@@ -74,8 +75,18 @@ impl SchedulerCore {
             }
 
             if let Some(message) = message {
-                let generator = Generator::new(self, message);
+                let next_slot = self.slots.next_allowed();
+
+                if let Some(next_slot) = next_slot {
+                    info!("Waiting for {:?}...", next_slot);
+                    thread::sleep(next_slot.duration_until());
+                }
+                else {
+                    warn!("No allowed time slots! Sending anyway...");
+                }
+
                 info!("Transmitting...");
+                let generator = Generator::new(self, message);
                 transmitter.send(generator);
                 info!("Transmission completed.");
             }
@@ -87,6 +98,10 @@ impl SchedulerCore {
 
 impl MessageProvider for SchedulerCore {
     fn next(&mut self) -> Option<Message> {
+        if !self.slots.is_current_allowed() {
+            return None;
+        }
+
         match (*self).rx.try_recv() {
             Ok(Command::Message(msg)) => Some(msg),
             Ok(Command::SetTimeSlots(slots)) => { self.slots = slots; self.next() },
