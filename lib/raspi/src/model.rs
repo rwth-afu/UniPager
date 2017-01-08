@@ -71,6 +71,13 @@ impl Model {
             &Model::Unknown => vec![]
         }
     }
+
+    pub fn serial_port(&self) -> &'static str {
+        match self {
+            &Model::V3B => "/dev/ttyS0",
+            _ => "/dev/ttyAMA0"
+        }
+    }
 }
 
 impl fmt::Display for Model {

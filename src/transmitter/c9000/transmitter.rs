@@ -18,9 +18,11 @@ pub struct C9000Transmitter {
 impl C9000Transmitter  {
     pub fn new(_: &Config) -> C9000Transmitter {
         info!("Initializing C9000 transmitter...");
-        info!("Detected {}", Model::get());
 
-        let mut serial = serial::open("/dev/ttyAMA0")
+        let model = Model::get();
+        info!("Detected {}", model);
+
+        let mut serial = serial::open(model.serial_port())
             .expect("Unable to open serial port");
 
         serial.configure(&serial::PortSettings {
