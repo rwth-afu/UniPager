@@ -1,6 +1,6 @@
 [package]
 name = "rustpager"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Thomas Gatzweiler <mail@thomasgatzweiler.com>"]
 
 [dependencies]
