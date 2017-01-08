@@ -4,7 +4,7 @@ matrix:
     - env:
         - TARGET=arm-unknown-linux-gnueabi
         - LINKER=arm-linux-gnueabi-gcc
-        - PACKAGE=rustpager-arm.gz
+        - PACKAGE=rustpager-arm.tar.gz
       addons:
         apt:
           packages:
@@ -14,7 +14,7 @@ matrix:
     - env:
         - TARGET=arm-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
-        - PACKAGE=rustpager-armhf.gz
+        - PACKAGE=rustpager-armhf.tar.gz
       addons:
         apt:
           packages: &armhf
@@ -24,27 +24,38 @@ matrix:
     - env:
         - TARGET=armv7-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
-        - PACKAGE=rustpager-armv7hf.gz
+        - PACKAGE=rustpager-armv7hf.tar.gz
       addons:
         apt:
           packages: *armhf
+    - env:
+        - TARGET=i686-unknown-linux-gnu
+        - PACKAGE=rustpager-i686.tar.gz
+      addons:
+        apt:
+          packages:
+            - gcc-multilib
+    - env:
+        - TARGET=x86_64-unknown-linux-gnu
+        - PACKAGE=rustpager-x86_64.tar.gz
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
   - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain=nightly
-  - rustup target add $TARGET
+  - rustup target add $TARGET || true
   - |
-    mkdir -p ~/.cargo
-    echo >> ~/.cargo/config
-    echo "[target.$TARGET]" >> ~/.cargo/config
-    echo "linker = \"$LINKER\"" >> ~/.cargo/config
-    echo "rustflags = [\"-C\", \"link-arg=-marm\"]" >> ~/.cargo/config
+    if [ -n "$LINKER" ]; then
+      mkdir -p ~/.cargo
+      echo >> ~/.cargo/config
+      echo "[target.$TARGET]" >> ~/.cargo/config
+      echo "linker = \"$LINKER\"" >> ~/.cargo/config
+    fi
 
 script:
   - cargo build --target $TARGET --verbose --release
 
 before_deploy:
-  - gzip -c target/$TARGET/release/rustpager > $PACKAGE
+  - tar -czf $PACKAGE -C target/$TARGET/release/ rustpager
 
 deploy:
   provider: releases
