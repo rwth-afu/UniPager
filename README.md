@@ -124,7 +124,7 @@ RustPager.
 
 ### Raspberry Pi
 Make sure that the serial port is activated. To do this add `enable_uart=1` to
-`/boot/config.txt`,remove `console=ttyAMA0,115200` from `/boot/cmdline.txt` and
+`/boot/config.txt`, remove `console=ttyAMA0,115200` from `/boot/cmdline.txt` and
 reboot.
 
 ## License

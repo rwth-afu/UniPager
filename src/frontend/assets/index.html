@@ -102,7 +102,7 @@
 
       <div id="log">
         <p v-for="record in log">
-          <span class="log-level" v-bind:class="[record.level]">{{record.level}}</span>
+          <span class="log-level" v-if="record.level" v-bind:class="[record.level]">{{record.level}}</span>
           {{record.msg}}
         </p>
       </div>

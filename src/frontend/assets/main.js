@@ -1,12 +1,10 @@
 var vm = new Vue({
     el: "#wrapper",
     created() {
-        this.socket = new WebSocket("ws://" + location.hostname + ":8055");
-        this.socket.onopen = this.onopen;
-        this.socket.onmessage = this.onmessage;
-        this.socket.onclose = this.onclose;
+        this.connect();
     },
     data: {
+        connected: false,
         version: "",
         log: [],
         socket: null,
@@ -20,7 +18,16 @@ var vm = new Vue({
         addr: localStorage ? (localStorage.pager_addr || 0) : 0
     },
     methods: {
+        connect: function(event) {
+            this.socket = new WebSocket("ws://" + location.hostname + ":8055");
+            this.socket.onopen = this.onopen;
+            this.socket.onmessage = this.onmessage;
+            this.socket.onclose = this.onclose;
+        },
         onopen: function(event) {
+            this.connected = true;
+            this.log.push({msg: "Connected to Rustpager."});
+            this.log_scroll();
             this.send("GetVersion");
             this.send("GetConfig");
         },
@@ -37,7 +44,12 @@ var vm = new Vue({
             }
         },
         onclose: function(event) {
-
+            if (this.connected) {
+                this.log.push({msg: "Disconnected from Rustpager."});
+                this.log_scroll();
+            }
+            this.connected = false;
+            setTimeout(function() { this.connect(); }.bind(this), 1000);
         },
         send: function(data) {
             this.socket.send(JSON.stringify(data));
@@ -54,7 +66,9 @@ var vm = new Vue({
                 default: level = "info";
             }
             this.log.push({level: level, msg: msg});
-
+            this.log_scroll();
+        },
+        log_scroll: function() {
             var container = this.$el.querySelector("#log");
             container.scrollTop = container.scrollHeight + 1e10;
         },
