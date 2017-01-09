@@ -68,6 +68,35 @@
           </div>
         </div>
 
+        <div class="box" v-if="config.transmitter == 'Audio'">
+          <div class="box-header">
+            <h3>Audio Config</h3>
+          </div>
+          <div class="box-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="audio-level">Audio Level</label>
+                <input type="range" id="audio-level"
+                       v-model="config.audio.level"
+                       step="1" min="0" max="127" number>
+              </div>
+              <div class="form-group">
+                  <label for="audio-inverted">Inverted</label>
+                  <input type="checkbox" id="audio-inverted"
+                         v-model="config.audio.inverted">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="audio-ptt-pin">PTT Pin</label>
+                <input type="number" id="audio-ptt-pin"
+                       v-model="config.audio.ptt_pin"
+                       step="1" min="0" number class="u8-number">
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="box">
           <div class="box-header">
             <h3>Send Message</h3>

@@ -35,6 +35,23 @@ impl Default for RaspagerConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AudioConfig {
+    pub level: u8,
+    pub inverted: bool,
+    pub ptt_pin: usize
+}
+
+impl Default for AudioConfig {
+    fn default() -> AudioConfig {
+        AudioConfig {
+            level: 127,
+            inverted: false,
+            ptt_pin: 0
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct MasterConfig {
     pub server: String,
     pub port: u16
@@ -67,8 +84,12 @@ impl Default for Transmitter {
 pub struct Config {
     pub master: MasterConfig,
     pub transmitter: Transmitter,
+    #[serde(default)]
     pub raspager: RaspagerConfig,
-    pub c9000: C9000Config
+    #[serde(default)]
+    pub c9000: C9000Config,
+    #[serde(default)]
+    pub audio: AudioConfig
 }
 
 impl Config {
@@ -79,8 +100,13 @@ impl Config {
                  file.read_to_string(&mut data)
                      .expect("Failed to read config file");
 
-                 serde_json::from_str(&data)
-                     .unwrap_or(Config::default())
+                 if let Ok(config) = serde_json::from_str(&data) {
+                     config
+                 }
+                 else {
+                     error!("Failed to parse config file. Using default.");
+                     Config::default()
+                 }
              },
              Err(_) => {
                  info!("Creating config file from default config.");

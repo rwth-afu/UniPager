@@ -11,21 +11,29 @@ const SAMPLE_RATE: usize = 48000;
 const SAMPLES_PER_BIT: usize = SAMPLE_RATE/BAUD_RATE;
 
 pub struct AudioTransmitter {
-    ptt_pin: Pin
+    ptt_pin: Pin,
+    inverted: bool,
+    level: u8
 }
 
 impl AudioTransmitter {
-    pub fn new(_: &Config) -> AudioTransmitter {
+    pub fn new(config: &Config) -> AudioTransmitter {
         info!("Initializing audio transmitter...");
         info!("Detected {}", Model::get());
 
-        let gpio = Gpio::new().expect("Failed to map GPIO");
+         let gpio = Gpio::new().expect("Failed to map GPIO");
 
-        let transmitter = AudioTransmitter {
-            ptt_pin: gpio.pin(0, Direction::Output)
+        let mut transmitter = AudioTransmitter {
+            ptt_pin: gpio.pin(config.audio.ptt_pin, Direction::Output),
+            inverted: config.audio.inverted,
+            level: config.audio.level
         };
 
-        transmitter.ptt_pin.set_low();
+        if transmitter.level > 127 {
+            transmitter.level = 127;
+        }
+
+       transmitter.ptt_pin.set_low();
 
         transmitter
     }
@@ -33,18 +41,19 @@ impl AudioTransmitter {
 
 impl Transmitter for AudioTransmitter {
     fn send(&mut self, gen: Generator) {
-        info!("Sending data...");
-
         let mut buffer: Vec<u8> = Vec::with_capacity(SAMPLE_RATE);
+
+        let low_level = 127 - self.level;
+        let high_level = 128 + self.level;
 
         for word in gen {
             for i in 0..32 {
-                let bit = word & (1 << (31 - i));
-                if bit == 0 {
-                    buffer.extend_from_slice(&[0; SAMPLES_PER_BIT]);
+                let bit = (word & (1 << (31 - i))) != 0;
+                if (!self.inverted && bit) || (self.inverted && !bit) {
+                    buffer.extend_from_slice(&[low_level; SAMPLES_PER_BIT]);
                 }
                 else {
-                    buffer.extend_from_slice(&[255; SAMPLES_PER_BIT]);
+                    buffer.extend_from_slice(&[high_level; SAMPLES_PER_BIT]);
                 }
             }
         }
@@ -66,7 +75,5 @@ impl Transmitter for AudioTransmitter {
         child.wait().expect("Failed to wait for aplay");
 
         self.ptt_pin.set_low();
-
-        info!("Data sent.");
     }
 }

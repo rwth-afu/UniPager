@@ -34,6 +34,10 @@ input {
     transition: border-color 0.5s linear;
 }
 
+input[type=range], input[type=checkbox] {
+    border-bottom-color: transparent;
+}
+
 input:focus {
     padding-bottom: 3px;
     border-color: #26a0e5;
@@ -55,8 +59,8 @@ select:focus {
 
 .form-group {
     display: inline-flex;
-    margin: 0;
     flex-flow: column;
+    margin: 0;
 }
 
 .form-group label {
@@ -64,14 +68,22 @@ select:focus {
     padding-left: 2px 0;
     font-size: 0.75rem;
     color: #555;
+    align-self: flex-start;
+}
+
+.form-group input[type=checkbox] {
+    margin-top: 5px;
+    display: inline-block;
 }
 
 .form-row {
     display: flex;
     flex-flow: row;
-    align-items: flex-end;
+    align-items: flex-start;
     margin: 10px 0;
 }
+
+.form-row > button { align-self: flex-end; }
 
 .form-row > div { margin: 0 5px; }
 .form-row:first-child { margin-top: 0; }
