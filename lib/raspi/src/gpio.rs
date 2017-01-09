@@ -58,7 +58,7 @@ impl Drop for GpioBase {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Direction {
     Input,
     Output
@@ -72,23 +72,31 @@ pub struct Pin {
 
 impl Pin {
     pub fn new(base: Arc<GpioBase>, number: usize, direction: Direction) -> Pin {
-        match direction {
-            Direction::Input => unsafe {
-                let p = offset((*base).0, (number/10) as isize) as *mut u32;
-                *p &= !(0b111 << ((number % 10) * 3));
-            },
-            Direction::Output => unsafe {
-                let p = offset((*base).0, (number/10) as isize) as *mut u32;
-                *p &= !(0b111 << ((number % 10) * 3));
-                *p |= 0b1 << ((number % 10) * 3);
-            }
-        }
-
-        Pin {
+        let mut pin = Pin {
             base: base,
             number: number,
             direction: direction
-        }
+        };
+
+        pin.set_direction(direction);
+        pin
+    }
+
+    pub fn set_direction(&mut self, direction: Direction) {
+        self.direction = direction;
+        let number = self.number;
+
+        match self.direction {
+            Direction::Input => unsafe {
+                let p = offset((*self.base).0, (number/10) as isize) as *mut u32;
+                *p &= !(0b111 << ((number % 10) * 3));
+            },
+            Direction::Output => unsafe {
+                let p = offset((*self.base).0, (number/10) as isize) as *mut u32;
+                *p &= !(0b111 << ((number % 10) * 3));
+                *p |= 0b1 << ((number % 10) * 3);
+            }
+        };
     }
 
     pub fn set_high(&self) {
@@ -121,5 +129,19 @@ impl Pin {
             let gpio_val = volatile_load(offset((*self.base).0, 13) as *mut u32);
             (gpio_val & (1 << self.number)) != 0
         }
+    }
+}
+
+impl Drop for Pin {
+    fn drop(&mut self) {
+        match self.direction {
+            Direction::Output => {
+                self.set_low();
+                self.set_direction(Direction::Input);
+            },
+            Direction::Input => {
+                // nothing to clean up
+            }
+        };
     }
 }
