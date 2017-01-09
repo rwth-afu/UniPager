@@ -80,10 +80,8 @@ impl SchedulerCore {
                 }
             }
 
-            let message = message.unwrap();
-            let next_slot = self.slots.next_allowed();
-
-            if let Some(next_slot) = next_slot {
+            if self.slots.is_current_allowed() { /* transmit immediately */ }
+            else if let Some(next_slot) = self.slots.next_allowed() {
                 let mut duration = next_slot.duration_until();
 
                 info!("Waiting {} seconds until {:?}...",
@@ -111,7 +109,7 @@ impl SchedulerCore {
             }
 
             info!("Transmitting...");
-            transmitter.send(Generator::new(self, message));
+            transmitter.send(Generator::new(self, message.unwrap()));
             info!("Transmission completed.");
         }
     }

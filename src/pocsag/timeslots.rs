@@ -32,22 +32,42 @@ impl TimeSlot {
     pub fn duration_until(&self) -> Duration {
         let now = unix_time();
         let now_decis = deciseconds(now);
-        let current_slot = (now_decis >> 6) & 0b1111;
 
-        let slot_offset = (self.index() as u64) << 6;
+        let current_slot = (now_decis >> 6) & 0b1111;
+        let this_slot = self.index() as u64;
         let mut block_start = now_decis & !0b1111111111;
 
         // if the slot is already over use the next block
-        if (slot_offset + 1) < current_slot {
+        if this_slot == current_slot {
+            return Duration::new(0, 0)
+        }
+        else if this_slot < current_slot {
             block_start += 1 << 10;
         }
 
+        let slot_offset = this_slot << 6;
         let slot_start = block_start + slot_offset;
+
         let seconds = slot_start/10;
         let nanoseconds = (slot_start % 10) as u32 * 100_000_000;
+
         let start = Duration::new(seconds, nanoseconds);
 
-        start.checked_sub(now).expect("TimeSlot calculation broken")
+        match start.checked_sub(now) {
+            Some(duration) => duration,
+            None => {
+                error!("TimeSlot calculation broken");
+                error!("Current Slot: {:X} This Slot: {:X}", current_slot, this_slot);
+                error!("Now: {:?}", now);
+                error!("Start: {:?}", start);
+                if !self.active() {
+                    Duration::new(1, 0)
+                }
+                else {
+                    Duration::new(0, 0)
+                }
+            }
+        }
     }
 }
 
