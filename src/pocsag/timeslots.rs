@@ -8,8 +8,7 @@ fn unix_time() -> Duration {
 }
 
 // Returns the time in deciseconds since the unix epoch
-fn unix_deciseconds() -> u64 {
-    let duration = unix_time();
+fn deciseconds(duration: Duration) -> u64 {
     let seconds = duration.as_secs();
     let deciseconds = duration.subsec_nanos() as u64 / 100_000_000;
     seconds * 10 + deciseconds
@@ -22,7 +21,7 @@ impl TimeSlot {
     pub fn index(&self) -> usize { self.0 }
 
     pub fn current() -> TimeSlot {
-        let time = unix_deciseconds();
+        let time = deciseconds(unix_time());
         TimeSlot(((time >> 6) & 0b1111) as usize)
     }
 
@@ -31,13 +30,24 @@ impl TimeSlot {
     }
 
     pub fn duration_until(&self) -> Duration {
-        let time = unix_deciseconds();
-        let start = (time & !((1 << 10) - 1)) + ((self.index() as u64) << 6);
-        let start = Duration::new(start/10, (start % 10) as u32 * 100_000_000);
-        match start.checked_sub(unix_time()) {
-            Some(duration) => duration,
-            None => Duration::new(0, 0)
+        let now = unix_time();
+        let now_decis = deciseconds(now);
+        let current_slot = (now_decis >> 6) & 0b1111;
+
+        let slot_offset = (self.index() as u64) << 6;
+        let mut block_start = now_decis & !0b1111111111;
+
+        // if the slot is already over use the next block
+        if (slot_offset + 1) < current_slot {
+            block_start += 1 << 10;
         }
+
+        let slot_start = block_start + slot_offset;
+        let seconds = slot_start/10;
+        let nanoseconds = (slot_start % 10) as u32 * 100_000_000;
+        let start = Duration::new(seconds, nanoseconds);
+
+        start.checked_sub(now).expect("TimeSlot calculation broken")
     }
 }
 

@@ -1,6 +1,6 @@
-use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
+use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
-use std::thread;
+use std::collections::VecDeque;
 
 use pocsag::{TimeSlots, Message, MessageProvider, Generator};
 use transmitter::Transmitter;
@@ -21,6 +21,7 @@ pub struct Scheduler {
 struct SchedulerCore {
     rx: Receiver<Command>,
     slots: TimeSlots,
+    queue: VecDeque<Message>,
     stop: bool
 }
 
@@ -31,6 +32,7 @@ impl Scheduler {
         let core = SchedulerCore {
             rx: rx,
             slots: TimeSlots::new(),
+            queue: VecDeque::new(),
             stop: false
         };
 
@@ -62,36 +64,55 @@ impl Scheduler {
 impl SchedulerCore {
     pub fn run<T: Transmitter>(&mut self, mut transmitter: T) {
         info!("Scheduler started.");
-        loop {
-            let mut message = None;
+        while !self.stop {
+            let mut message = self.queue.pop_front();
 
             while message.is_none() {
                 match self.rx.recv() {
-                    Ok(Command::Message(msg)) => { message = Some(msg); },
-                    Ok(Command::SetTimeSlots(slots)) => { self.slots = slots; },
+                    Ok(Command::Message(msg)) => {
+                        message = Some(msg);
+                    },
+                    Ok(Command::SetTimeSlots(slots)) => {
+                        self.slots = slots;
+                    },
                     Ok(Command::Stop) => { return; },
                     Err(_) => { return; }
                 }
             }
 
-            if let Some(message) = message {
-                let next_slot = self.slots.next_allowed();
+            let message = message.unwrap();
+            let next_slot = self.slots.next_allowed();
 
-                if let Some(next_slot) = next_slot {
-                    info!("Waiting for {:?}...", next_slot);
-                    thread::sleep(next_slot.duration_until());
-                }
-                else {
-                    warn!("No allowed time slots! Sending anyway...");
-                }
+            if let Some(next_slot) = next_slot {
+                let mut duration = next_slot.duration_until();
 
-                info!("Transmitting...");
-                let generator = Generator::new(self, message);
-                transmitter.send(generator);
-                info!("Transmission completed.");
+                info!("Waiting {} seconds until {:?}...",
+                      duration.as_secs(), next_slot);
+
+                // Process other commands while waiting for the time slot
+                'waiting: while !next_slot.active() {
+                    duration = next_slot.duration_until();
+
+                    match self.rx.recv_timeout(duration) {
+                        Ok(Command::Message(msg)) => {
+                            self.queue.push_back(msg);
+                        },
+                        Ok(Command::SetTimeSlots(slots)) => {
+                            self.slots = slots;
+                        },
+                        Ok(Command::Stop) => { return; },
+                        Err(RecvTimeoutError::Disconnected) => { return; }
+                        Err(RecvTimeoutError::Timeout) => { break 'waiting; }
+                    }
+                }
+            }
+            else {
+                warn!("No allowed time slots! Sending anyway...");
             }
 
-            if self.stop { return; }
+            info!("Transmitting...");
+            transmitter.send(Generator::new(self, message));
+            info!("Transmission completed.");
         }
     }
 }
@@ -102,12 +123,26 @@ impl MessageProvider for SchedulerCore {
             return None;
         }
 
-        match (*self).rx.try_recv() {
-            Ok(Command::Message(msg)) => Some(msg),
-            Ok(Command::SetTimeSlots(slots)) => { self.slots = slots; self.next() },
-            Ok(Command::Stop) => { self.stop = true; None },
-            Err(TryRecvError::Empty) => None,
-            Err(TryRecvError::Disconnected) => { self.stop = true; None }
+        loop {
+            match (*self).rx.try_recv() {
+                Ok(Command::Message(msg)) =>{
+                    self.queue.push_back(msg);
+                }
+                Ok(Command::SetTimeSlots(slots)) => {
+                    self.slots = slots;
+                },
+                Ok(Command::Stop) => {
+                    self.stop = true;
+                    return None;
+                },
+                Err(TryRecvError::Disconnected) => {
+                    self.stop = true;
+                    return None;
+                },
+                Err(TryRecvError::Empty) => { break; }
+            };
         }
+
+        self.queue.pop_front()
     }
 }
