@@ -1,4 +1,5 @@
-use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError, RecvTimeoutError};
+use std::sync::mpsc::{channel, Sender, Receiver};
+use std::sync::mpsc::{TryRecvError, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 
@@ -42,18 +43,18 @@ impl Scheduler {
         }
     }
 
-    pub fn set_time_slots(&self, slots: TimeSlots) {
+    pub fn set_time_slots(&self, slots: TimeSlots) -> bool {
         info!("Set {:?}", slots);
-        self.tx.send(Command::SetTimeSlots(slots)).unwrap();
+        self.tx.send(Command::SetTimeSlots(slots)).is_ok()
     }
 
-    pub fn message(&self, msg: Message) {
+    pub fn message(&self, msg: Message) -> bool {
         info!("Received {:?}", msg);
-        self.tx.send(Command::Message(msg)).unwrap();
+        self.tx.send(Command::Message(msg)).is_ok()
     }
 
-    pub fn stop(&self) {
-        self.tx.send(Command::Stop).unwrap();
+    pub fn stop(&self) -> bool {
+        self.tx.send(Command::Stop).is_ok()
     }
 
     pub fn run<T: Transmitter>(&self, transmitter: T) {
