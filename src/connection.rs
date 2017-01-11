@@ -32,10 +32,11 @@ impl Connection {
         self.writer.write(b"[SDRPager v1.2-SCP-#2345678]\r\n").unwrap();
         self.writer.flush().unwrap();
 
-        loop {
-            let mut line = String::new();
-            self.reader.read_line(&mut line).unwrap();
-            self.handle(&*line);
+        let mut buffer = String::new();
+
+        while self.reader.read_line(&mut buffer).unwrap() > 0 {
+            self.handle(&*buffer);
+            buffer.clear();
         }
     }
 
