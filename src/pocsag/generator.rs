@@ -139,7 +139,8 @@ impl<'a> Iterator for Generator<'a> {
                 let mut codeword: u32 = 0;
 
                 let completed = {
-                    let mut bytes = self.message.as_ref().unwrap().data.bytes();
+                    let message = self.message.as_ref().unwrap();
+                    let mut bytes = message.data.bytes();
 
                     // Get the next symbol and shift it to start with correct bit.
                     let mut sym = bytes
@@ -165,7 +166,7 @@ impl<'a> Iterator for Generator<'a> {
                     }
 
                     // If no symbols are left, the message is completed.
-                    bytes.next().is_none()
+                    pos > message.data.len() * encoding.bits
                 };
 
                 // Continue with the next message if the current one is completed.
