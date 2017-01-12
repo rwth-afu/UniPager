@@ -1,5 +1,7 @@
 use std::process::{Command, Stdio};
 use std::io::Write;
+use std::thread::sleep;
+use std::time::Duration;
 use raspi::{Gpio, Pin, Direction, Model};
 
 use pocsag::Generator;
@@ -13,7 +15,8 @@ const SAMPLES_PER_BIT: usize = SAMPLE_RATE/BAUD_RATE;
 pub struct AudioTransmitter {
     ptt_pin: Pin,
     inverted: bool,
-    level: u8
+    level: u8,
+    tx_delay: usize
 }
 
 impl AudioTransmitter {
@@ -21,12 +24,13 @@ impl AudioTransmitter {
         info!("Initializing audio transmitter...");
         info!("Detected {}", Model::get());
 
-         let gpio = Gpio::new().expect("Failed to map GPIO");
+        let gpio = Gpio::new().expect("Failed to map GPIO");
 
         let mut transmitter = AudioTransmitter {
             ptt_pin: gpio.pin(config.audio.ptt_pin, Direction::Output),
             inverted: config.audio.inverted,
-            level: config.audio.level
+            level: config.audio.level,
+            tx_delay: config.audio.tx_delay
         };
 
         if transmitter.level > 127 {
@@ -35,14 +39,17 @@ impl AudioTransmitter {
 
        transmitter.ptt_pin.set_low();
 
-        transmitter
+       transmitter
     }
 }
 
 impl Transmitter for AudioTransmitter {
     fn send(&mut self, gen: Generator) {
-        let mut buffer: Vec<u8> = Vec::with_capacity(SAMPLE_RATE);
+        self.ptt_pin.set_high();
 
+        sleep(Duration::from_millis(self.tx_delay as u64));
+
+        let mut buffer: Vec<u8> = Vec::with_capacity(SAMPLE_RATE);
         let low_level = 127 - self.level;
         let high_level = 128 + self.level;
 
@@ -57,8 +64,6 @@ impl Transmitter for AudioTransmitter {
                 }
             }
         }
-
-        self.ptt_pin.set_high();
 
         let mut child = Command::new("aplay")
             .stdin(Stdio::piped())

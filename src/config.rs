@@ -38,7 +38,9 @@ impl Default for RaspagerConfig {
 pub struct AudioConfig {
     pub level: u8,
     pub inverted: bool,
-    pub ptt_pin: usize
+    pub ptt_pin: usize,
+    #[serde(default)]
+    pub tx_delay: usize
 }
 
 impl Default for AudioConfig {
@@ -46,7 +48,8 @@ impl Default for AudioConfig {
         AudioConfig {
             level: 127,
             inverted: false,
-            ptt_pin: 0
+            ptt_pin: 0,
+            tx_delay: 0
         }
     }
 }
