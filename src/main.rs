@@ -46,7 +46,9 @@ pub fn run_scheduler(config: Config, scheduler: Scheduler) -> JoinHandle<()> {
             config::Transmitter::Raspager =>
                 scheduler.run(RaspagerTransmitter::new(&config)),
             config::Transmitter::C9000 =>
-                scheduler.run(C9000Transmitter::new(&config))
+                scheduler.run(C9000Transmitter::new(&config)),
+            config::Transmitter::STM32Pager =>
+                scheduler.run(STM32Transmitter::new(&config))
         };
     })
 }

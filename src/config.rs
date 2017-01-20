@@ -35,6 +35,19 @@ impl Default for RaspagerConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct STM32PagerConfig {
+    pub port: String
+}
+
+impl Default for STM32PagerConfig {
+    fn default() -> STM32PagerConfig {
+        STM32PagerConfig {
+            port: String::from("/dev/ttyUSB0")
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AudioConfig {
     pub level: u8,
     pub inverted: bool,
@@ -74,7 +87,8 @@ pub enum Transmitter {
     Dummy,
     Audio,
     C9000,
-    Raspager
+    Raspager,
+    STM32Pager
 }
 
 impl Default for Transmitter {
@@ -92,7 +106,9 @@ pub struct Config {
     #[serde(default)]
     pub c9000: C9000Config,
     #[serde(default)]
-    pub audio: AudioConfig
+    pub audio: AudioConfig,
+    #[serde(default)]
+    pub stm32pager: STM32PagerConfig,
 }
 
 impl Config {
