@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{Read, Write};
+use std::fmt;
 use serde_json;
 
 const CONFIG_FILE: &'static str = "config.json";
@@ -70,14 +71,17 @@ impl Default for AudioConfig {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct MasterConfig {
     pub server: String,
-    pub port: u16
+    pub port: u16,
+    #[serde(default)]
+    pub auth: String
 }
 
 impl Default for MasterConfig {
     fn default() -> MasterConfig {
         MasterConfig {
-            server: String::from("44.225.164.2"),
-            port: 1337
+            server: String::from("44.225.164.227"),
+            port: 43434,
+            auth: String::from("")
         }
     }
 }
@@ -94,6 +98,19 @@ pub enum Transmitter {
 impl Default for Transmitter {
     fn default() -> Transmitter {
         Transmitter::Dummy
+    }
+}
+
+impl fmt::Display for Transmitter {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let name = match *self {
+            Transmitter::Dummy => "Dummy",
+            Transmitter::Audio => "Audio",
+            Transmitter::C9000 => "C9000",
+            Transmitter::Raspager => "Raspager",
+            Transmitter::STM32Pager => "STM32Pager"
+        };
+        write!(f, "{}", name)
     }
 }
 

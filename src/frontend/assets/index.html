@@ -30,12 +30,19 @@
                 <input type="text" id="master-server"
                        v-model="config.master.server">
                 </div>
-                <div class="form-group">
-                  <label for="master">Port</label>
-                  <input type="number" id="master-port"
-                         v-model="config.master.port" class="u16-number"
-                         step="1" min="0" max="65535" number>
-                </div>
+              <div class="form-group">
+                <label for="master">Port</label>
+                <input type="number" id="master-port"
+                       v-model="config.master.port" class="u16-number"
+                       step="1" min="0" max="65535" number>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="master-auth">Auth Key</label>
+                <input type="text" id="master-auth"
+                       v-model="config.master.auth">
+              </div>
             </div>
           </div>
         </div>

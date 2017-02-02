@@ -1,13 +1,17 @@
 use std::net::TcpStream;
-use std::io::{BufReader, BufWriter, BufRead, Write};
+use std::io::{BufReader, BufWriter, BufRead, Write, Result};
+use std::time::Duration;
 use std::str::{FromStr};
 
+use config::Config;
 use pocsag::{Scheduler, TimeSlots};
 use pocsag::{Message, MessageSpeed, MessageType, MessageFunc};
 
 pub struct Connection {
     reader: BufReader<TcpStream>,
     writer: BufWriter<TcpStream>,
+    auth: String,
+    id: String,
     scheduler: Scheduler
 }
 
@@ -20,16 +24,24 @@ enum AckStatus {
 }
 
 impl Connection {
-    pub fn new(stream: TcpStream, scheduler: Scheduler) -> Connection {
-        Connection {
-            reader: BufReader::new(stream.try_clone().unwrap()),
+    pub fn new(config: &Config, scheduler: Scheduler) -> Result<Connection> {
+        let addr = (&*config.master.server, config.master.port);
+        let stream = TcpStream::connect(addr)?;
+        stream.set_read_timeout(Some(Duration::from_millis(30000)))?;
+        stream.set_write_timeout(Some(Duration::from_millis(30000)))?;
+
+        Ok(Connection {
+            reader: BufReader::new(stream.try_clone()?),
             writer: BufWriter::new(stream),
-            scheduler: scheduler
-        }
+            scheduler: scheduler,
+            auth: config.master.auth.to_owned(),
+            id: config.transmitter.to_string()
+        })
     }
 
     pub fn run(&mut self) {
-        self.writer.write(b"[SDRPager v1.2-SCP-#2345678]\r\n").unwrap();
+        let id = format!("[{} v1.0 {}]\r\n", self.id, self.auth);
+        self.writer.write(id.as_bytes()).unwrap();
         self.writer.flush().unwrap();
 
         let mut buffer = String::new();

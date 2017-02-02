@@ -13,7 +13,6 @@ extern crate log;
 
 mod config;
 mod logging;
-mod server;
 mod connection;
 mod transmitter;
 mod pocsag;
@@ -53,9 +52,19 @@ pub fn run_scheduler(config: Config, scheduler: Scheduler) -> JoinHandle<()> {
     })
 }
 
-pub fn run_server(config: Config, scheduler: Scheduler) -> JoinHandle<()> {
-    let server = server::Server::new(&config);
-    thread::spawn(move || server.run(scheduler))
+pub fn run_connection(config: Config, scheduler: Scheduler) -> JoinHandle<()> {
+    thread::spawn(move || {
+        loop {
+            info!("Trying to connect to Master...");
+            let connection = connection::Connection::new(&config, scheduler.clone());
+            if let Ok(mut connection) = connection {
+                info!("Connection established.");
+                connection.run();
+                info!("Connection lost.");
+            }
+            thread::sleep(time::Duration::from_millis(5000));
+        }
+    })
 }
 
 fn main() {
@@ -68,7 +77,7 @@ fn main() {
     let mut config = Config::load();
     let scheduler = Scheduler::new(&config);
 
-    run_server(config.clone(), scheduler.clone());
+    run_connection(config.clone(), scheduler.clone());
 
     let mut restart = true;
     while restart {
