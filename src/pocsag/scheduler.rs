@@ -1,6 +1,7 @@
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::mpsc::{TryRecvError, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
+use std::thread::{self, JoinHandle};
 use std::collections::VecDeque;
 
 use pocsag::{TimeSlots, Message, MessageProvider, Generator};
@@ -41,6 +42,26 @@ impl Scheduler {
             tx: tx,
             scheduler: Arc::new(Mutex::new(core))
         }
+    }
+
+    pub fn start(config: Config, scheduler: Scheduler) -> JoinHandle<()> {
+        use transmitter::*;
+        use config::Transmitter;
+
+        thread::spawn(move || {
+            match config.transmitter {
+                Transmitter::Dummy =>
+                    scheduler.run(DummyTransmitter::new(&config)),
+                Transmitter::Audio =>
+                    scheduler.run(AudioTransmitter::new(&config)),
+                Transmitter::Raspager =>
+                    scheduler.run(RaspagerTransmitter::new(&config)),
+                Transmitter::C9000 =>
+                    scheduler.run(C9000Transmitter::new(&config)),
+                Transmitter::STM32Pager =>
+                    scheduler.run(STM32Transmitter::new(&config))
+            };
+        })
     }
 
     pub fn set_time_slots(&self, slots: TimeSlots) -> bool {
