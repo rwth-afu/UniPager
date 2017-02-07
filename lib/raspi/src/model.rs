@@ -64,10 +64,15 @@ impl Model {
             &Model::V1B { rev: 1 } =>
                 vec![17, 18, 21, 22, 23, 24, 25, 4,
                      0, 1, 8, 7, 10, 9, 11, 14, 15],
-            &Model::V1A | &Model::V1B { rev: _ } | &Model::V2B | &Model::V3B |
+            &Model::V1A | &Model::V1B { rev: _ } | &Model::V2B |
             &Model::V1Aplus | &Model::V1Bplus | &Model::Zero =>
                 vec![17, 18, 27, 22, 23, 24, 25, 4,
                      2, 3, 8, 7, 10, 9, 11, 14, 15],
+            &Model::V3B =>
+                vec![17, 18, 27, 22, 23, 24, 25, 4,
+                     2, 3, 8, 7, 10, 9, 11, 14, 15,
+                     0, 0, 0, 0, 5, 6, 13, 19, 26,
+                     12, 16, 20, 21, 0, 1],
             &Model::Unknown => vec![]
         }
     }
