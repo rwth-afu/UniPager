@@ -7,6 +7,8 @@
 Universal POCSAG transmitter controller written in Rust.
 
 ## Compilation
+Be aware: Install with Raspbian wheezy will fail, you need jessie
+
 Install rust:
 
 ```bash
