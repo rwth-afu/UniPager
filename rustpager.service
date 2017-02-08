@@ -1,0 +1,10 @@
+[Unit]
+Description=Rustpager POCSAG transmitter controller
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/rustpager
+WorkingDirectory=/etc/rustpager
+
+[Install]
+WantedBy=multi-user.target
