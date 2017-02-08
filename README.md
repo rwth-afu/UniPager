@@ -7,6 +7,8 @@
 Universal POCSAG transmitter controller written in Rust.
 
 ## Compilation
+Be aware: Install with Raspbian wheezy will fail, you need jessie
+
 Install rust:
 
 ```bash
@@ -31,6 +33,7 @@ Run:
 ```bash
 ./target/release/rustpager
 ```
+Be aware: Must be run with root privileges. Also directory /etc/rustpager must exist and be writeable by root.
 
 ## Cross Compilation
 
@@ -114,8 +117,9 @@ WorkingDirectory=/etc/rustpager
 WantedBy=multi-user.target
 ```
 
-To start RustPager enter `systemctl start rustpager`. To start RustPager
-automatically after booting enter `systemctl enable rustpager`.
+Reload systemctl configuration with `sudo systemctl daemon-reload`.
+To start RustPager enter `sudo systemctl start rustpager`. To start RustPager
+automatically after booting enter `sudo systemctl enable rustpager`.
 
 ## Configuration
 The web interface for configuration is available on port `8073`. Port `8055`

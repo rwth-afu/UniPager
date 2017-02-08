@@ -80,7 +80,7 @@ impl RaspagerTransmitter  {
             }
         }
         else {
-            warn!("ADF7012 not ready");
+            debug!("ADF7012 not ready");
             false
         }
     }
