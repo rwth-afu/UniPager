@@ -117,6 +117,7 @@ WorkingDirectory=/etc/rustpager
 WantedBy=multi-user.target
 ```
 
+Reload systemctl configuration with `sudo systemctl daemon-reload`.
 To start RustPager enter `sudo systemctl start rustpager`. To start RustPager
 automatically after booting enter `sudo systemctl enable rustpager`.
 
