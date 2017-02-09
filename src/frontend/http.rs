@@ -13,6 +13,7 @@ pub fn run() {
             "/vue.js" => ("application/javascript", include_bytes!("assets/vue.js").to_vec()),
             "/style.css" => ("text/css", include_bytes!("assets/style.css").to_vec()),
             "/logo.png" => ("image/png", include_bytes!("assets/logo.png").to_vec()),
+            "/pin_numbers.png" => ("image/png", include_bytes!("assets/pin_numbers.png").to_vec()),
             _ => ("text/html", include_bytes!("assets/index.html").to_vec())
         };
 
