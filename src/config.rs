@@ -73,6 +73,8 @@ pub struct MasterConfig {
     pub server: String,
     pub port: u16,
     #[serde(default)]
+    pub call: String,
+    #[serde(default)]
     pub auth: String
 }
 
@@ -81,6 +83,7 @@ impl Default for MasterConfig {
         MasterConfig {
             server: String::from("44.225.164.227"),
             port: 43434,
+            call: String::from(""),
             auth: String::from("")
         }
     }
@@ -107,7 +110,7 @@ impl fmt::Display for Transmitter {
             Transmitter::Dummy => "Dummy",
             Transmitter::Audio => "Audio",
             Transmitter::C9000 => "C9000",
-            Transmitter::Raspager => "Raspager",
+            Transmitter::Raspager => "RaspagerV1",
             Transmitter::STM32Pager => "STM32Pager"
         };
         write!(f, "{}", name)

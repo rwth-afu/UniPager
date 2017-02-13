@@ -58,7 +58,7 @@ fn main() {
 
                     restart = true;
                     scheduler.stop();
-                    stop_conn.send(()).unwrap();
+                    stop_conn.send(()).ok();
                     break;
                 },
                 Request::DefaultConfig => {
@@ -68,7 +68,7 @@ fn main() {
 
                     restart = true;
                     scheduler.stop();
-                    stop_conn.send(()).unwrap();
+                    stop_conn.send(()).ok();
                     break;
                 },
                 Request::SendMessage { addr, data } => {
@@ -93,24 +93,24 @@ fn main() {
                     info!("Initiating shutdown.");
                     restart = false;
                     scheduler.stop();
-                    stop_conn.send(()).unwrap();
+                    stop_conn.send(()).ok();
                     break;
                 },
                 Request::Restart => {
                     info!("Initiating restart.");
                     restart = true;
                     scheduler.stop();
-                    stop_conn.send(()).unwrap();
+                    stop_conn.send(()).ok();
                     break;
                 }
             }
         }
 
         info!("Waiting for the connection to terminate...");
-        conn_thread.join().unwrap();
+        conn_thread.join().ok();
 
         info!("Waiting for the scheduler to terminate...");
-        scheduler_thread.join().unwrap();
+        scheduler_thread.join().ok();
         info!("Scheduler stopped.");
     }
 

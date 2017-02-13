@@ -13,6 +13,7 @@ pub struct Connection {
     stream: TcpStream,
     reader: BufReader<TcpStream>,
     writer: BufWriter<TcpStream>,
+    call: String,
     auth: String,
     id: String,
     scheduler: Scheduler
@@ -37,6 +38,7 @@ impl Connection {
             writer: BufWriter::new(stream.try_clone()?),
             stream: stream,
             scheduler: scheduler,
+            call: config.master.call.to_owned(),
             auth: config.master.auth.to_owned(),
             id: config.transmitter.to_string()
         })
@@ -89,7 +91,10 @@ impl Connection {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        let id = format!("[{} v1.0 {}]\r\n", self.id, self.auth);
+        let version = env!("CARGO_PKG_VERSION");
+        let id = format!("[RustPager-{} v{} {} {}]\r\n",
+                         self.id, version, self.call, self.auth);
+
         self.writer.write(id.as_bytes())?;
         self.writer.flush()?;
 
