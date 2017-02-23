@@ -71,6 +71,7 @@ impl TimeSlot {
     }
 }
 
+#[derive(Serialize, Clone, Copy)]
 pub struct TimeSlots {
     slots: [bool; 16]
 }

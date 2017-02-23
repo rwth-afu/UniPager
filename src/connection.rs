@@ -55,7 +55,8 @@ impl Connection {
                 let connection = Connection::new(&config, scheduler.clone());
 
                 if let Ok(mut connection) = connection {
-                    info!("Connection established.");
+                    status!(connected: true);
+
                     let stream = connection.stream.try_clone().unwrap();
 
                     let (stopped_tx, stopped_rx) = channel();
@@ -72,10 +73,12 @@ impl Connection {
                     stream.shutdown(Shutdown::Both).unwrap();
                     handle.join().unwrap();
 
-                    info!("Connection closed.");
+                    status!(connected: false);
+                    warn!("Disconnected from master.");
                     delay = Duration::from_millis(1000);
                 }
                 else {
+                    status!(connected: false);
                     error!("Connection failed.");
                     delay = Duration::from_millis(5000);
                 }

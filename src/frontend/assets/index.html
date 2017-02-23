@@ -162,6 +162,20 @@
             <button class="red" @click="shutdown">Shutdown</button>
           </div>
         </div>
+
+        <div class="box">
+          <div class="box-header">
+            <h3>Status</h3>
+          </div>
+          <div class="box-content">
+            <div class="status" v-bind:class="{ 'on-air': status.transmitting }">
+              On Air
+            </div>
+            <div class="status" v-bind:class="{ 'connected': status.connected }">
+              Connected
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="log">

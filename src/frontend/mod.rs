@@ -6,6 +6,7 @@ pub use self::websocket::Responder;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
 
+use status::Status;
 use config::Config;
 
 #[derive(Debug, Deserialize)]
@@ -15,12 +16,14 @@ pub enum Request {
     SendMessage { addr: u32, data: String },
     GetConfig,
     GetVersion,
+    GetStatus,
     Shutdown,
     Restart
 }
 
 #[derive(Debug, Serialize)]
 pub enum Response {
+    Status(Status),
     Config(Config),
     Version(String),
     Log(u8, String)

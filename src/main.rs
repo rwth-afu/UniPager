@@ -10,7 +10,11 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate lazy_static;
 
+#[macro_use]
+mod status;
 mod config;
 mod logging;
 mod connection;
@@ -41,6 +45,7 @@ fn main() {
     let (responder, requests) = frontend::run();
 
     logging::init(responder.clone());
+    status::subscribe(responder.clone());
 
     let mut config = Config::load();
     let scheduler = Scheduler::new(&config);
@@ -88,6 +93,9 @@ fn main() {
                 Request::GetVersion => {
                     let version = env!("CARGO_PKG_VERSION").to_string();
                     responder.send(Response::Version(version));
+                },
+                Request::GetStatus => {
+                    responder.send(Response::Status(status::get()));
                 },
                 Request::Shutdown => {
                     info!("Initiating shutdown.");

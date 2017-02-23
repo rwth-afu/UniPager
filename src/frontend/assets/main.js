@@ -14,6 +14,7 @@ var vm = new Vue({
             c9000: {},
             raspager: {}
         },
+        status: {},
         message: "",
         addr: localStorage ? (localStorage.pager_addr || 0) : 0
     },
@@ -30,6 +31,7 @@ var vm = new Vue({
             this.log_scroll();
             this.send("GetVersion");
             this.send("GetConfig");
+            this.send("GetStatus");
         },
         onmessage: function(event) {
             var response = JSON.parse(event.data) || {};
@@ -39,6 +41,7 @@ var vm = new Vue({
                     case "Log": this.log_append(value); break;
                     case "Version": this.version = value; break;
                     case "Config": this.config = value; break;
+                    case "Status": this.status = value; break;
                     default: console.log("Unknown Key: ", key);
                 }
             }

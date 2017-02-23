@@ -130,9 +130,9 @@ impl SchedulerCore {
                 warn!("No allowed time slots! Sending anyway...");
             }
 
-            info!("Transmitting...");
+            status!(transmitting: true);
             transmitter.send(Generator::new(self, message.unwrap()));
-            info!("Transmission completed.");
+            status!(transmitting: false);
         }
     }
 }

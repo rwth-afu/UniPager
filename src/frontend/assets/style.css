@@ -150,6 +150,27 @@ button.red:active { background-color: ##B71C1C; }
     padding: 15px;
 }
 
+.status {
+    border: 2px solid #ccc;
+    color: #aaa;
+    border-radius: 5px;
+    text-transform: uppercase;
+    display: inline-block;
+    padding: 3px 5px;
+}
+
+.on-air {
+    border-color: #F44336;
+    background-color: #F44336;
+    color: #fff;
+}
+
+.connected {
+    border-color: #4CAF50;
+    background-color: #4CAF50;
+    color: #fff;
+}
+
 #log {
     font-family: "Lucida Console", Monaco, monospace;
     color: #F5F5F5;
