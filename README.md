@@ -15,6 +15,8 @@ Install rust:
 curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
 ```
 
+You may need to login to your shell again to have cargo in your PATH variable.
+
 Clone the source:
 
 ```bash
@@ -130,6 +132,8 @@ RustPager.
 Make sure that the serial port is activated. To do this add `enable_uart=1` to
 `/boot/config.txt`, remove `console=ttyAMA0,115200` from `/boot/cmdline.txt` and
 reboot.
+
+This is not needed for the RASPAGERV1 and Audio transmitter type.
 
 ## License
 
