@@ -4,6 +4,7 @@ use std::time::Duration;
 use std::thread::{self, JoinHandle};
 use std::sync::mpsc::{Sender, channel};
 use std::str::{FromStr};
+use net2::TcpStreamExt;
 
 use config::Config;
 use pocsag::{Scheduler, TimeSlots};
@@ -32,6 +33,7 @@ impl Connection {
         let addr = (&*config.master.server, config.master.port);
         let stream = TcpStream::connect(addr)?;
         stream.set_write_timeout(Some(Duration::from_millis(10000)))?;
+        stream.set_keepalive(Some(Duration::from_millis(5000)))?;
 
         Ok(Connection {
             reader: BufReader::new(stream.try_clone()?),
