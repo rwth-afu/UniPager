@@ -12,6 +12,7 @@ serde = "^0.8.21"
 serde_derive = "^0.8.21"
 serde_json = "^0.8.4"
 lazy_static = "^0.2.2"
+net2 = "^0.2.26"
 
 [dependencies.raspi]
 path = "lib/raspi"

@@ -4,6 +4,7 @@ version = "0.4.0"
 dependencies = [
  "lazy_static 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "net2 0.2.26 (registry+https://github.com/rust-lang/crates.io-index)",
  "raspi 0.1.0",
  "serde 0.8.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 0.8.21 (registry+https://github.com/rust-lang/crates.io-index)",

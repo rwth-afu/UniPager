@@ -4,6 +4,7 @@ extern crate serial;
 extern crate raspi;
 extern crate ws;
 extern crate tiny_http;
+extern crate net2;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
