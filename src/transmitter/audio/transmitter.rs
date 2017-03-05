@@ -13,6 +13,7 @@ const SAMPLE_RATE: usize = 48000;
 const SAMPLES_PER_BIT: usize = SAMPLE_RATE/BAUD_RATE;
 
 pub struct AudioTransmitter {
+    device: String,
     ptt_pin: Pin,
     inverted: bool,
     level: u8,
@@ -26,7 +27,13 @@ impl AudioTransmitter {
 
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
+        let device = match &*config.audio.device {
+            "" => String::from("default"),
+            other => other.to_owned()
+        };
+
         let mut transmitter = AudioTransmitter {
+            device: device,
             ptt_pin: gpio.pin(config.audio.ptt_pin, Direction::Output),
             inverted: config.audio.inverted,
             level: config.audio.level,
@@ -69,6 +76,7 @@ impl Transmitter for AudioTransmitter {
             .stdin(Stdio::piped())
             .args(&["-t", "raw", "-N", "-f", "U8", "-c", "1"])
             .args(&["-r", &*format!("{}", SAMPLE_RATE)])
+            .args(&["-D", &*self.device])
             .spawn()
             .expect("Failed to start aplay");
 

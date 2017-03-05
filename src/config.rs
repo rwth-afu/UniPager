@@ -50,6 +50,8 @@ impl Default for STM32PagerConfig {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AudioConfig {
+    #[serde(default)]
+    pub device: String,
     pub level: u8,
     pub inverted: bool,
     pub ptt_pin: usize,
@@ -60,6 +62,7 @@ pub struct AudioConfig {
 impl Default for AudioConfig {
     fn default() -> AudioConfig {
         AudioConfig {
+            device: String::from("default"),
             level: 127,
             inverted: false,
             ptt_pin: 0,

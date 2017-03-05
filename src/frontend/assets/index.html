@@ -103,7 +103,14 @@
           <div class="box-content">
             <div class="form-row">
               <div class="form-group">
-                <label for="audio-level">Audio Level</label>
+                <label for="audio-device">ALSA device</label>
+                <input type="text" id="audio-device"
+                       v-model="config.audio.device">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="audio-level">Audio Level: {{config.audio.level}}</label>
                 <input type="range" id="audio-level"
                        v-model="config.audio.level"
                        step="1" min="0" max="127" number>
