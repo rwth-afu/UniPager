@@ -1,8 +1,9 @@
+use std::sync::Mutex;
 use log::{self, Log, LogRecord, LogLevel, LogLevelFilter, LogMetadata};
 use frontend::{Responder, Response};
 
 struct Logger {
-    responder: Responder
+    responder: Mutex<Responder>
 }
 
 impl Log for Logger {
@@ -20,7 +21,8 @@ impl Log for Logger {
                 _ => ""
             };
             println!("{}{}\x1B[39m - {}", color, record.level(), record.args());
-            self.responder.send(Response::Log(record.level() as u8, record.args().to_string()));
+            let res = Response::Log(record.level() as u8, record.args().to_string());
+            self.responder.lock().unwrap().send(res);
         }
     }
 }
@@ -28,6 +30,6 @@ impl Log for Logger {
 pub fn init(responder: Responder) {
     log::set_logger(|max_log_level| {
         max_log_level.set(LogLevelFilter::Info);
-        Box::new(Logger { responder: responder })
+        Box::new(Logger { responder: Mutex::new(responder) })
     }).expect("Unable to setup logger");
 }
