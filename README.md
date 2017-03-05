@@ -22,7 +22,7 @@ Install rust:
 curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
 ```
 
-Now reboot OR log off to make the Rust-Toolchain available:
+Now reboot OR log out to make the Rust-Toolchain available:
 
 ```bash
 sudo reboot
