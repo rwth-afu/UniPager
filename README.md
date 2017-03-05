@@ -7,7 +7,14 @@
 Universal POCSAG transmitter controller written in Rust.
 
 ## Compilation
-Be aware: Install with Raspbian wheezy will fail, you need jessie
+Be aware: Install with Raspbian wheezy will fail, you need jessie. Using a fresh installation of Your Operating System will minimize the chance of running into truble.
+
+It is recommended to update your OS before installing:
+
+```bash
+sudo apt-get update
+sudo apt-get upgrade
+```
 
 Install rust:
 
@@ -15,12 +22,25 @@ Install rust:
 curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
 ```
 
-You may need to login to your shell again to have cargo in your PATH variable.
+Now reboot OR log off to make the Rust-Toolchain available:
 
-Clone the source:
+```bash
+sudo reboot
+OR
+logout
+(SSH sessions will be closed)
+```
+
+Log in again and clone the source:
 
 ```bash
 git clone https://github.com/rwth-afu/RustPager.git
+```
+
+If this command fails, You may need to install git and try again:
+
+```bash
+sudo apt-get install git
 ```
 
 Start the build:
@@ -30,11 +50,24 @@ cd RustPager
 cargo build --release
 ```
 
-Run:
+Run the install script:
 
 ```bash
-./target/release/rustpager
+sudo ./install.sh
 ```
+
+Autostart for RustPager:
+
+```bash
+sudo systemctl enable rustpager
+```
+
+Finally do a reboot to test the Autostart sequence of RustPager
+
+```bash
+sudo reboot
+```
+
 Be aware: Must be run with root privileges. Also directory /etc/rustpager must exist and be writeable by root.
 
 ## Cross Compilation
@@ -98,30 +131,6 @@ cargo build --target $TARGET --release
 ```
 
 The cross-compiled binary will be created at `./target/$TARGET/release/rustpager`.
-
-## Installation
-
-### Systemd
-Move the RustPager binary to `/usr/local/bin/rustpager`. Create the directory
-`/etc/rustpager`. Create the file `/etc/systemd/system/rustpager.service` with
-the following content:
-
-```
-[Unit]
-Description=Rustpager POCSAG transmitter controller
-After=network.target
-
-[Service]
-ExecStart=/usr/local/bin/rustpager
-WorkingDirectory=/etc/rustpager
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Reload systemctl configuration with `sudo systemctl daemon-reload`.
-To start RustPager enter `sudo systemctl start rustpager`. To start RustPager
-automatically after booting enter `sudo systemctl enable rustpager`.
 
 ## Configuration
 The web interface for configuration is available on port `8073`. Port `8055`
