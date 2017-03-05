@@ -68,6 +68,14 @@ Finally do a reboot to test the Autostart sequence of RustPager
 sudo reboot
 ```
 
+If you made an autostart entry, the rustpager-Interface will now be available at IP-OF-DEVICE:8073
+
+If you prefer to run RustPager manually, run:
+
+```bash
+sudo ./RustPager/target/release/rustpager
+```
+
 Be aware: Must be run with root privileges. Also directory /etc/rustpager must exist and be writeable by root.
 
 ## Cross Compilation
