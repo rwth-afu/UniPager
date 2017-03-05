@@ -7,7 +7,7 @@
 Universal POCSAG transmitter controller written in Rust.
 
 ## Compilation
-Be aware: Install with Raspbian wheezy will fail, you need jessie. Using a fresh installation of Your Operating System will minimize the chance of running into truble.
+Be aware: Install with Raspbian wheezy will fail, you need jessie. Using a fresh installation of your Operating System will minimize the chance of running into truble.
 
 It is recommended to update your OS before installing:
 
@@ -37,7 +37,7 @@ Log in again and clone the source:
 git clone https://github.com/rwth-afu/RustPager.git
 ```
 
-If this command fails, You may need to install git and try again:
+If this command fails, you may need to install git and try again:
 
 ```bash
 sudo apt-get install git
