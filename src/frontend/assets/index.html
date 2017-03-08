@@ -19,6 +19,7 @@
               <select id="transmitter" v-model="config.transmitter">
                 <option>Dummy</option>
                 <option>AudioGpio</option>
+                <option>AudioRs232</option>
                 <option>Raspager</option>
                 <option>C9000</option>
                 <option>STM32Pager</option>
@@ -132,6 +133,60 @@
                   <label for="audio_gpio-tx-delay">TX Delay (ms)</label>
                   <input type="number" id="audio_gpio-tx-delay"
                          v-model="config.audio_gpio.tx_delay"
+                         step="1" min="0" max="100" number
+                         class="u8-number">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box" v-if="config.transmitter == 'AudioRs232'">
+          <div class="box-header">
+            <h3>AudioRS232 Config</h3>
+          </div>
+          <div class="box-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="audio_rs232-device">ALSA device</label>
+                <input type="text" id="audio_rs232-device"
+                       v-model="config.audio_rs232.device">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="audio_rs232-level">Audio Level: {{config.audio_rs232.level}}</label>
+                <input type="range" id="audio_rs232-level"
+                       v-model="config.audio_rs232.level"
+                       step="1" min="0" max="127" number>
+              </div>
+              <div class="form-group">
+                  <label for="audio_rs232-inverted">Audio Inverted</label>
+                  <input type="checkbox" id="audio_rs232-inverted"
+                         v-model="config.audio_rs232.inverted">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="audio_rs232-ptt-port">Serial Port</label>
+                <input type="text" id="audio_rs232-ptt-port"
+                       v-model="config.audio_rs232.ptt_port">
+              </div>
+              <div class="form-group">
+                <label for="audio_rs232-ptt-pin">PTT Pin</label>
+                <select id="audio_rs232-ptt-pin" v-model="config.audio_rs232.ptt_pin">
+                  <option>DTR</option>
+                  <option>RTS</option>
+                </select>
+              </div>
+              <div class="form-group">
+                  <label for="audio_rs232-ptt-inverted">PTT Inverted</label>
+                  <input type="checkbox" id="audio_rs232-ptt-inverted"
+                         v-model="config.audio_rs232.ptt_inverted">
+              </div>
+              <div class="form-group">
+                  <label for="audio_rs232-tx-delay">TX Delay (ms)</label>
+                  <input type="number" id="audio_rs232-tx-delay"
+                         v-model="config.audio_rs232.tx_delay"
                          step="1" min="0" max="100" number
                          class="u8-number">
               </div>

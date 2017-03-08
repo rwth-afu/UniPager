@@ -72,6 +72,33 @@ impl Default for AudioGpioConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AudioRs232Config {
+    #[serde(default)]
+    pub device: String,
+    pub level: u8,
+    pub inverted: bool,
+    pub ptt_port: String,
+    pub ptt_pin: String,
+    pub ptt_inverted: bool,
+    #[serde(default)]
+    pub tx_delay: usize
+}
+
+impl Default for AudioRs232Config {
+    fn default() -> AudioRs232Config {
+        AudioRs232Config {
+            device: String::from("default"),
+            level: 127,
+            inverted: false,
+            ptt_port: String::from("/dev/ttyUSB0"),
+            ptt_pin: String::from("DTR"),
+            ptt_inverted: false,
+            tx_delay: 0
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct MasterConfig {
     pub server: String,
     pub port: u16,
@@ -96,6 +123,7 @@ impl Default for MasterConfig {
 pub enum Transmitter {
     Dummy,
     AudioGpio,
+    AudioRs232,
     C9000,
     Raspager,
     STM32Pager
@@ -112,6 +140,7 @@ impl fmt::Display for Transmitter {
         let name = match *self {
             Transmitter::Dummy => "Dummy",
             Transmitter::AudioGpio => "AudioGpio",
+            Transmitter::AudioRs232 => "AudioRs232",
             Transmitter::C9000 => "C9000",
             Transmitter::Raspager => "RaspagerV1",
             Transmitter::STM32Pager => "STM32Pager"
@@ -130,6 +159,8 @@ pub struct Config {
     pub c9000: C9000Config,
     #[serde(default)]
     pub audio_gpio: AudioGpioConfig,
+    #[serde(default)]
+    pub audio_rs232: AudioRs232Config,
     #[serde(default)]
     pub stm32pager: STM32PagerConfig,
 }
