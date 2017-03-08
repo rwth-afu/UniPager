@@ -10,7 +10,7 @@ var vm = new Vue({
         socket: null,
         config: {
             master: {},
-            audio: {},
+            audio_gpio: {},
             c9000: {},
             raspager: {}
         },

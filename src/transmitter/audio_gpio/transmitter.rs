@@ -12,7 +12,7 @@ const BAUD_RATE: usize = 1200;
 const SAMPLE_RATE: usize = 48000;
 const SAMPLES_PER_BIT: usize = SAMPLE_RATE/BAUD_RATE;
 
-pub struct AudioTransmitter {
+pub struct AudioGpioTransmitter {
     device: String,
     ptt_pin: Pin,
     inverted: bool,
@@ -20,24 +20,24 @@ pub struct AudioTransmitter {
     tx_delay: usize
 }
 
-impl AudioTransmitter {
-    pub fn new(config: &Config) -> AudioTransmitter {
-        info!("Initializing audio transmitter...");
+impl AudioGpioTransmitter {
+    pub fn new(config: &Config) -> AudioGpioTransmitter {
+        info!("Initializing audio GPIO transmitter...");
         info!("Detected {}", Model::get());
 
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
-        let device = match &*config.audio.device {
+        let device = match &*config.audio_gpio.device {
             "" => String::from("default"),
             other => other.to_owned()
         };
 
-        let mut transmitter = AudioTransmitter {
+        let mut transmitter = AudioGpioTransmitter {
             device: device,
-            ptt_pin: gpio.pin(config.audio.ptt_pin, Direction::Output),
-            inverted: config.audio.inverted,
-            level: config.audio.level,
-            tx_delay: config.audio.tx_delay
+            ptt_pin: gpio.pin(config.audio_gpio.ptt_pin, Direction::Output),
+            inverted: config.audio_gpio.inverted,
+            level: config.audio_gpio.level,
+            tx_delay: config.audio_gpio.tx_delay
         };
 
         if transmitter.level > 127 {
@@ -50,7 +50,7 @@ impl AudioTransmitter {
     }
 }
 
-impl Transmitter for AudioTransmitter {
+impl Transmitter for AudioGpioTransmitter {
     fn send(&mut self, gen: Generator) {
         self.ptt_pin.set_high();
 

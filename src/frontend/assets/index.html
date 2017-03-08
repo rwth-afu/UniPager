@@ -18,7 +18,7 @@
               <label for="transmitter">Transmitter</label>
               <select id="transmitter" v-model="config.transmitter">
                 <option>Dummy</option>
-                <option>Audio</option>
+                <option>AudioGpio</option>
                 <option>Raspager</option>
                 <option>C9000</option>
                 <option>STM32Pager</option>
@@ -96,42 +96,42 @@
           </div>
         </div>
 
-        <div class="box" v-if="config.transmitter == 'Audio'">
+        <div class="box" v-if="config.transmitter == 'AudioGpio'">
           <div class="box-header">
-            <h3>Audio Config</h3>
+            <h3>AudioGPIO Config</h3>
           </div>
           <div class="box-content">
             <div class="form-row">
               <div class="form-group">
-                <label for="audio-device">ALSA device</label>
-                <input type="text" id="audio-device"
-                       v-model="config.audio.device">
+                <label for="audio_gpio-device">ALSA device</label>
+                <input type="text" id="audio_gpio-device"
+                       v-model="config.audio_gpio.device">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="audio-level">Audio Level: {{config.audio.level}}</label>
-                <input type="range" id="audio-level"
-                       v-model="config.audio.level"
+                <label for="audio_gpio-level">Audio Level: {{config.audio_gpio.level}}</label>
+                <input type="range" id="audio_gpio-level"
+                       v-model="config.audio_gpio.level"
                        step="1" min="0" max="127" number>
               </div>
               <div class="form-group">
-                  <label for="audio-inverted">Inverted</label>
-                  <input type="checkbox" id="audio-inverted"
-                         v-model="config.audio.inverted">
+                  <label for="audio_gpio-inverted">Inverted</label>
+                  <input type="checkbox" id="audio_gpio-inverted"
+                         v-model="config.audio_gpio.inverted">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="audio-ptt-pin">PTT Pin</label>
-                <input type="number" id="audio-ptt-pin"
-                       v-model="config.audio.ptt_pin"
+                <label for="audio_gpio-ptt-pin">PTT Pin</label>
+                <input type="number" id="audio_gpio-ptt-pin"
+                       v-model="config.audio_gpio.ptt_pin"
                        step="1" min="0" number class="u8-number">
               </div>
               <div class="form-group">
-                  <label for="audio-tx-delay">TX Delay (ms)</label>
-                  <input type="number" id="audio-tx-delay"
-                         v-model="config.audio.tx_delay"
+                  <label for="audio_gpio-tx-delay">TX Delay (ms)</label>
+                  <input type="number" id="audio_gpio-tx-delay"
+                         v-model="config.audio_gpio.tx_delay"
                          step="1" min="0" max="100" number
                          class="u8-number">
               </div>

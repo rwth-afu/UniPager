@@ -49,7 +49,7 @@ impl Default for STM32PagerConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct AudioConfig {
+pub struct AudioGpioConfig {
     #[serde(default)]
     pub device: String,
     pub level: u8,
@@ -59,9 +59,9 @@ pub struct AudioConfig {
     pub tx_delay: usize
 }
 
-impl Default for AudioConfig {
-    fn default() -> AudioConfig {
-        AudioConfig {
+impl Default for AudioGpioConfig {
+    fn default() -> AudioGpioConfig {
+        AudioGpioConfig {
             device: String::from("default"),
             level: 127,
             inverted: false,
@@ -95,7 +95,7 @@ impl Default for MasterConfig {
 #[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum Transmitter {
     Dummy,
-    Audio,
+    AudioGpio,
     C9000,
     Raspager,
     STM32Pager
@@ -111,7 +111,7 @@ impl fmt::Display for Transmitter {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let name = match *self {
             Transmitter::Dummy => "Dummy",
-            Transmitter::Audio => "Audio",
+            Transmitter::AudioGpio => "AudioGpio",
             Transmitter::C9000 => "C9000",
             Transmitter::Raspager => "RaspagerV1",
             Transmitter::STM32Pager => "STM32Pager"
@@ -129,7 +129,7 @@ pub struct Config {
     #[serde(default)]
     pub c9000: C9000Config,
     #[serde(default)]
-    pub audio: AudioConfig,
+    pub audio_gpio: AudioGpioConfig,
     #[serde(default)]
     pub stm32pager: STM32PagerConfig,
 }
