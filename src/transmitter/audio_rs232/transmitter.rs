@@ -14,7 +14,6 @@ const SAMPLES_PER_BIT: usize = SAMPLE_RATE/BAUD_RATE;
 
 pub struct AudioRs232Transmitter {
     device: String,
-    ptt_port: String,
     ptt_pin: String,
     ptt_inverted: bool,
     inverted: bool,
@@ -40,7 +39,6 @@ impl AudioRs232Transmitter {
 
         let mut transmitter = AudioRs232Transmitter {
             device: device,
-            ptt_port: config.audio_rs232.ptt_port.to_owned(),
             ptt_pin: config.audio_rs232.ptt_pin.to_owned(),
             ptt_inverted: config.audio_rs232.ptt_inverted.to_owned(),
             inverted: config.audio_rs232.inverted,
