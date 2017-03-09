@@ -52,8 +52,10 @@ impl Scheduler {
             match config.transmitter {
                 Transmitter::Dummy =>
                     scheduler.run(DummyTransmitter::new(&config)),
-                Transmitter::Audio =>
-                    scheduler.run(AudioTransmitter::new(&config)),
+                Transmitter::AudioGpio =>
+                    scheduler.run(AudioGpioTransmitter::new(&config)),
+                Transmitter::AudioRs232 =>
+                    scheduler.run(AudioRs232Transmitter::new(&config)),
                 Transmitter::Raspager =>
                     scheduler.run(RaspagerTransmitter::new(&config)),
                 Transmitter::C9000 =>
