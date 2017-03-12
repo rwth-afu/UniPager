@@ -54,7 +54,6 @@ pub struct AudioConfig {
     pub device: String,
     pub level: u8,
     pub inverted: bool,
-    pub ptt_pin: usize,
     #[serde(default)]
     pub tx_delay: usize
 }
@@ -65,8 +64,33 @@ impl Default for AudioConfig {
             device: String::from("default"),
             level: 127,
             inverted: false,
-            ptt_pin: 0,
             tx_delay: 0
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum PttMethod {
+    Gpio,
+    SerialDtr,
+    SerialRts
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct PttConfig {
+    pub method: PttMethod,
+    pub inverted: bool,
+    pub gpio_pin: usize,
+    pub serial_port: String
+}
+
+impl Default for PttConfig {
+    fn default() -> PttConfig {
+        PttConfig {
+            method: PttMethod::Gpio,
+            inverted: false,
+            gpio_pin: 0,
+            serial_port: String::from("/dev/ttyS0")
         }
     }
 }
@@ -124,6 +148,8 @@ impl fmt::Display for Transmitter {
 pub struct Config {
     pub master: MasterConfig,
     pub transmitter: Transmitter,
+    #[serde(default)]
+    pub ptt: PttConfig,
     #[serde(default)]
     pub raspager: RaspagerConfig,
     #[serde(default)]

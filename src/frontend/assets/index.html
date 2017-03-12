@@ -116,24 +116,55 @@
                        step="1" min="0" max="127" number>
               </div>
               <div class="form-group">
-                  <label for="audio-inverted">Inverted</label>
-                  <input type="checkbox" id="audio-inverted"
-                         v-model="config.audio.inverted">
+                <label for="audio-inverted">Inverted</label>
+                <input type="checkbox" id="audio-inverted"
+                       v-model="config.audio.inverted">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label for="audio-ptt-pin">PTT Pin</label>
-                <input type="number" id="audio-ptt-pin"
-                       v-model="config.audio.ptt_pin"
+                <label for="audio-tx-delay">TX Delay (ms)</label>
+                <input type="number" id="audio-tx-delay"
+                       v-model="config.audio.tx_delay"
+                       step="1" min="0" max="100" number
+                       class="u8-number">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box" v-if="config.transmitter == 'Audio'">
+          <div class="box-header">
+            <h3>PTT Config</h3>
+          </div>
+          <div class="box-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="ptt-method">PTT Method</label>
+                <select id="ptt-method" v-model="config.ptt.method">
+                  <option value="Gpio">GPIO</option>
+                  <option value="SerialDtr">Serial (DTR)</option>
+                  <option value="SerialRts">Serial (RTS)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group" v-if="config.ptt.method == 'Gpio'">
+                <label for="ptt-gpio-pin">GPIO Pin</label>
+                <input type="number" id="ptt-gpio-pin"
+                       v-model="config.ptt.gpio_pin"
                        step="1" min="0" number class="u8-number">
               </div>
+
+              <div class="form-group" v-if="config.ptt.method == 'SerialDtr' || config.ptt.method == 'SerialRts'">
+                <label for="ptt-serial-port">Serial Port</label>
+                <input type="text" id="ptt-serial-port"
+                       v-model="config.ptt.serial_port">
+              </div>
               <div class="form-group">
-                  <label for="audio-tx-delay">TX Delay (ms)</label>
-                  <input type="number" id="audio-tx-delay"
-                         v-model="config.audio.tx_delay"
-                         step="1" min="0" max="100" number
-                         class="u8-number">
+                <label for="ptt-inverted">Inverted</label>
+                <input type="checkbox" id="ptt-inverted"
+                       v-model="config.ptt.inverted">
               </div>
             </div>
           </div>

@@ -9,6 +9,7 @@ var vm = new Vue({
         log: [],
         socket: null,
         config: {
+            ptt: {},
             master: {},
             audio: {},
             c9000: {},

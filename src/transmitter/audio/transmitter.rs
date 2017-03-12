@@ -2,11 +2,11 @@ use std::process::{Command, Stdio};
 use std::io::Write;
 use std::thread::sleep;
 use std::time::Duration;
-use raspi::{Gpio, Pin, Direction, Model};
 
 use pocsag::Generator;
 use config::Config;
 use transmitter::Transmitter;
+use transmitter::Ptt;
 
 const BAUD_RATE: usize = 1200;
 const SAMPLE_RATE: usize = 48000;
@@ -14,7 +14,7 @@ const SAMPLES_PER_BIT: usize = SAMPLE_RATE/BAUD_RATE;
 
 pub struct AudioTransmitter {
     device: String,
-    ptt_pin: Pin,
+    ptt: Ptt,
     inverted: bool,
     level: u8,
     tx_delay: usize
@@ -23,9 +23,6 @@ pub struct AudioTransmitter {
 impl AudioTransmitter {
     pub fn new(config: &Config) -> AudioTransmitter {
         info!("Initializing audio transmitter...");
-        info!("Detected {}", Model::get());
-
-        let gpio = Gpio::new().expect("Failed to map GPIO");
 
         let device = match &*config.audio.device {
             "" => String::from("default"),
@@ -34,7 +31,7 @@ impl AudioTransmitter {
 
         let mut transmitter = AudioTransmitter {
             device: device,
-            ptt_pin: gpio.pin(config.audio.ptt_pin, Direction::Output),
+            ptt: Ptt::from_config(&config.ptt),
             inverted: config.audio.inverted,
             level: config.audio.level,
             tx_delay: config.audio.tx_delay
@@ -44,15 +41,15 @@ impl AudioTransmitter {
             transmitter.level = 127;
         }
 
-       transmitter.ptt_pin.set_low();
+        transmitter.ptt.set(false);
 
-       transmitter
+        transmitter
     }
 }
 
 impl Transmitter for AudioTransmitter {
     fn send(&mut self, gen: Generator) {
-        self.ptt_pin.set_high();
+        self.ptt.set(true);
 
         sleep(Duration::from_millis(self.tx_delay as u64));
 
@@ -87,6 +84,6 @@ impl Transmitter for AudioTransmitter {
 
         child.wait().expect("Failed to wait for aplay");
 
-        self.ptt_pin.set_low();
+        self.ptt.set(false);
     }
 }

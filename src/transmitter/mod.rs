@@ -1,9 +1,11 @@
+pub mod ptt;
 pub mod dummy;
 pub mod audio;
 pub mod c9000;
 pub mod stm32pager;
 pub mod raspager;
 
+pub use self::ptt::Ptt;
 pub use self::dummy::DummyTransmitter;
 pub use self::audio::AudioTransmitter;
 pub use self::c9000::C9000Transmitter;
