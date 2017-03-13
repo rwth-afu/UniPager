@@ -84,7 +84,7 @@ pub struct MasterConfig {
 impl Default for MasterConfig {
     fn default() -> MasterConfig {
         MasterConfig {
-            server: String::from("44.225.164.227"),
+            server: String::from("dapnet.afu.rwth-aachen.de"),
             port: 43434,
             call: String::from(""),
             auth: String::from("")
