@@ -14,7 +14,7 @@ matrix:
     - env:
         - TARGET=arm-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
-        - PACKAGE=rustpager-armhf.tar.gz
+        - PACKAGE=rustpager-rpi2.tar.gz
       addons:
         apt:
           packages: &armhf
@@ -24,7 +24,7 @@ matrix:
     - env:
         - TARGET=armv7-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
-        - PACKAGE=rustpager-armv7hf.tar.gz
+        - PACKAGE=rustpager-rpi3.tar.gz
       addons:
         apt:
           packages: *armhf
