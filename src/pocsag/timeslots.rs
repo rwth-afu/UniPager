@@ -71,18 +71,16 @@ impl TimeSlot {
     }
 }
 
-#[derive(Serialize, Clone, Copy)]
-pub struct TimeSlots {
-    slots: [bool; 16]
-}
+#[derive(Serialize, Clone, Copy, PartialEq)]
+pub struct TimeSlots([bool; 16]);
 
 impl TimeSlots {
     pub fn new() -> TimeSlots {
-        TimeSlots { slots: [false; 16] }
+        TimeSlots([false; 16])
     }
 
     pub fn is_allowed(&self, slot: TimeSlot) -> bool {
-        self.slots.get(slot.index()).map(|val| *val).unwrap_or(false)
+        self.0.get(slot.index()).map(|val| *val).unwrap_or(false)
     }
 
     pub fn is_current_allowed(&self) -> bool {
@@ -91,8 +89,8 @@ impl TimeSlots {
 
     pub fn next_allowed(&self) -> Option<TimeSlot> {
         let current = TimeSlot::current().index();
-        let iterator = self.slots.iter().enumerate().cycle().skip(current);
-        for (i, allowed) in iterator.take(self.slots.len()) {
+        let iterator = self.0.iter().enumerate().cycle().skip(current);
+        for (i, allowed) in iterator.take(self.0.len()) {
             if *allowed { return Some(TimeSlot(i)); }
         }
         None
@@ -109,7 +107,7 @@ impl FromStr for TimeSlots {
                 slots[idx as usize] = true;
             }
         }
-        Ok(TimeSlots { slots: slots })
+        Ok(TimeSlots(slots))
     }
 }
 
@@ -122,7 +120,7 @@ impl fmt::Debug for TimeSlot {
 impl fmt::Debug for TimeSlots {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         try!(write!(f, "TimeSlots {{ "));
-        for (i, slot) in self.slots.iter().enumerate() {
+        for (i, slot) in self.0.iter().enumerate() {
             if *slot { try!(write!(f, "{:X}", i)); }
         }
         write!(f, " }}")

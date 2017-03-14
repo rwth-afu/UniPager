@@ -66,6 +66,7 @@ impl Scheduler {
 
     pub fn set_time_slots(&self, slots: TimeSlots) -> bool {
         info!("Set {:?}", slots);
+        status!(timeslots: slots);
         self.tx.send(Command::SetTimeSlots(slots)).is_ok()
     }
 

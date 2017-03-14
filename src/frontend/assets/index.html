@@ -212,6 +212,13 @@
             <div class="status" v-bind:class="{ 'connected': status.connected }">
               Connected
             </div>
+            <div class="timeslots">
+              <span v-for="(timeslot, index) in status.timeslots">
+                <div class="timeslot" v-bind:class="{ 'enabled': timeslot, 'active': index == activeTimeslot}">
+                  {{index.toString(16).toUpperCase()}}
+                </div>
+              </span>
+            </div>
           </div>
         </div>
       </div>

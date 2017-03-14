@@ -4,7 +4,7 @@ html {
 
 body {
     margin: 0;
-    font-family: 'Roboto', Helvetica, Arial, sans-serif;
+    font-family: sans-serif;
 }
 
 #wrapper {
@@ -151,7 +151,7 @@ button.red:active { background-color: ##B71C1C; }
 }
 
 .status {
-    border: 2px solid #ccc;
+    border: 2px solid rgba(0,0,0,.12);
     color: #aaa;
     border-radius: 5px;
     text-transform: uppercase;
@@ -169,6 +169,36 @@ button.red:active { background-color: ##B71C1C; }
     border-color: #4CAF50;
     background-color: #4CAF50;
     color: #fff;
+}
+
+@keyframes active_timeslot {
+    0%   {opacity: 1.0;}
+    50%  {opacity: 0.5;}
+    100% {opacity: 1.0;}
+}
+
+.timeslots {
+    margin-top: 1em;
+}
+
+.timeslot {
+    display: inline-block;
+    color: #fff;
+    padding: 3px 5px;
+    background-color: #9E9E9E;
+    opacity: 1.0;
+    border-radius: 5px;
+    margin: 0 2px 0 0;
+}
+
+.timeslot.enabled {
+    background-color: #2196F3;
+}
+
+.timeslot.active {
+    animation-name: active_timeslot;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
 }
 
 #log {
