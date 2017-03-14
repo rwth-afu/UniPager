@@ -1,4 +1,3 @@
-use std::{thread, time};
 use serial::{self, SerialPort};
 
 use config::Config;
@@ -34,25 +33,27 @@ impl STM32Transmitter  {
 
 impl Transmitter for STM32Transmitter {
     fn send(&mut self, gen: Generator) {
-
-        thread::sleep(time::Duration::from_millis(1));
-
         for word in gen {
             let bytes = [((word & 0xff000000) >> 24) as u8,
                          ((word & 0x00ff0000) >> 16) as u8,
                          ((word & 0x0000ff00) >> 8) as u8,
                          ((word & 0x000000ff)) as u8];
 
-            if (*self.serial).write(&bytes).is_err() {
+            if (*self.serial).write_all(&bytes).is_err() {
                 error!("Unable to write data to the serial port");
                 return;
             }
         }
+
         // Send End of Transmission packet
         let eot = [0x17 as u8];
-        if (*self.serial).write(&eot).is_err() {
+        if (*self.serial).write_all(&eot).is_err() {
             error!("Unable to send end of transmission byte");
             return;
+        }
+
+        if (*self.serial).flush().is_err() {
+            error!("Unable to flush serial port");
         }
     }
 }

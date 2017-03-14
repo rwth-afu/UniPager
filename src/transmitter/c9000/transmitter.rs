@@ -59,8 +59,14 @@ impl Transmitter for C9000Transmitter {
         thread::sleep(time::Duration::from_millis(1));
 
         for (i, word) in gen.enumerate() {
-            while (i % 40 == 0) && !self.send_pin.read() {
-                thread::sleep(time::Duration::from_millis(1));
+            if i % 40 == 0 {
+                if (*self.serial).flush().is_err() {
+                    error!("Unable to flush serial port");
+                }
+
+                while !self.send_pin.read() {
+                    thread::sleep(time::Duration::from_millis(1));
+                }
             }
 
             let bytes = [((word & 0xff000000) >> 24) as u8,
@@ -68,11 +74,15 @@ impl Transmitter for C9000Transmitter {
                          ((word & 0x0000ff00) >> 8) as u8,
                          ((word & 0x000000ff)) as u8];
 
-            if (*self.serial).write(&bytes).is_err() {
+            if (*self.serial).write_all(&bytes).is_err() {
                 error!("Unable to write data to the serial port");
                 self.ptt_pin.set_low();
                 return;
             }
+        }
+
+        if (*self.serial).flush().is_err() {
+            error!("Unable to flush serial port");
         }
 
         self.ptt_pin.set_low();
