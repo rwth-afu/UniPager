@@ -56,14 +56,13 @@ impl Transmitter for C9000Transmitter {
     fn send(&mut self, gen: Generator) {
         self.ptt_pin.set_high();
 
-        thread::sleep(time::Duration::from_millis(1));
-
         for (i, word) in gen.enumerate() {
-            if i % 40 == 0 {
+            if i % 10 == 0 {
                 if (*self.serial).flush().is_err() {
                     error!("Unable to flush serial port");
                 }
 
+                thread::sleep(time::Duration::from_millis(10));
                 while !self.send_pin.read() {
                     thread::sleep(time::Duration::from_millis(1));
                 }
