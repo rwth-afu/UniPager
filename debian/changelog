@@ -1,0 +1,7 @@
+unipager (0.4.2) unstable; urgency=medium
+
+  * Adds a time slot display to the web interface
+  * Adds an option for serial PTT with the Audio transmitter
+  * Fixes broken messages with C9000 transmitter
+
+ -- RWTH Amateurfunkgruppe <rwth-afu@online.de>  Thu, 17 Mar 2017 22:30:00 +0100

@@ -1,0 +1,15 @@
+Source:  unipager
+Section: hamradio
+Priority: standard
+Maintainer: RWTH Amateurfunkgruppe <rwth-afu@online.de>
+Build-Depends:
+  debhelper (>= 9), dh-systemd, curl, ca-certificates
+Standards-Version: 3.9.6
+Homepage: http://www.afu.rwth-aachen.de
+Vcs-Browser: https://github.com/rwth-afu/RustPager
+Vcs-Git: git://github.com/rwth-afu/RustPager.git
+
+Package: unipager
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Universal POCSAG transmitter controller
