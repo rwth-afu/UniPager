@@ -97,7 +97,7 @@ impl Connection {
 
     pub fn run(&mut self) -> Result<()> {
         let version = env!("CARGO_PKG_VERSION");
-        let id = format!("[RustPager-{} v{} {} {}]\r\n",
+        let id = format!("[UniPager-{} v{} {} {}]\r\n",
                          self.id, version, self.call, self.auth);
 
         self.writer.write(id.as_bytes())?;

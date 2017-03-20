@@ -4,7 +4,7 @@ matrix:
     - env:
         - TARGET=arm-unknown-linux-gnueabi
         - LINKER=arm-linux-gnueabi-gcc
-        - PACKAGE=rustpager-arm.tar.gz
+        - PACKAGE=unipager-arm.tar.gz
       addons:
         apt:
           packages:
@@ -14,7 +14,7 @@ matrix:
     - env:
         - TARGET=arm-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
-        - PACKAGE=rustpager-rpi2.tar.gz
+        - PACKAGE=unipager-rpi2.tar.gz
       addons:
         apt:
           packages: &armhf
@@ -24,20 +24,20 @@ matrix:
     - env:
         - TARGET=armv7-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
-        - PACKAGE=rustpager-rpi3.tar.gz
+        - PACKAGE=unipager-rpi3.tar.gz
       addons:
         apt:
           packages: *armhf
     - env:
         - TARGET=i686-unknown-linux-gnu
-        - PACKAGE=rustpager-i686.tar.gz
+        - PACKAGE=unipager-i686.tar.gz
       addons:
         apt:
           packages:
             - gcc-multilib
     - env:
         - TARGET=x86_64-unknown-linux-gnu
-        - PACKAGE=rustpager-x86_64.tar.gz
+        - PACKAGE=unipager-x86_64.tar.gz
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
@@ -55,7 +55,7 @@ script:
   - cargo build --target $TARGET --verbose --release
 
 before_deploy:
-  - tar -czf $PACKAGE -C target/$TARGET/release/ rustpager
+  - tar -czf $PACKAGE -C target/$TARGET/release/ unipager
 
 deploy:
   provider: releases
@@ -65,4 +65,4 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    repo: rwth-afu/RustPager
+    repo: rwth-afu/UniPager

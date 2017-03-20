@@ -30,7 +30,7 @@ var vm = new Vue({
         },
         onopen: function(event) {
             this.connected = true;
-            this.log.push({msg: "Connected to RustPager."});
+            this.log.push({msg: "Connected to UniPager."});
             this.log_scroll();
             this.send("GetVersion");
             this.send("GetConfig");
@@ -51,7 +51,7 @@ var vm = new Vue({
         },
         onclose: function(event) {
             if (this.connected) {
-                this.log.push({msg: "Disconnected from RustPager."});
+                this.log.push({msg: "Disconnected from UniPager."});
                 this.log_scroll();
             }
             this.connected = false;

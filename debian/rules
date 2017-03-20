@@ -24,7 +24,6 @@ endif
 
 override_dh_auto_build:
 	RUST_BACKTRACE=1 cargo build --release --verbose
-	mv target/release/rustpager target/release/unipager
 
 override_dh_auto_install:
 

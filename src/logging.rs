@@ -9,7 +9,7 @@ struct Logger {
 impl Log for Logger {
     fn enabled(&self, metadata: &LogMetadata) -> bool {
         metadata.level() <= LogLevel::Info &&
-        metadata.target().starts_with("rustpager")
+        metadata.target().starts_with("unipager")
     }
 
     fn log(&self, record: &LogRecord) {

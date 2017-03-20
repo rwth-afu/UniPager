@@ -1,5 +1,5 @@
 [package]
-name = "rustpager"
+name = "unipager"
 version = "0.4.2"
 authors = ["Thomas Gatzweiler <mail@thomasgatzweiler.com>"]
 
@@ -16,16 +16,3 @@ net2 = "^0.2.26"
 
 [dependencies.raspi]
 path = "lib/raspi"
-
-[package.metadata.deb]
-maintainer = "RWTH Amateurfunkgruppe <rwth-afu@online.de>"
-copyright = "2017, RWTH Amateurfunkgruppe <rwth-afu@online.de>"
-license_file = ["LICENSE", "0"]
-extended_description = """\
-Universal POCSAG transmitter controller"""
-depends = "$auto"
-section = "hamradio"
-priority = "optional"
-assets = [
-    ["target/release/rustpager", "usr/bin/", "755"]
-]

@@ -1,40 +1,41 @@
-# RustPager
+# UniPager
 
-[![Build Status](https://img.shields.io/travis/rwth-afu/RustPager.svg?style=flat)](https://travis-ci.org/rwth-afu/RustPager)
-[![GitHub issues](https://img.shields.io/github/issues/rwth-afu/RustPager.svg?style=flat)](https://github.com/rwth-afu/RustPager/issues)
-[![GitHub release](https://img.shields.io/github/release/rwth-afu/RustPager.svg?style=flat)](https://github.com/rwth-afu/RustPager/releases)
+[![Build Status](https://img.shields.io/travis/rwth-afu/UniPager.svg?style=flat)](https://travis-ci.org/rwth-afu/UniPager)
+[![GitHub issues](https://img.shields.io/github/issues/rwth-afu/UniPager.svg?style=flat)](https://github.com/rwth-afu/UniPager/issues)
+[![GitHub release](https://img.shields.io/github/release/rwth-afu/UniPager.svg?style=flat)](https://github.com/rwth-afu/UniPager/releases)
 
 Universal POCSAG transmitter controller written in Rust.
 
-## Compilation
-Be aware: Install with Raspbian wheezy will fail, you need jessie. Using a fresh installation of your Operating System will minimize the chance of running into errors.
+## Installation
 
-It is recommended to update your OS before installing:
+Create the file `/etc/apt/sources.list.d/unipager` with the following content:
 
-```bash
-sudo apt-get update
-sudo apt-get upgrade
+```
+deb http://ci.db0sda.ampr.org/debian unipager main
+deb-src http://ci.db0sda.ampr.org/debian unipager main
 ```
 
+Then execute the following commands:
+
+```bash
+wget -O - http://ci.db0sda.ampr.org/debian/rwth-afu.key | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install unipager
+```
+
+## Compilation
 Install rust:
 
 ```bash
 curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
 ```
 
-Now reboot OR log out to make the Rust-Toolchain available:
-
-```bash
-sudo reboot
-OR
-logout
-(SSH sessions will be closed)
-```
+Now reboot OR log out to make the rust toolchain available.
 
 Log in again and clone the source:
 
 ```bash
-git clone https://github.com/rwth-afu/RustPager.git
+git clone https://github.com/rwth-afu/UniPager.git
 ```
 
 If this command fails, you may need to install git and try again:
@@ -46,37 +47,12 @@ sudo apt-get install git
 Start the build:
 
 ```bash
-cd RustPager
+cd UniPager
 cargo build --release
 ```
+The compiled binary will be created at `./target/release/unipager`.
 
-Run the install script:
-
-```bash
-sudo ./install.sh
-```
-
-Autostart for RustPager:
-
-```bash
-sudo systemctl enable rustpager
-```
-
-Finally do a reboot to test the Autostart sequence of RustPager
-
-```bash
-sudo reboot
-```
-
-If you made an autostart entry, the rustpager-Interface will now be available at IP-OF-DEVICE:8073
-
-If you prefer to run RustPager manually, run:
-
-```bash
-sudo ./RustPager/target/release/rustpager
-```
-
-Be aware: Must be run with root privileges. Also directory /etc/rustpager must exist and be writeable by root.
+Be aware: Must be run with root privileges for GPIO access.
 
 ## Cross Compilation
 
@@ -128,22 +104,45 @@ linker = "arm-linux-gnueabihf-gcc"
 Clone the source:
 
 ```bash
-git clone https://github.com/rwth-afu/RustPager.git
+git clone https://github.com/rwth-afu/UniPager.git
 ```
 
 Start the build:
 
 ```bash
-cd RustPager
+cd UniPager
 cargo build --target $TARGET --release 
 ```
 
-The cross-compiled binary will be created at `./target/$TARGET/release/rustpager`.
+The cross-compiled binary will be created at `./target/$TARGET/release/unipager`.
+
+## Manual Installation
+
+Move the UniPager binary to `/usr/local/bin/unipager`. Create the directory
+`/var/lib/unipager`. Create the file `/etc/systemd/system/unipager.service` with
+the following content:
+
+```
+[Unit]
+Description=UniPager POCSAG transmitter controller
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/unipager
+WorkingDirectory=/var/lib/unipager
+
+[Install]
+WantedBy=multi-user.target
+```
+Reload systemctl configuration with `sudo systemctl daemon-reload`.
+To start UniPager enter `sudo systemctl start unipager`. To start UniPager
+automatically after booting enter `sudo systemctl enable unipager`.
 
 ## Configuration
+
 The web interface for configuration is available on port `8073`. Port `8055`
 must also be open to allow websocket communication between the browser and
-RustPager.
+UniPager.
 
 ### Raspberry Pi
 Make sure that the serial port is activated. To do this add `enable_uart=1` to
@@ -154,7 +153,7 @@ This is not needed for the RASPAGERV1 and Audio transmitter type.
 
 ## License
 
-    RustPager
+    UniPager
     Copyright (C) 2017  RWTH Amateurfunkgruppe
 
     This program is free software: you can redistribute it and/or modify
