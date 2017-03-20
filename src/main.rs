@@ -32,7 +32,7 @@ use frontend::{Request, Response};
 use connection::Connection;
 
 fn print_version() {
-    println!("RustPager {}", env!("CARGO_PKG_VERSION"));
+    println!("UniPager {}", env!("CARGO_PKG_VERSION"));
     println!("Copyright (c) 2017 RWTH Amateurfunkgruppe\n");
     println!("This program comes with ABSOLUTELY NO WARRANTY.");
     println!("This is free software, and you are welcome to redistribute");
