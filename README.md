@@ -6,8 +6,49 @@
 
 Universal POCSAG transmitter controller written in Rust.
 
-## Compilation
-Be aware: Install with Raspbian wheezy will fail, you need jessie. Using a fresh installation of your Operating System will minimize the chance of running into errors.
+## Installation from repository
+HAMNET-Access to DB0SDA is required!
+Be aware: When installing the new version, all data from the old version will be lost! If you are already running a previous version, go to the web-interface at (IP-OF-DEVICE):8073 and copy all values!
+
+Create a new script file:
+
+```bash
+sudo nano install-unipager.sh
+```
+and insert the following lines:
+
+```bash
+#Disabling existing RustPager-Installation
+systemctl disable rustpager
+service rustpager stop
+
+#Setting up unipager-repo at DB0SDA
+echo 'deb http://ci.db0sda.ampr.org/debian unipager main
+deb-src http://ci.db0sda.ampr.org/debian unipager main' >/etc/apt/sources.list.d/unipager.list
+wget -O - http://ci.db0sda.ampr.org/debian/rwth-afu.key | sudo apt-key add -
+apt-get update
+apt-get install unipager
+```
+Press CTRL+O -> ENTER to save the file and CTRL-X to close the editor.
+Now run the script:
+
+```bash
+sudo sh ./install-unipager.sh
+```
+unipager should now be installed on your system. You can create an autorun-entry by typing
+
+```bash
+sudo systemctl enable unipager
+```
+Finally do a reboot to finish the installation:
+
+```bash
+ sudo reboot
+```
+The web interface should now be available at (IP-OF-DEVICE):8073 
+
+## Manual Compilation
+Be aware: Compilation Raspbian wheezy will fail, you need jessie. Using a fresh installation of your Operating System will minimize the chance of running into errors.
 
 It is recommended to update your OS before installing:
 
