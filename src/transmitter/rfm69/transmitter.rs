@@ -4,15 +4,15 @@ use config::Config;
 use pocsag::Generator;
 use transmitter::Transmitter;
 
-pub struct STM32Transmitter {
+pub struct RFM69Transmitter {
     serial: Box<serial::SerialPort>
 }
 
-impl STM32Transmitter  {
-    pub fn new(config: &Config) -> STM32Transmitter {
-        info!("Initializing STM32Pager transmitter...");
+impl RFM69Transmitter  {
+    pub fn new(config: &Config) -> RFM69Transmitter {
+        info!("Initializing RFM69 transmitter...");
 
-        let mut serial = serial::open(&config.stm32pager.port)
+        let mut serial = serial::open(&config.rfm69.port)
             .expect("Unable to open serial port");
 
         serial.configure(&serial::PortSettings {
@@ -23,7 +23,7 @@ impl STM32Transmitter  {
             flow_control: serial::FlowControl::FlowNone
         }).expect("Unable to configure serial port");
 
-        let transmitter = STM32Transmitter {
+        let transmitter = RFM69Transmitter {
             serial: Box::new(serial)
         };
 
@@ -31,7 +31,7 @@ impl STM32Transmitter  {
     }
 }
 
-impl Transmitter for STM32Transmitter {
+impl Transmitter for RFM69Transmitter {
     fn send(&mut self, gen: Generator) {
         for word in gen {
             let bytes = [((word & 0xff000000) >> 24) as u8,

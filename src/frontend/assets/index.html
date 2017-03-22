@@ -21,7 +21,7 @@
                 <option>Audio</option>
                 <option value="Raspager">Raspager V1</option>
                 <option>C9000</option>
-                <option>STM32Pager</option>
+                <option>RFM69</option>
               </select>
             </div>
             <div class="form-row">
@@ -81,16 +81,16 @@
           </div>
         </div>
 
-        <div class="box" v-if="config.transmitter == 'STM32Pager'">
+        <div class="box" v-if="config.transmitter == 'RFM69'">
           <div class="box-header">
-            <h3>STM32Pager Config</h3>
+            <h3>RFM69 Config</h3>
           </div>
           <div class="box-content">
             <div class="form-row">
               <div class="form-group">
-                <label for="stm32pager-port">Serial Port</label>
-                <input type="text" id="stm32pager-port"
-                       v-model="config.stm32pager.port">
+                <label for="rfm69-port">Serial Port</label>
+                <input type="text" id="rfm69-port"
+                       v-model="config.rfm69.port">
               </div>
             </div>
           </div>
