@@ -58,8 +58,8 @@ impl Scheduler {
                     scheduler.run(RaspagerTransmitter::new(&config)),
                 Transmitter::C9000 =>
                     scheduler.run(C9000Transmitter::new(&config)),
-                Transmitter::STM32Pager =>
-                    scheduler.run(STM32Transmitter::new(&config))
+                Transmitter::RFM69 =>
+                    scheduler.run(RFM69Transmitter::new(&config))
             };
         })
     }
