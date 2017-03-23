@@ -8,17 +8,36 @@ Universal POCSAG transmitter controller written in Rust.
 
 ## Installation
 
-Create the file `/etc/apt/sources.list.d/unipager` with the following content:
+### Via HAMNET
+
+Create the file `/etc/apt/sources.list.d/unipager.list` with the following content:
 
 ```
-deb http://ci.db0sda.ampr.org/debian unipager main
-deb-src http://ci.db0sda.ampr.org/debian unipager main
+deb http://db0sda.ampr.org/debian unipager main
+deb-src http://db0sda.ampr.org/debian unipager main
 ```
 
 Then execute the following commands:
 
 ```bash
 wget -O - http://ci.db0sda.ampr.org/debian/rwth-afu.key | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install unipager
+```
+
+### Via Internet
+
+Create the file `/etc/apt/sources.list.d/unipager.list` with the following content:
+
+```
+deb http://www.afu.rwth-aachen.de/debian unipager main
+deb-src http://www.afu.rwth-aachen.de/debian unipager main
+```
+
+Then execute the following commands:
+
+```bash
+wget -O - http://www.afu.rwth-aachen.de/debian/rwth-afu.key | sudo apt-key add -
 sudo apt-get update
 sudo apt-get install unipager
 ```
