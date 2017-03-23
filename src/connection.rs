@@ -4,7 +4,6 @@ use std::time::Duration;
 use std::thread::{self, JoinHandle};
 use std::sync::mpsc::{Sender, channel};
 use std::str::{FromStr};
-use net2::TcpStreamExt;
 
 use config::Config;
 use pocsag::{Scheduler, TimeSlots};
@@ -33,7 +32,7 @@ impl Connection {
         let addr = (&*config.master.server, config.master.port);
         let stream = TcpStream::connect(addr)?;
         stream.set_write_timeout(Some(Duration::from_millis(10000)))?;
-        stream.set_keepalive(Some(Duration::from_millis(5000)))?;
+        stream.set_read_timeout(Some(Duration::from_millis(125000)))?;
 
         Ok(Connection {
             reader: BufReader::new(stream.try_clone()?),
@@ -49,7 +48,7 @@ impl Connection {
     pub fn start(config: Config, scheduler: Scheduler) -> (Sender<()>, JoinHandle<()>) {
         let (stop_tx, stop_rx) = channel();
         let mut reconnect = true;
-        let mut delay = Duration::from_millis(1000);
+        let mut delay = Duration::from_millis(5000);
 
         let handle = thread::spawn(move || {
             while reconnect {
@@ -72,12 +71,12 @@ impl Connection {
                         _ = stop_rx.recv() => reconnect = false
                     }
 
-                    stream.shutdown(Shutdown::Both).unwrap();
+                    stream.shutdown(Shutdown::Both).ok();
                     handle.join().unwrap();
 
                     status!(connected: false);
                     warn!("Disconnected from master.");
-                    delay = Duration::from_millis(1000);
+                    delay = Duration::from_millis(2500);
                 }
                 else {
                     status!(connected: false);
@@ -97,11 +96,10 @@ impl Connection {
 
     pub fn run(&mut self) -> Result<()> {
         let version = env!("CARGO_PKG_VERSION");
-        let id = format!("[UniPager-{} v{} {} {}]\r\n",
+        let id = format!("[UniPager-{} v{} {} {}]",
                          self.id, version, self.call, self.auth);
 
-        self.writer.write(id.as_bytes())?;
-        self.writer.flush()?;
+        self.send(&*id)?;
 
         let mut buffer = String::new();
 
@@ -109,6 +107,7 @@ impl Connection {
             self.handle(&*buffer)?;
             buffer.clear();
         }
+
         Ok(())
     }
 
