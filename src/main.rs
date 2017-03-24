@@ -50,6 +50,8 @@ fn main() {
     let mut config = Config::load();
     let scheduler = Scheduler::new(&config);
 
+    thread::spawn(timeslot_updater);
+
     let mut restart = true;
     while restart {
         let (stop_conn, conn_thread) = Connection::start(config.clone(), scheduler.clone());
@@ -124,4 +126,12 @@ fn main() {
 
     info!("Terminating... 73!");
     thread::sleep(time::Duration::from_millis(1000));
+}
+
+pub fn timeslot_updater() {
+    loop {
+        let timeslot = pocsag::TimeSlot::current();
+        status!(timeslot: timeslot);
+        thread::sleep(timeslot.next().duration_until());
+    }
 }

@@ -14,7 +14,7 @@ fn deciseconds(duration: Duration) -> u64 {
     seconds * 10 + deciseconds
 }
 
-#[derive(PartialEq)]
+#[derive(Serialize, Clone, Copy, PartialEq)]
 pub struct TimeSlot(usize);
 
 impl TimeSlot {
@@ -27,6 +27,10 @@ impl TimeSlot {
 
     pub fn active(&self) -> bool {
         *self == TimeSlot::current()
+    }
+
+    pub fn next(&self) -> TimeSlot {
+        TimeSlot((self.0 + 1) % 16)
     }
 
     pub fn duration_until(&self) -> Duration {

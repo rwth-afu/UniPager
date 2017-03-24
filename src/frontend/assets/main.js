@@ -2,7 +2,6 @@ var vm = new Vue({
     el: "#wrapper",
     created() {
         this.connect();
-        this.update_timeslot();
     },
     data: {
         connected: false,
@@ -17,7 +16,6 @@ var vm = new Vue({
             raspager: {}
         },
         status: {},
-        activeTimeslot: 0,
         message: "",
         addr: localStorage ? (localStorage.pager_addr || 0) : 0
     },
@@ -102,13 +100,6 @@ var vm = new Vue({
 
             this.send(req);
             this.message = "";
-        },
-        update_timeslot: function(event) {
-            var date = Date.now();
-            var timeslot = (Math.floor(date / 100) / 64) & 0b1111;
-            var next_timeslot = (((Math.floor(date / 100) / 64) + 1) * 64) * 100;
-            this.activeTimeslot = timeslot;
-            setTimeout(this.update_timeslot, next_timeslot - date);
         }
     }
 });

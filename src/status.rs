@@ -1,5 +1,5 @@
 use std::sync::{Mutex, RwLock};
-use pocsag::TimeSlots;
+use pocsag::{TimeSlots, TimeSlot};
 use frontend::Responder;
 
 lazy_static! {
@@ -11,7 +11,8 @@ lazy_static! {
 pub struct Status {
     pub connected: bool,
     pub transmitting: bool,
-    pub timeslots: TimeSlots
+    pub timeslots: TimeSlots,
+    pub timeslot: TimeSlot
 }
 
 impl Status {
@@ -19,7 +20,8 @@ impl Status {
         Status {
             connected: false,
             transmitting: false,
-            timeslots: TimeSlots::new()
+            timeslots: TimeSlots::new(),
+            timeslot: TimeSlot::current()
         }
     }
 }

@@ -214,7 +214,7 @@
             </div>
             <div class="timeslots">
               <span v-for="(timeslot, index) in status.timeslots">
-                <div class="timeslot" v-bind:class="{ 'enabled': timeslot, 'active': index == activeTimeslot}">
+                <div class="timeslot" v-bind:class="{ 'enabled': timeslot, 'active': index == status.timeslot}">
                   {{index.toString(16).toUpperCase()}}
                 </div>
               </span>
