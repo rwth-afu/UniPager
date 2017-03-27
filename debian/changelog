@@ -1,9 +1,16 @@
-unipager (0.5.0) unstable; urgency=medium
+unipager (0.5.1) unstable; urgency=medium
+
+  * Adds server-side TimeSlot calculation
+  * Fixes broken connections to master
+
+ -- RWTH Amateurfunkgruppe <rwth-afu@online.de>  Mon, 27 Mar 2017 12:00:00 +0100
+
+	unipager (0.5.0) unstable; urgency=medium
 
   * RustPager has been renamed to UniPager
 
  -- RWTH Amateurfunkgruppe <rwth-afu@online.de>  Wed, 22 Mar 2017 18:00:00 +0100
-	
+
 unipager (0.4.2) unstable; urgency=medium
 
   * Adds a time slot display to the web interface
