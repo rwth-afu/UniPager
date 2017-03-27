@@ -8,6 +8,19 @@ Universal POCSAG transmitter controller written in Rust.
 
 ## Installation
 
+### Automatic Installation
+
+This script installs UniPager fully automatically on Debian/Raspbian systems.
+It also uninstalls RustPager and migrates the old configuration file.
+
+```bash
+# Via HAMNET
+curl http://db0sda.ampr.org/debian/install.sh -sSf | sh -s -- hamnet
+
+# Via Internet
+curl http://www.afu.rwth-aachen.de/debian/install.sh -sSf | sh -s -- internet
+```
+
 ### Via HAMNET
 
 Create the file `/etc/apt/sources.list.d/unipager.list` with the following content:
