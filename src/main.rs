@@ -61,6 +61,7 @@ fn main() {
                 Request::SetConfig(new_config) => {
                     config = new_config;
                     config.save();
+                    responder.send(Response::Config(config.clone()));
                     info!("Config updated. Initiating restart.");
 
                     restart = true;
@@ -71,6 +72,7 @@ fn main() {
                 Request::DefaultConfig => {
                     config = Config::default();
                     config.save();
+                    responder.send(Response::Config(config.clone()));
                     info!("Config set to default. Initiating restart.");
 
                     restart = true;
