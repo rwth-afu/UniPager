@@ -6,11 +6,10 @@ export PATH := $(HOME)/.cargo/bin:$(PATH)
 	dh $@ --with systemd
 
 override_dh_auto_configure:
-	export RUSTUP_USE_HYPER=1
 ifeq ($(DEB_TARGET_ARCH), armhf)
 	curl https://static.rust-lang.org/rustup/dist/arm-unknown-linux-gnueabihf/rustup-init -o rustup-init
 	chmod +x rustup-init
-	./rustup-init -y --default-toolchain=nightly
+	./rustup-init -y --default-toolchain=nightly-arm-unknown-linux-gnueabihf
 endif
 ifeq ($(DEB_TARGET_ARCH), i386)
 	curl https://static.rust-lang.org/rustup/dist/i686-unknown-linux-gnu/rustup-init -o rustup-init
@@ -24,7 +23,7 @@ ifeq ($(DEB_TARGET_ARCH), amd64)
 endif
 
 override_dh_auto_build:
-	RUST_BACKTRACE=1 cargo build --release --verbose
+	cargo build --release --verbose
 
 override_dh_auto_install:
 
