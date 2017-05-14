@@ -10,7 +10,7 @@ override_dh_auto_configure:
 ifeq ($(DEB_TARGET_ARCH), armhf)
 	curl https://static.rust-lang.org/rustup/dist/arm-unknown-linux-gnueabihf/rustup-init -o rustup-init
 	chmod +x rustup-init
-	./rustup-init -y --default-toolchain=nightly-2017-03-27
+	./rustup-init -y --default-toolchain=nightly
 endif
 ifeq ($(DEB_TARGET_ARCH), i386)
 	curl https://static.rust-lang.org/rustup/dist/i686-unknown-linux-gnu/rustup-init -o rustup-init
