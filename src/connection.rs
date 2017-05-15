@@ -56,6 +56,7 @@ impl Connection {
                 let connection = Connection::new(&config, scheduler.clone());
 
                 if let Ok(mut connection) = connection {
+                    info!("Connection established.");
                     status!(connected: true);
 
                     let stream = connection.stream.try_clone().unwrap();
