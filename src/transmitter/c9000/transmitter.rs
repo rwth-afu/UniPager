@@ -3,7 +3,6 @@ use serial::{self, SerialPort};
 use raspi::{Gpio, Pin, Direction, Model};
 
 use config::Config;
-use pocsag::Generator;
 use transmitter::Transmitter;
 
 pub struct C9000Transmitter {
@@ -53,7 +52,7 @@ impl C9000Transmitter  {
 }
 
 impl Transmitter for C9000Transmitter {
-    fn send(&mut self, gen: Generator) {
+    fn send(&mut self, gen: &mut Iterator<Item=u32>) {
         self.ptt_pin.set_high();
 
         for (i, word) in gen.enumerate() {

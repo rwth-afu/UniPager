@@ -1,7 +1,6 @@
 use serial::{self, SerialPort};
 
 use config::Config;
-use pocsag::Generator;
 use transmitter::Transmitter;
 
 pub struct RFM69Transmitter {
@@ -32,7 +31,7 @@ impl RFM69Transmitter  {
 }
 
 impl Transmitter for RFM69Transmitter {
-    fn send(&mut self, gen: Generator) {
+    fn send(&mut self, gen: &mut Iterator<Item=u32>) {
         for word in gen {
             let bytes = [((word & 0xff000000) >> 24) as u8,
                          ((word & 0x00ff0000) >> 16) as u8,

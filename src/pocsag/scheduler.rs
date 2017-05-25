@@ -4,8 +4,8 @@ use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::collections::VecDeque;
 
-use pocsag::{TimeSlots, Message, MessageProvider, Generator};
-use transmitter::Transmitter;
+use pocsag::{TimeSlots, Message, MessageProvider, Generator, TestGenerator};
+use transmitter::{self, Transmitter};
 use config::Config;
 
 enum Command {
@@ -45,22 +45,16 @@ impl Scheduler {
     }
 
     pub fn start(config: Config, scheduler: Scheduler) -> JoinHandle<()> {
-        use transmitter::*;
-        use config::Transmitter;
-
         thread::spawn(move || {
-            match config.transmitter {
-                Transmitter::Dummy =>
-                    scheduler.run(DummyTransmitter::new(&config)),
-                Transmitter::Audio =>
-                    scheduler.run(AudioTransmitter::new(&config)),
-                Transmitter::Raspager =>
-                    scheduler.run(RaspagerTransmitter::new(&config)),
-                Transmitter::C9000 =>
-                    scheduler.run(C9000Transmitter::new(&config)),
-                Transmitter::RFM69 =>
-                    scheduler.run(RFM69Transmitter::new(&config))
-            };
+            let transmitter = transmitter::from_config(&config);
+            scheduler.scheduler.lock().unwrap().run(transmitter);
+        })
+    }
+
+    pub fn test(config: Config, scheduler: Scheduler) -> JoinHandle<()> {
+        thread::spawn(move || {
+            let transmitter = transmitter::from_config(&config);
+            scheduler.scheduler.lock().unwrap().test(transmitter);
         })
     }
 
@@ -78,14 +72,10 @@ impl Scheduler {
     pub fn stop(&self) -> bool {
         self.tx.send(Command::Stop).is_ok()
     }
-
-    pub fn run<T: Transmitter>(&self, transmitter: T) {
-        self.scheduler.lock().unwrap().run(transmitter);
-    }
 }
 
 impl SchedulerCore {
-    pub fn run<T: Transmitter>(&mut self, mut transmitter: T) {
+    pub fn run(&mut self, mut transmitter: Box<Transmitter>) {
         info!("Scheduler started.");
         while !self.stop {
             let mut message = self.queue.pop_front();
@@ -132,9 +122,15 @@ impl SchedulerCore {
             }
 
             status!(transmitting: true);
-            transmitter.send(Generator::new(self, message.unwrap()));
+            transmitter.send(&mut Generator::new(self, message.unwrap()));
             status!(transmitting: false);
         }
+    }
+
+    pub fn test(&mut self, mut transmitter: Box<Transmitter>) {
+        status!(transmitting: true);
+        transmitter.send(&mut TestGenerator::new(1125));
+        status!(transmitting: false);
     }
 }
 

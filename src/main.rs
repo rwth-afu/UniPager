@@ -53,6 +53,8 @@ fn main() {
     thread::spawn(timeslot_updater);
 
     let mut restart = true;
+    let mut test = false;
+
     while restart {
         let (stop_conn, conn_thread) = Connection::start(config.clone(), scheduler.clone());
         let scheduler_thread = Scheduler::start(config.clone(), scheduler.clone());
@@ -65,8 +67,8 @@ fn main() {
                     info!("Config updated. Initiating restart.");
 
                     restart = true;
-                    scheduler.stop();
                     stop_conn.send(()).ok();
+                    scheduler.stop();
                     break;
                 },
                 Request::DefaultConfig => {
@@ -76,8 +78,8 @@ fn main() {
                     info!("Config set to default. Initiating restart.");
 
                     restart = true;
-                    scheduler.stop();
                     stop_conn.send(()).ok();
+                    scheduler.stop();
                     break;
                 },
                 Request::SendMessage { addr, data } => {
@@ -104,15 +106,23 @@ fn main() {
                 Request::Shutdown => {
                     info!("Initiating shutdown.");
                     restart = false;
-                    scheduler.stop();
                     stop_conn.send(()).ok();
+                    scheduler.stop();
                     break;
                 },
                 Request::Restart => {
                     info!("Initiating restart.");
                     restart = true;
-                    scheduler.stop();
                     stop_conn.send(()).ok();
+                    scheduler.stop();
+                    break;
+                },
+                Request::Test => {
+                    info!("Initiating test procedure...");
+                    restart = true;
+                    test = true;
+                    stop_conn.send(()).ok();
+                    scheduler.stop();
                     break;
                 }
             }
@@ -124,6 +134,14 @@ fn main() {
         info!("Waiting for the scheduler to terminate...");
         scheduler_thread.join().ok();
         info!("Scheduler stopped.");
+
+        if test {
+            info!("Starting test transmission.");
+            let thread = Scheduler::test(config.clone(), scheduler.clone());
+            thread.join().ok();
+            info!("Test transmission completed. Restarting...");
+            test = false;
+        }
     }
 
     info!("Terminating... 73!");

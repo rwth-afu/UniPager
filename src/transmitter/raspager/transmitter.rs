@@ -1,7 +1,6 @@
 use std::{thread, time};
 
 use config::Config;
-use pocsag::Generator;
 use transmitter::Transmitter;
 use transmitter::raspager::adf7012::{Adf7012Config, MuxOut};
 use raspi::{Gpio, Pin, Direction, Model};
@@ -176,7 +175,7 @@ impl RaspagerTransmitter  {
 }
 
 impl Transmitter for RaspagerTransmitter {
-    fn send(&mut self, gen: Generator) {
+    fn send(&mut self, gen: &mut Iterator<Item=u32>) {
         // try multiple times until the PLL is locked
         let mut pll_locked = false;
         for _ in 0..5 {

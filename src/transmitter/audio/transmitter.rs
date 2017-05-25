@@ -3,7 +3,6 @@ use std::io::Write;
 use std::thread::sleep;
 use std::time::Duration;
 
-use pocsag::Generator;
 use config::Config;
 use transmitter::Transmitter;
 use transmitter::Ptt;
@@ -48,7 +47,7 @@ impl AudioTransmitter {
 }
 
 impl Transmitter for AudioTransmitter {
-    fn send(&mut self, gen: Generator) {
+    fn send(&mut self, gen: &mut Iterator<Item=u32>) {
         self.ptt.set(true);
 
         sleep(Duration::from_millis(self.tx_delay as u64));

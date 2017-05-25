@@ -90,7 +90,7 @@ var vm = new Vue({
         default_config: function(event) {
             this.send("DefaultConfig");
         },
-        send_message: function(event)  {
+        send_message: function(event) {
             localStorage && (localStorage.pager_addr = this.addr);
 
             var req = {"SendMessage": {
@@ -100,6 +100,9 @@ var vm = new Vue({
 
             this.send(req);
             this.message = "";
+        },
+        test_submission: function(event) {
+            this.send("Test");
         }
     }
 });

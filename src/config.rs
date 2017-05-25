@@ -122,7 +122,7 @@ pub enum Transmitter {
     Audio,
     C9000,
     Raspager,
-    RFM69 
+    RFM69
 }
 
 impl Default for Transmitter {

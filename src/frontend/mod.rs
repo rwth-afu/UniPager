@@ -18,7 +18,8 @@ pub enum Request {
     GetVersion,
     GetStatus,
     Shutdown,
-    Restart
+    Restart,
+    Test
 }
 
 #[derive(Debug, Serialize)]

@@ -1,10 +1,12 @@
 pub mod generator;
+pub mod testgenerator;
 pub mod message;
 pub mod scheduler;
 pub mod timeslots;
 pub mod encoding;
 
 pub use self::generator::Generator;
+pub use self::testgenerator::TestGenerator;
 pub use self::message::{Message, MessageSpeed, MessageType, MessageFunc};
 pub use self::scheduler::Scheduler;
 pub use self::timeslots::{TimeSlots, TimeSlot};
