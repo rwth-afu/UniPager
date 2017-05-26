@@ -159,15 +159,27 @@ button.red:active { background-color: ##B71C1C; }
     padding: 3px 5px;
 }
 
-.on-air {
+.status.on-air {
     border-color: #F44336;
     background-color: #F44336;
     color: #fff;
 }
 
-.connected {
+.status.connected {
     border-color: #4CAF50;
     background-color: #4CAF50;
+    color: #fff;
+}
+
+.status.active {
+    border-color: #2196F3;
+    background-color: #2196F3;
+    color: #fff;
+}
+
+.status.critical {
+    border-color: #FFC107;
+    background-color: #FFC107;
     color: #fff;
 }
 

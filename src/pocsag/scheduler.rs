@@ -93,12 +93,14 @@ impl SchedulerCore {
                 }
             }
 
+            status!(queue: self.queue.len() + 1);
+
             if self.slots.is_current_allowed() { /* transmit immediately */ }
             else if let Some(next_slot) = self.slots.next_allowed() {
                 let mut duration = next_slot.duration_until();
 
-                info!("Waiting {} seconds until {:?}...",
-                      duration.as_secs(), next_slot);
+                debug!("Waiting {} seconds until {:?}...",
+                       duration.as_secs(), next_slot);
 
                 // Process other commands while waiting for the time slot
                 'waiting: while !next_slot.active() {
@@ -107,6 +109,7 @@ impl SchedulerCore {
                     match self.rx.recv_timeout(duration) {
                         Ok(Command::Message(msg)) => {
                             self.queue.push_back(msg);
+                            status!(queue: self.queue.len() + 1);
                         },
                         Ok(Command::SetTimeSlots(slots)) => {
                             self.slots = slots;
@@ -121,6 +124,7 @@ impl SchedulerCore {
                 warn!("No allowed time slots! Sending anyway...");
             }
 
+            status!(queue: self.queue.len());
             status!(transmitting: true);
             transmitter.send(&mut Generator::new(self, message.unwrap()));
             status!(transmitting: false);
@@ -160,6 +164,8 @@ impl MessageProvider for SchedulerCore {
             };
         }
 
-        self.queue.pop_front()
+        let message = self.queue.pop_front();
+        status!(queue: self.queue.len());
+        message
     }
 }

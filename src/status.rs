@@ -12,7 +12,8 @@ pub struct Status {
     pub connected: bool,
     pub transmitting: bool,
     pub timeslots: TimeSlots,
-    pub timeslot: TimeSlot
+    pub timeslot: TimeSlot,
+    pub queue: usize
 }
 
 impl Status {
@@ -21,7 +22,8 @@ impl Status {
             connected: false,
             transmitting: false,
             timeslots: TimeSlots::new(),
-            timeslot: TimeSlot::current()
+            timeslot: TimeSlot::current(),
+            queue: 0
         }
     }
 }
