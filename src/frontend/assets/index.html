@@ -112,8 +112,8 @@
               <div class="form-group">
                 <label for="audio-level">Audio Level: {{config.audio.level}}</label>
                 <input type="range" id="audio-level"
-                       v-model="config.audio.level"
-                       step="1" min="0" max="127" number>
+                       v-model.number="config.audio.level"
+                       step="1" min="0" max="127">
               </div>
               <div class="form-group">
                 <label for="audio-inverted">Inverted</label>
