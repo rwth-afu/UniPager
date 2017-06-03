@@ -184,7 +184,7 @@
                 <label for="message">Message</label>
                 <input type="text" id="message" v-model="message">
               </div>
-              <button @click="send_message">Send</button>
+              <button @click="send_message" :disabled="!message">Send</button>
             </div>
           </div>
         </div>

@@ -102,6 +102,7 @@ button {
 button:focus { outline: 0; }
 button:hover { background-color: #1976D2; }
 button:active { background-color: #0D47A1; }
+button:disabled { background-color: #9E9E9E; }
 
 button.green { background-color: #4CAF50; }
 button.green:hover { background-color: #388E3C; }
