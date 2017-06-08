@@ -1,4 +1,5 @@
 #![feature(alloc_system, mpsc_select)]
+#![feature(duration_checked_ops)]
 extern crate alloc_system;
 extern crate serial;
 extern crate raspi;
