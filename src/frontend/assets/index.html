@@ -59,7 +59,7 @@
           <div class="box-content">
             <div class="form-row">
               <div class="form-group">
-                <label for="raspager-freq">Frequency</label>
+                <label for="raspager-freq">Frequency (Hz)</label>
                 <input type="number" id="raspager-freq"
                        v-model="config.raspager.freq" class="u32-number" number>
               </div>
@@ -103,7 +103,7 @@
           <div class="box-content">
             <div class="form-row">
               <div class="form-group">
-                <label for="audio-device">ALSA device</label>
+                <label for="audio-device">ALSA device (leave empty for default)</label>
                 <input type="text" id="audio-device"
                        v-model="config.audio.device">
               </div>
