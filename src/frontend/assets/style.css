@@ -264,3 +264,17 @@ footer .logo {
 input.u8-number { width: 3rem; }
 input.u16-number { width: 5rem; }
 input.u32-number { width: 8rem; }
+
+.help {
+    width: 15px;
+    line-height: 15px;
+    height: 15px;
+    font-size: 10px;
+    color: #fff;
+    background-color: #2196F3;
+    border-radius: 50%;
+    cursor: help;
+    display: inline-block;
+    text-align: center;
+    font-weight: bold;
+}

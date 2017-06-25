@@ -103,7 +103,9 @@
           <div class="box-content">
             <div class="form-row">
               <div class="form-group">
-                <label for="audio-device">ALSA device (leave empty for default)</label>
+                <label for="audio-device">ALSA device
+                  <span class="help" title="Leave empty for default">?</span>
+                </label>
                 <input type="text" id="audio-device"
                        v-model="config.audio.device">
               </div>
