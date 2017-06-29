@@ -8,7 +8,7 @@ struct Logger {
 
 impl Log for Logger {
     fn enabled(&self, metadata: &LogMetadata) -> bool {
-        metadata.level() <= LogLevel::Info &&
+        metadata.level() <= LogLevel::Debug &&
         metadata.target().starts_with("unipager")
     }
 
@@ -29,7 +29,7 @@ impl Log for Logger {
 
 pub fn init(responder: Responder) {
     log::set_logger(|max_log_level| {
-        max_log_level.set(LogLevelFilter::Info);
+        max_log_level.set(LogLevelFilter::Debug);
         Box::new(Logger { responder: Mutex::new(responder) })
     }).expect("Unable to setup logger");
 }

@@ -1,10 +1,11 @@
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::mpsc::{TryRecvError, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use std::thread::{self, JoinHandle};
 use std::collections::VecDeque;
 
-use pocsag::{TimeSlots, Message, MessageProvider, Generator, TestGenerator};
+use pocsag::{TimeSlots, TimeSlot, Message, MessageProvider, Generator, TestGenerator};
 use transmitter::{self, Transmitter};
 use config::Config;
 
@@ -17,14 +18,15 @@ enum Command {
 #[derive(Clone)]
 pub struct Scheduler {
     tx: Sender<Command>,
-    scheduler: Arc<Mutex<SchedulerCore>>,
+    scheduler: Arc<Mutex<SchedulerCore>>
 }
 
 struct SchedulerCore {
     rx: Receiver<Command>,
     slots: TimeSlots,
     queue: VecDeque<Message>,
-    stop: bool
+    stop: bool,
+    start_time: Duration
 }
 
 impl Scheduler {
@@ -35,7 +37,8 @@ impl Scheduler {
             rx: rx,
             slots: TimeSlots::new(),
             queue: VecDeque::new(),
-            stop: false
+            stop: false,
+            start_time: Duration::new(0, 0)
         };
 
         Scheduler {
@@ -126,6 +129,7 @@ impl SchedulerCore {
 
             status!(queue: self.queue.len());
             status!(transmitting: true);
+            self.start_time = TimeSlot::now();
             transmitter.send(&mut Generator::new(self, message.unwrap()));
             status!(transmitting: false);
         }
@@ -139,7 +143,13 @@ impl SchedulerCore {
 }
 
 impl MessageProvider for SchedulerCore {
-    fn next(&mut self) -> Option<Message> {
+    fn next(&mut self, count: usize) -> Option<Message> {
+        let elapsed = (count as f64 * (32.0/(1000.0/1200.0))) as u64;
+        let duration = Duration::from_millis(elapsed);
+        let slot = TimeSlot::at(self.start_time + duration);
+
+        info!("Next Message, Count: {}, Duration: {:?}", count, duration);
+
         if !self.slots.is_current_allowed() {
             return None;
         }

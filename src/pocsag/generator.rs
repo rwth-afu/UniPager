@@ -25,7 +25,9 @@ pub struct Generator<'a> {
     // Current message being sent
     message: Option<Message>,
     // Number of codewords left in current batch
-    codewords: u8
+    codewords: u8,
+    // Number of codewords generated
+    count: usize
 }
 
 impl<'a> Generator<'a> {
@@ -35,13 +37,14 @@ impl<'a> Generator<'a> {
             state: State::Preamble,
             messages: messages,
             message: Some(first_msg),
-            codewords: PREAMBLE_LENGTH
+            codewords: PREAMBLE_LENGTH,
+            count: 0
         }
     }
 
     // Get the next message and return the matching state.
     fn next_message(&mut self) -> State {
-        self.message = self.messages.next();
+        self.message = self.messages.next(self.count - 1);
         match self.message {
             Some(_) => State::AddressWord,
             None => State::Completed
@@ -76,6 +79,7 @@ impl<'a> Iterator for Generator<'a> {
 
     fn next(&mut self) -> Option<u32> {
         debug!("({}, {:?})", self.codewords, self.state);
+        self.count += 1;
 
         match (self.codewords, self.state) {
             // Stop if no codewords are left and everything is completed.

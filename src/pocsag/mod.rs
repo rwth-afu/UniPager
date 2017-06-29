@@ -13,5 +13,5 @@ pub use self::timeslots::{TimeSlots, TimeSlot};
 pub use self::encoding::Encoding;
 
 pub trait MessageProvider {
-    fn next(&mut self) -> Option<Message>;
+    fn next(&mut self, count: usize) -> Option<Message>;
 }

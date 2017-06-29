@@ -2,11 +2,6 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::str::FromStr;
 use std::fmt;
 
-// Returns the time since the unix epoch
-fn unix_time() -> Duration {
-    SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
-}
-
 // Returns the time in deciseconds since the unix epoch
 fn deciseconds(duration: Duration) -> u64 {
     let seconds = duration.as_secs();
@@ -20,9 +15,18 @@ pub struct TimeSlot(usize);
 impl TimeSlot {
     pub fn index(&self) -> usize { self.0 }
 
+    // Returns the time since the unix epoch
+    pub fn now() -> Duration {
+        SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+    }
+
     pub fn current() -> TimeSlot {
-        let time = deciseconds(unix_time());
-        TimeSlot(((time >> 6) & 0b1111) as usize)
+        TimeSlot::at(TimeSlot::now())
+    }
+
+    pub fn at(time: Duration) -> TimeSlot {
+        let decis = deciseconds(time);
+        TimeSlot(((decis >> 6) & 0b1111) as usize)
     }
 
     pub fn active(&self) -> bool {
@@ -34,7 +38,7 @@ impl TimeSlot {
     }
 
     pub fn duration_until(&self) -> Duration {
-        let now = unix_time();
+        let now = TimeSlot::now();
         let now_decis = deciseconds(now);
 
         let current_slot = (now_decis >> 6) & 0b1111;
