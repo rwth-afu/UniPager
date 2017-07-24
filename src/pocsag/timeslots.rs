@@ -9,19 +9,19 @@ fn deciseconds(duration: Duration) -> u64 {
     seconds * 10 + deciseconds
 }
 
+// Returns the time since the unix epoch
+fn now() -> Duration {
+    SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
+}
+
 #[derive(Serialize, Clone, Copy, PartialEq)]
 pub struct TimeSlot(usize);
 
 impl TimeSlot {
     pub fn index(&self) -> usize { self.0 }
 
-    // Returns the time since the unix epoch
-    pub fn now() -> Duration {
-        SystemTime::now().duration_since(UNIX_EPOCH).unwrap()
-    }
-
     pub fn current() -> TimeSlot {
-        TimeSlot::at(TimeSlot::now())
+        TimeSlot::at(now())
     }
 
     pub fn at(time: Duration) -> TimeSlot {
@@ -38,7 +38,7 @@ impl TimeSlot {
     }
 
     pub fn duration_until(&self) -> Duration {
-        let now = TimeSlot::now();
+        let now = now();
         let now_decis = deciseconds(now);
 
         let current_slot = (now_decis >> 6) & 0b1111;
@@ -102,6 +102,26 @@ impl TimeSlots {
             if *allowed { return Some(TimeSlot(i)); }
         }
         None
+    }
+
+    pub fn calculate_budget(&self) -> usize {
+        let max_consecutive = 5;
+        let mut slots = 1;
+        let mut end = TimeSlot::current();
+
+        if !self.is_allowed(end) { return 0; }
+
+        while slots < max_consecutive && self.is_allowed(end) {
+            slots += 1;
+            end = end.next();
+        }
+
+        let baudrate = 1200;
+        let time_remaining = end.duration_until();
+        let millis_remaining = (time_remaining.as_secs()*1000) as u32 + time_remaining.subsec_nanos()/1_000_000;
+        let words_remaining = ((millis_remaining as f32) / (1000.0/(baudrate as f32)) / 32.0) as usize;
+
+        words_remaining
     }
 }
 

@@ -1,11 +1,10 @@
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::sync::mpsc::{TryRecvError, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 use std::thread::{self, JoinHandle};
 use std::collections::VecDeque;
 
-use pocsag::{TimeSlots, TimeSlot, Message, MessageProvider, Generator, TestGenerator};
+use pocsag::{TimeSlots, Message, MessageProvider, Generator, TestGenerator};
 use transmitter::{self, Transmitter};
 use config::Config;
 
@@ -26,7 +25,7 @@ struct SchedulerCore {
     slots: TimeSlots,
     queue: VecDeque<Message>,
     stop: bool,
-    start_time: Duration
+    budget: usize
 }
 
 impl Scheduler {
@@ -38,7 +37,7 @@ impl Scheduler {
             slots: TimeSlots::new(),
             queue: VecDeque::new(),
             stop: false,
-            start_time: Duration::new(0, 0)
+            budget: 0
         };
 
         Scheduler {
@@ -98,7 +97,10 @@ impl SchedulerCore {
 
             status!(queue: self.queue.len() + 1);
 
-            if self.slots.is_current_allowed() { /* transmit immediately */ }
+            // Calculate remaining time budget
+            self.budget = self.slots.calculate_budget();
+
+            if self.budget > 30 { /* transmit immediately */ }
             else if let Some(next_slot) = self.slots.next_allowed() {
                 let mut duration = next_slot.duration_until();
 
@@ -129,7 +131,8 @@ impl SchedulerCore {
 
             status!(queue: self.queue.len());
             status!(transmitting: true);
-            self.start_time = TimeSlot::now();
+            self.budget = self.slots.calculate_budget();
+            info!("Calculated Budget: {}", self.budget);
             transmitter.send(&mut Generator::new(self, message.unwrap()));
             status!(transmitting: false);
         }
@@ -144,13 +147,9 @@ impl SchedulerCore {
 
 impl MessageProvider for SchedulerCore {
     fn next(&mut self, count: usize) -> Option<Message> {
-        let elapsed = (count as f64 * (32.0/(1000.0/1200.0))) as u64;
-        let duration = Duration::from_millis(elapsed);
-        let slot = TimeSlot::at(self.start_time + duration);
+        debug!("Remaining budget: {}", self.budget as i32 - count as i32);
 
-        info!("Next Message, Count: {}, Duration: {:?}", count, duration);
-
-        if !self.slots.is_current_allowed() {
+        if count + 30 > self.budget {
             return None;
         }
 
