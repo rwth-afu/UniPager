@@ -116,9 +116,10 @@ impl TimeSlots {
             end = end.next();
         }
 
+        // TODO: dynamic baud rate
         let baudrate = 1200;
         let time_remaining = end.duration_until();
-        let millis_remaining = (time_remaining.as_secs()*1000) as u32 + time_remaining.subsec_nanos()/1_000_000;
+        let millis_remaining = (time_remaining.as_secs() * 1000) as u32 + time_remaining.subsec_nanos() / 1_000_000;
         let words_remaining = ((millis_remaining as f32) / (1000.0/(baudrate as f32)) / 32.0) as usize;
 
         words_remaining

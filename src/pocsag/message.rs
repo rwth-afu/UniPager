@@ -15,10 +15,10 @@ pub struct Message {
 }
 
 impl Message {
-    // pub fn duration() -> Duration {
-    //     // Frame Sync (32 bit)
-    //     let mut bits = 32 + 8*16;
-    // }
+    pub fn size(&self) -> usize {
+        // TODO: Calculate worst case size
+        self.data.len()
+    }
 }
 
 impl FromStr for MessageSpeed {

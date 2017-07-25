@@ -124,15 +124,17 @@ impl SchedulerCore {
                         Err(RecvTimeoutError::Timeout) => { break 'waiting; }
                     }
                 }
+
+                self.budget = self.slots.calculate_budget();
             }
             else {
                 warn!("No allowed time slots! Sending anyway...");
+                self.budget = usize::max_value();
             }
 
             status!(queue: self.queue.len());
             status!(transmitting: true);
-            self.budget = self.slots.calculate_budget();
-            info!("Calculated Budget: {}", self.budget);
+            debug!("Available time budget: {}", self.budget);
             transmitter.send(&mut Generator::new(self, message.unwrap()));
             status!(transmitting: false);
         }
@@ -147,7 +149,7 @@ impl SchedulerCore {
 
 impl MessageProvider for SchedulerCore {
     fn next(&mut self, count: usize) -> Option<Message> {
-        debug!("Remaining budget: {}", self.budget as i32 - count as i32);
+        debug!("Remaining time budget: {}", self.budget as i32 - count as i32);
 
         if count + 30 > self.budget {
             return None;
