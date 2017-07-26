@@ -2,12 +2,7 @@ use tiny_http;
 
 pub fn run() {
     let server = tiny_http::Server::http("0.0.0.0:8073").unwrap();
-    loop {
-        let req = match server.recv() {
-            Ok(req) => req,
-            Err(_) => break
-        };
-
+    while let Ok(req) = server.recv() {
         let (mime, data) = match req.url() {
             "/main.js" => ("application/javascript", include_bytes!("assets/main.js").to_vec()),
             "/vue.js" => ("application/javascript", include_bytes!("assets/vue.js").to_vec()),

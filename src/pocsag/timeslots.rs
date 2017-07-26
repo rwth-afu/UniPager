@@ -88,7 +88,7 @@ impl TimeSlots {
     }
 
     pub fn is_allowed(&self, slot: TimeSlot) -> bool {
-        self.0.get(slot.index()).map(|val| *val).unwrap_or(false)
+        self.0.get(slot.index()).cloned().unwrap_or(false)
     }
 
     pub fn is_current_allowed(&self) -> bool {
@@ -120,9 +120,9 @@ impl TimeSlots {
         let baudrate = 1200;
         let time_remaining = end.duration_until();
         let millis_remaining = (time_remaining.as_secs() * 1000) as u32 + time_remaining.subsec_nanos() / 1_000_000;
-        let words_remaining = ((millis_remaining as f32) / (1000.0/(baudrate as f32)) / 32.0) as usize;
+        let words_remaining = (millis_remaining as f32) / (1000.0/(baudrate as f32)) / 32.0;
 
-        words_remaining
+        words_remaining as usize
     }
 }
 

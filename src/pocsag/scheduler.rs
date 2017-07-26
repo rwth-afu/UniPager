@@ -90,8 +90,7 @@ impl SchedulerCore {
                     Ok(Command::SetTimeSlots(slots)) => {
                         self.slots = slots;
                     },
-                    Ok(Command::Stop) => { return; },
-                    Err(_) => { return; }
+                    Ok(Command::Stop) | Err(_) => { return; },
                 }
             }
 
@@ -119,8 +118,7 @@ impl SchedulerCore {
                         Ok(Command::SetTimeSlots(slots)) => {
                             self.slots = slots;
                         },
-                        Ok(Command::Stop) => { return; },
-                        Err(RecvTimeoutError::Disconnected) => { return; }
+                        Ok(Command::Stop) | Err(RecvTimeoutError::Disconnected) => { return; },
                         Err(RecvTimeoutError::Timeout) => { break 'waiting; }
                     }
                 }
@@ -163,11 +161,7 @@ impl MessageProvider for SchedulerCore {
                 Ok(Command::SetTimeSlots(slots)) => {
                     self.slots = slots;
                 },
-                Ok(Command::Stop) => {
-                    self.stop = true;
-                    return None;
-                },
-                Err(TryRecvError::Disconnected) => {
+                Ok(Command::Stop) | Err(TryRecvError::Disconnected) => {
                     self.stop = true;
                     return None;
                 },

@@ -120,10 +120,8 @@ impl<'a> Iterator for Generator<'a> {
                             self.next_message(),
                         MessageFunc::Numeric =>
                             State::MessageWord(0, encoding::NUMERIC),
-                        MessageFunc::AlphaNum =>
+                        MessageFunc::AlphaNum | MessageFunc::Activation =>
                             State::MessageWord(0, encoding::ALPHANUM),
-                        MessageFunc::Activation =>
-                            State::MessageWord(0, encoding::ALPHANUM)
                     };
 
                     // Encode the address word.
@@ -150,7 +148,7 @@ impl<'a> Iterator for Generator<'a> {
                     let mut sym = bytes
                         .nth(pos / encoding.bits)
                         .map(encoding.encode)
-                        .unwrap_or(encoding.trailing) >> pos % encoding.bits;
+                        .unwrap_or(encoding.trailing) >> (pos % encoding.bits);
 
                     for _ in 0..20 {
                         // Add the next bit of the symbol to the codeword.
@@ -174,9 +172,11 @@ impl<'a> Iterator for Generator<'a> {
                 };
 
                 // Continue with the next message if the current one is completed.
-                self.state = match completed {
-                    true => self.next_message(),
-                    false => State::MessageWord(pos, encoding)
+                self.state = if completed {
+                    self.next_message()
+                }
+                else {
+                    State::MessageWord(pos, encoding)
                 };
 
                 // TODO: ensure that an trailing IDLE, SYNC or ADDR word is sent

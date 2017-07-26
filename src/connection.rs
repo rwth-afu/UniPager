@@ -114,8 +114,8 @@ impl Connection {
 
     fn send(&mut self, data: &str) -> Result<()> {
         debug!("Response: {}", data);
-        self.writer.write(data.as_bytes())?;
-        self.writer.write(b"\r\n")?;
+        self.writer.write_all(data.as_bytes())?;
+        self.writer.write_all(b"\r\n")?;
         self.writer.flush()?;
         Ok(())
     }
@@ -127,7 +127,7 @@ impl Connection {
             AckStatus::Retry => b"%\r\n",
             AckStatus::Nothing => return Ok(())
         };
-        self.writer.write(response)?;
+        self.writer.write_all(response)?;
         self.writer.flush()?;
         Ok(())
     }
@@ -156,13 +156,13 @@ impl Connection {
     }
 
     fn handle_message(&mut self, data: &str) -> Result<AckStatus> {
-        let mut parts = data.split(":").peekable();
+        let mut parts = data.split(':').peekable();
 
-        let msg_id = parts.peek().and_then(|str| u8::from_str_radix(&str[1..3], 16).ok());
-        let msg_type = parts.next().and_then(|str| MessageType::from_str(&str[4..5]).ok());
-        let msg_speed = parts.next().and_then(|str| MessageSpeed::from_str(&str).ok());
-        let msg_addr = parts.next().and_then(|str| u32::from_str_radix(&str, 16).ok());
-        let msg_func = parts.next().and_then(|str| MessageFunc::from_str(&str).ok());
+        let msg_id = parts.peek().and_then(|s| u8::from_str_radix(&s[1..3], 16).ok());
+        let msg_type = parts.next().and_then(|s| MessageType::from_str(&s[4..5]).ok());
+        let msg_speed = parts.next().and_then(|s| MessageSpeed::from_str(s).ok());
+        let msg_addr = parts.next().and_then(|s| u32::from_str_radix(s, 16).ok());
+        let msg_func = parts.next().and_then(|s| MessageFunc::from_str(s).ok());
         let msg_data: String = parts.collect::<Vec<&str>>().join(":");
 
         if msg_id.is_some() && msg_type.is_some() && msg_addr.is_some() && msg_func.is_some() {
@@ -187,13 +187,13 @@ impl Connection {
     }
 
     fn handle_ident(&mut self, data: &str) -> Result<AckStatus> {
-        let ident = data.split(":").nth(1).unwrap_or("");
+        let ident = data.split(':').nth(1).unwrap_or("");
         self.send(&*format!("2:{}:{:04x}", ident, 0))?;
         Ok(AckStatus::Success)
     }
 
     fn handle_timeslots(&mut self, data: &str) -> Result<AckStatus> {
-        if let Some(slots) = data.split(":").nth(1) {
+        if let Some(slots) = data.split(':').nth(1) {
             let time_slots = TimeSlots::from_str(slots).unwrap();
             self.scheduler.set_time_slots(time_slots);
             Ok(AckStatus::Success)

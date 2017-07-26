@@ -70,7 +70,7 @@ impl Transmitter for C9000Transmitter {
             let bytes = [((word & 0xff000000) >> 24) as u8,
                          ((word & 0x00ff0000) >> 16) as u8,
                          ((word & 0x0000ff00) >> 8) as u8,
-                         ((word & 0x000000ff)) as u8];
+                         (word & 0x000000ff) as u8];
 
             if (*self.serial).write_all(&bytes).is_err() {
                 error!("Unable to write data to the serial port");

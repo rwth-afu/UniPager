@@ -22,11 +22,9 @@ impl RFM69Transmitter  {
             flow_control: serial::FlowControl::FlowNone
         }).expect("Unable to configure serial port");
 
-        let transmitter = RFM69Transmitter {
+        RFM69Transmitter {
             serial: Box::new(serial)
-        };
-
-        transmitter
+        }
     }
 }
 
@@ -36,7 +34,7 @@ impl Transmitter for RFM69Transmitter {
             let bytes = [((word & 0xff000000) >> 24) as u8,
                          ((word & 0x00ff0000) >> 16) as u8,
                          ((word & 0x0000ff00) >> 8) as u8,
-                         ((word & 0x000000ff)) as u8];
+                         (word & 0x000000ff) as u8];
 
             if (*self.serial).write_all(&bytes).is_err() {
                 error!("Unable to write data to the serial port");

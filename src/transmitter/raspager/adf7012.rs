@@ -160,7 +160,6 @@ impl Adf7012Config {
     }
 
     pub fn r0(&self) -> u32 {
-        0u32 |
         ((self.output_divider as u32 & 0b11) << 25) |
         ((self.vco_adjust as u32 & 0b11) << 23) |
         ((self.clock_out_divider as u32 & 0b1111) << 19) |
