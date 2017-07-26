@@ -5,12 +5,12 @@ pub mod scheduler;
 pub mod timeslots;
 pub mod encoding;
 
-pub use self::generator::Generator;
-pub use self::testgenerator::TestGenerator;
-pub use self::message::{Message, MessageSpeed, MessageType, MessageFunc};
-pub use self::scheduler::Scheduler;
-pub use self::timeslots::{TimeSlots, TimeSlot};
 pub use self::encoding::Encoding;
+pub use self::generator::Generator;
+pub use self::message::{Message, MessageFunc, MessageSpeed, MessageType};
+pub use self::scheduler::Scheduler;
+pub use self::testgenerator::TestGenerator;
+pub use self::timeslots::{TimeSlot, TimeSlots};
 
 pub trait MessageProvider {
     fn next(&mut self, count: usize) -> Option<Message>;

@@ -1,6 +1,6 @@
-use std::sync::{Mutex, RwLock};
-use pocsag::{TimeSlots, TimeSlot};
 use frontend::Responder;
+use pocsag::{TimeSlot, TimeSlots};
+use std::sync::{Mutex, RwLock};
 
 lazy_static! {
     pub static ref STATUS: RwLock<Status> = RwLock::new(Status::new());

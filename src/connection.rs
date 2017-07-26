@@ -1,13 +1,13 @@
-use std::net::{TcpStream, Shutdown};
-use std::io::{self, BufReader, BufWriter, BufRead, Write, Result};
-use std::time::Duration;
-use std::thread::{self, JoinHandle};
+use std::io::{self, BufRead, BufReader, BufWriter, Result, Write};
+use std::net::{Shutdown, TcpStream};
+use std::str::FromStr;
 use std::sync::mpsc::{Sender, channel};
-use std::str::{FromStr};
+use std::thread::{self, JoinHandle};
+use std::time::Duration;
 
 use config::Config;
+use pocsag::{Message, MessageFunc, MessageSpeed, MessageType};
 use pocsag::{Scheduler, TimeSlots};
-use pocsag::{Message, MessageSpeed, MessageType, MessageFunc};
 
 pub struct Connection {
     stream: TcpStream,
@@ -31,13 +31,17 @@ impl Connection {
     pub fn new(config: &Config, scheduler: Scheduler) -> Result<Connection> {
         if config.master.call.len() == 0 {
             error!("No callsign configured.");
-            Err(io::Error::new(io::ErrorKind::InvalidInput, "No callsign configured"))
-        }
-        else if config.master.auth.len() == 0 {
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "No callsign configured"
+            ))
+        } else if config.master.auth.len() == 0 {
             error!("No auth key configured.");
-            Err(io::Error::new(io::ErrorKind::InvalidInput, "No auth key configured"))
-        }
-        else {
+            Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "No auth key configured"
+            ))
+        } else {
             let addr = (&*config.master.server, config.master.port);
             let stream = TcpStream::connect(addr)?;
             stream.set_write_timeout(Some(Duration::from_millis(10000)))?;
@@ -55,50 +59,48 @@ impl Connection {
         }
     }
 
-    pub fn start(config: Config, scheduler: Scheduler) -> (Sender<()>, JoinHandle<()>) {
+    pub fn start(config: Config, scheduler: Scheduler)
+        -> (Sender<()>, JoinHandle<()>) {
         let (stop_tx, stop_rx) = channel();
         let mut reconnect = true;
         let mut delay = Duration::from_millis(5000);
 
-        let handle = thread::spawn(move || {
-            while reconnect {
-                info!("Trying to connect to master...");
-                let connection = Connection::new(&config, scheduler.clone());
+        let handle = thread::spawn(move || while reconnect {
+            info!("Trying to connect to master...");
+            let connection = Connection::new(&config, scheduler.clone());
 
-                if let Ok(mut connection) = connection {
-                    info!("Connection established.");
-                    status!(connected: true);
+            if let Ok(mut connection) = connection {
+                info!("Connection established.");
+                status!(connected: true);
 
-                    let stream = connection.stream.try_clone().unwrap();
+                let stream = connection.stream.try_clone().unwrap();
 
-                    let (stopped_tx, stopped_rx) = channel();
-                    let handle = thread::spawn(move || {
-                        connection.run().ok();
-                        stopped_tx.send(()).unwrap();
-                    });
+                let (stopped_tx, stopped_rx) = channel();
+                let handle = thread::spawn(move || {
+                    connection.run().ok();
+                    stopped_tx.send(()).unwrap();
+                });
 
-                    select! {
+                select! {
                         _ = stopped_rx.recv() => reconnect = true,
                         _ = stop_rx.recv() => reconnect = false
                     }
 
-                    stream.shutdown(Shutdown::Both).ok();
-                    handle.join().unwrap();
+                stream.shutdown(Shutdown::Both).ok();
+                handle.join().unwrap();
 
-                    status!(connected: false);
-                    warn!("Disconnected from master.");
-                    delay = Duration::from_millis(2500);
-                }
-                else {
-                    status!(connected: false);
-                    error!("Connection failed.");
-                    delay = Duration::from_millis(5000);
-                }
-                if reconnect {
-                    if let Ok(()) = stop_rx.recv_timeout(delay) {
+                status!(connected: false);
+                warn!("Disconnected from master.");
+                delay = Duration::from_millis(2500);
+            } else {
+                status!(connected: false);
+                error!("Connection failed.");
+                delay = Duration::from_millis(5000);
+            }
+            if reconnect {
+                if let Ok(()) = stop_rx.recv_timeout(delay) {
                         reconnect = false;
                     }
-                }
             }
         });
 
@@ -107,8 +109,13 @@ impl Connection {
 
     pub fn run(&mut self) -> Result<()> {
         let version = env!("CARGO_PKG_VERSION");
-        let id = format!("[UniPager-{} v{} {} {}]",
-                         self.id, version, self.call, self.auth);
+        let id = format!(
+            "[UniPager-{} v{} {} {}]",
+            self.id,
+            version,
+            self.call,
+            self.auth
+        );
 
         self.send(&*id)?;
 
@@ -135,7 +142,7 @@ impl Connection {
             AckStatus::Success => b"+\r\n",
             AckStatus::Error => b"-\r\n",
             AckStatus::Retry => b"%\r\n",
-            AckStatus::Nothing => return Ok(())
+            AckStatus::Nothing => return Ok(()),
         };
         self.writer.write_all(response)?;
         self.writer.flush()?;
@@ -146,7 +153,9 @@ impl Connection {
         let data = data.trim();
         debug!("Received data: {}", data);
 
-        if data.len() < 1 { return Ok(()); }
+        if data.len() < 1 {
+            return Ok(());
+        }
 
         let status = match &data[0..1] {
             "#" => self.handle_message(data),
@@ -154,7 +163,10 @@ impl Connection {
             "3" => Ok(AckStatus::Success),
             "4" => self.handle_timeslots(data),
             other => {
-                error!("Unknown message received from server (type: {})", other);
+                error!(
+                    "Unknown message received from server (type: {})",
+                    other
+                );
                 Ok(AckStatus::Error)
             }
         };
@@ -168,14 +180,22 @@ impl Connection {
     fn handle_message(&mut self, data: &str) -> Result<AckStatus> {
         let mut parts = data.split(':').peekable();
 
-        let msg_id = parts.peek().and_then(|s| u8::from_str_radix(&s[1..3], 16).ok());
-        let msg_type = parts.next().and_then(|s| MessageType::from_str(&s[4..5]).ok());
-        let msg_speed = parts.next().and_then(|s| MessageSpeed::from_str(s).ok());
-        let msg_addr = parts.next().and_then(|s| u32::from_str_radix(s, 16).ok());
+        let msg_id = parts.peek().and_then(
+            |s| u8::from_str_radix(&s[1..3], 16).ok()
+        );
+        let msg_type = parts.next().and_then(
+            |s| MessageType::from_str(&s[4..5]).ok()
+        );
+        let msg_speed =
+            parts.next().and_then(|s| MessageSpeed::from_str(s).ok());
+        let msg_addr =
+            parts.next().and_then(|s| u32::from_str_radix(s, 16).ok());
         let msg_func = parts.next().and_then(|s| MessageFunc::from_str(s).ok());
         let msg_data: String = parts.collect::<Vec<&str>>().join(":");
 
-        if msg_id.is_some() && msg_type.is_some() && msg_addr.is_some() && msg_func.is_some() {
+        if msg_id.is_some() && msg_type.is_some() && msg_addr.is_some() &&
+            msg_func.is_some()
+        {
             let msg = Message {
                 id: msg_id.unwrap(),
                 mtype: msg_type.unwrap(),
@@ -189,8 +209,7 @@ impl Connection {
             self.scheduler.message(msg);
             self.send(&*format!("#{:02x} +", next_id))?;
             Ok(AckStatus::Nothing)
-        }
-        else {
+        } else {
             error!("Malformed message received: {}", data);
             Ok(AckStatus::Error)
         }
@@ -207,8 +226,7 @@ impl Connection {
             let time_slots = TimeSlots::from_str(slots).unwrap();
             self.scheduler.set_time_slots(time_slots);
             Ok(AckStatus::Success)
-        }
-        else {
+        } else {
             Ok(AckStatus::Error)
         }
     }

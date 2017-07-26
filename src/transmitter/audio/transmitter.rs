@@ -1,15 +1,15 @@
-use std::process::{Command, Stdio};
 use std::io::Write;
+use std::process::{Command, Stdio};
 use std::thread::sleep;
 use std::time::Duration;
 
 use config::Config;
-use transmitter::Transmitter;
 use transmitter::Ptt;
+use transmitter::Transmitter;
 
 const BAUD_RATE: usize = 1200;
 const SAMPLE_RATE: usize = 48000;
-const SAMPLES_PER_BIT: usize = SAMPLE_RATE/BAUD_RATE;
+const SAMPLES_PER_BIT: usize = SAMPLE_RATE / BAUD_RATE;
 
 pub struct AudioTransmitter {
     device: String,
@@ -25,7 +25,7 @@ impl AudioTransmitter {
 
         let device = match &*config.audio.device {
             "" => String::from("default"),
-            other => other.to_owned()
+            other => other.to_owned(),
         };
 
         let mut transmitter = AudioTransmitter {
@@ -47,7 +47,7 @@ impl AudioTransmitter {
 }
 
 impl Transmitter for AudioTransmitter {
-    fn send(&mut self, gen: &mut Iterator<Item=u32>) {
+    fn send(&mut self, gen: &mut Iterator<Item = u32>) {
         self.ptt.set(true);
 
         sleep(Duration::from_millis(self.tx_delay as u64));
@@ -61,8 +61,7 @@ impl Transmitter for AudioTransmitter {
                 let bit = (word & (1 << (31 - i))) != 0;
                 if (!self.inverted && bit) || (self.inverted && !bit) {
                     buffer.extend_from_slice(&[low_level; SAMPLES_PER_BIT]);
-                }
-                else {
+                } else {
                     buffer.extend_from_slice(&[high_level; SAMPLES_PER_BIT]);
                 }
             }
@@ -76,7 +75,9 @@ impl Transmitter for AudioTransmitter {
             .spawn()
             .expect("Failed to start aplay");
 
-        child.stdin.as_mut()
+        child
+            .stdin
+            .as_mut()
             .expect("Failed to get aplay stdin")
             .write_all(buffer.as_slice())
             .expect("Failed to write to aplay stdin");

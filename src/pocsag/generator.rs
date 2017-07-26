@@ -1,4 +1,4 @@
-use pocsag::{Message, MessageFunc, MessageProvider, Encoding, encoding};
+use pocsag::{Encoding, Message, MessageFunc, MessageProvider, encoding};
 
 /// Preamble length in number of 32-bit codewords
 pub const PREAMBLE_LENGTH: u8 = 18;
@@ -32,7 +32,8 @@ pub struct Generator<'a> {
 
 impl<'a> Generator<'a> {
     /// Create a new Generator
-    pub fn new(messages: &'a mut MessageProvider, first_msg: Message) -> Generator<'a> {
+    pub fn new(messages: &'a mut MessageProvider, first_msg: Message)
+        -> Generator<'a> {
         Generator {
             state: State::Preamble,
             messages: messages,
@@ -47,7 +48,7 @@ impl<'a> Generator<'a> {
         self.message = self.messages.next(self.count - 1);
         match self.message {
             Some(_) => State::AddressWord,
-            None => State::Completed
+            None => State::Completed,
         }
     }
 }
@@ -98,17 +99,18 @@ impl<'a> Iterator for Generator<'a> {
             (0, _) => {
                 self.codewords = 16;
                 Some(SYNC_WORD)
-            },
+            }
 
             // There are still preamble codewords left to send.
             (_, State::Preamble) => {
                 self.codewords -= 1;
                 Some(0xAAAAAAAA)
-            },
+            }
 
             // Send the address word for the current message
             (codeword, State::AddressWord) => {
-                let &Message { addr, func, .. } = self.message.as_ref().unwrap();
+                let &Message { addr, func, .. } =
+                    self.message.as_ref().unwrap();
                 self.codewords -= 1;
 
                 // Send idle words until the current batch position
@@ -116,23 +118,23 @@ impl<'a> Iterator for Generator<'a> {
                 if ((addr & 0b111) << 1) as u8 == 16 - codeword {
                     // Set the next state according to the message type
                     self.state = match func {
-                        MessageFunc::Tone =>
-                            self.next_message(),
-                        MessageFunc::Numeric =>
-                            State::MessageWord(0, encoding::NUMERIC),
-                        MessageFunc::AlphaNum | MessageFunc::Activation =>
-                            State::MessageWord(0, encoding::ALPHANUM),
+                        MessageFunc::Tone => self.next_message(),
+                        MessageFunc::Numeric => {
+                            State::MessageWord(0, encoding::NUMERIC)
+                        }
+                        MessageFunc::AlphaNum | MessageFunc::Activation => {
+                            State::MessageWord(0, encoding::ALPHANUM)
+                        }
                     };
 
                     // Encode the address word.
                     let addr = (addr & 0x001ffff8) << 10;
                     let func = (func as u32 & 0b11) << 11;
                     Some(parity(crc(addr | func)))
-                }
-                else {
+                } else {
                     Some(IDLE_WORD)
                 }
-            },
+            }
 
             // Send the next message word of the current message.
             (_, State::MessageWord(pos, encoding)) => {
@@ -144,11 +146,13 @@ impl<'a> Iterator for Generator<'a> {
                     let message = self.message.as_ref().unwrap();
                     let mut bytes = message.data.bytes();
 
-                    // Get the next symbol and shift it to start with correct bit.
+                    // Get the next symbol and shift it to start with correct
+                    // bit.
                     let mut sym = bytes
                         .nth(pos / encoding.bits)
                         .map(encoding.encode)
-                        .unwrap_or(encoding.trailing) >> (pos % encoding.bits);
+                        .unwrap_or(encoding.trailing) >>
+                        (pos % encoding.bits);
 
                     for _ in 0..20 {
                         // Add the next bit of the symbol to the codeword.
@@ -158,11 +162,10 @@ impl<'a> Iterator for Generator<'a> {
 
                         // If all bits are send, continue with the next symbol.
                         if pos % encoding.bits == 0 {
-                            sym = bytes.next()
-                                .map(encoding.encode)
-                                .unwrap_or(encoding.trailing);
-                        }
-                        else {
+                            sym = bytes.next().map(encoding.encode).unwrap_or(
+                                encoding.trailing
+                            );
+                        } else {
                             sym >>= 1;
                         }
                     }
@@ -171,18 +174,18 @@ impl<'a> Iterator for Generator<'a> {
                     pos > message.data.len() * encoding.bits
                 };
 
-                // Continue with the next message if the current one is completed.
+                // Continue with the next message if the current one is
+                // completed.
                 self.state = if completed {
                     self.next_message()
-                }
-                else {
+                } else {
                     State::MessageWord(pos, encoding)
                 };
 
                 // TODO: ensure that an trailing IDLE, SYNC or ADDR word is sent
 
                 Some(parity(crc(0x80000000 | (codeword << 11))))
-            },
+            }
 
             // Everything is done. Send idle words until the batch is complete.
             (_, State::Completed) => {

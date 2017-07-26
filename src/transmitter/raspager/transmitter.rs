@@ -1,13 +1,13 @@
 use std::{thread, time};
 
 use config::Config;
+use raspi::{Direction, Gpio, Model, Pin};
 use transmitter::Transmitter;
 use transmitter::raspager::adf7012::{Adf7012Config, MuxOut};
-use raspi::{Gpio, Pin, Direction, Model};
 
 #[inline]
 fn delay_us(micros: u32) {
-    thread::sleep(time::Duration::new(0, micros*1000));
+    thread::sleep(time::Duration::new(0, micros * 1000));
 }
 
 #[inline]
@@ -28,7 +28,7 @@ pub struct RaspagerTransmitter {
     config: Adf7012Config
 }
 
-impl RaspagerTransmitter  {
+impl RaspagerTransmitter {
     pub fn new(config: &Config) -> RaspagerTransmitter {
         info!("Initializing RasPager transmitter...");
         info!("Detected {}", Model::get());
@@ -50,7 +50,9 @@ impl RaspagerTransmitter  {
         tx.reset();
         tx.config.set_freq_err_correction(config.raspager.freq_corr);
         tx.config.set_freq(config.raspager.freq);
-        tx.config.set_pa_output_level(config.raspager.pa_output_level);
+        tx.config.set_pa_output_level(
+            config.raspager.pa_output_level
+        );
         tx.write_config();
 
         tx
@@ -71,14 +73,12 @@ impl RaspagerTransmitter  {
                 self.write_config();
                 delay_ms(50);
                 true
-            }
-            else {
+            } else {
                 error!("PLL locking failed");
                 self.ptt_off();
                 false
             }
-        }
-        else {
+        } else {
             debug!("ADF7012 not ready");
             false
         }
@@ -135,8 +135,12 @@ impl RaspagerTransmitter  {
 
     fn write_config(&mut self) {
         debug!("write config: {:?}", self.config);
-        let registers = vec![self.config.r0(), self.config.r1(),
-                             self.config.r2(), self.config.r3()];
+        let registers = vec![
+            self.config.r0(),
+            self.config.r1(),
+            self.config.r2(),
+            self.config.r3(),
+        ];
 
         for register in registers {
             self.write_register(register);
@@ -175,12 +179,14 @@ impl RaspagerTransmitter  {
 }
 
 impl Transmitter for RaspagerTransmitter {
-    fn send(&mut self, gen: &mut Iterator<Item=u32>) {
+    fn send(&mut self, gen: &mut Iterator<Item = u32>) {
         // try multiple times until the PLL is locked
         let mut pll_locked = false;
         for _ in 0..5 {
             pll_locked = self.ptt_on();
-            if pll_locked { break; }
+            if pll_locked {
+                break;
+            }
         }
 
         if !pll_locked {

@@ -2,19 +2,35 @@ const XTAL_FREQ: u32 = 4915200;
 
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
-enum OutputDivider { Disabled = 0, DivideBy2 = 1, DivideBy4 = 2, DivideBy8 = 3 }
+enum OutputDivider {
+    Disabled = 0,
+    DivideBy2 = 1,
+    DivideBy4 = 2,
+    DivideBy8 = 3
+}
 
 #[allow(dead_code, non_camel_case_types)]
 #[derive(Copy, Clone, Debug)]
-enum Prescaler { Scale4_5 = 0, Scale8_9 = 1 }
+enum Prescaler {
+    Scale4_5 = 0,
+    Scale8_9 = 1
+}
 
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
-enum Modulation { FSK = 0, GFSK = 1, ASK = 2, OOK = 3}
+enum Modulation {
+    FSK = 0,
+    GFSK = 1,
+    ASK = 2,
+    OOK = 3
+}
 
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug)]
-pub enum MuxOut { RegReady = 3, DigitalLock = 4 }
+pub enum MuxOut {
+    RegReady = 3,
+    DigitalLock = 4
+}
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -112,8 +128,7 @@ impl Adf7012Config {
         if self.freq_err_correction < 0 {
             // Calculate two's complement for a 11-bit number
             (!((-self.freq_err_correction) as u16) & 0b11111111111) + 1
-        }
-        else {
+        } else {
             self.freq_err_correction as u16 & 0b1111111111
         }
     }
@@ -153,53 +168,49 @@ impl Adf7012Config {
     pub fn set_pa_output_level(&mut self, value: u8) {
         if value > 63 {
             self.pa_output_level = 63;
-        }
-        else {
+        } else {
             self.pa_output_level = value;
         }
     }
 
     pub fn r0(&self) -> u32 {
         ((self.output_divider as u32 & 0b11) << 25) |
-        ((self.vco_adjust as u32 & 0b11) << 23) |
-        ((self.clock_out_divider as u32 & 0b1111) << 19) |
-        ((self.xtal_disable as u32) << 18) |
-        ((self.xtal_doubler as u32) << 17) |
-        ((self.r_divider as u32 & 0b1111) << 13) |
-        ((self.freq_err_correction() as u32 & 0b11111111111) << 2)
+            ((self.vco_adjust as u32 & 0b11) << 23) |
+            ((self.clock_out_divider as u32 & 0b1111) << 19) |
+            ((self.xtal_disable as u32) << 18) |
+            ((self.xtal_doubler as u32) << 17) |
+            ((self.r_divider as u32 & 0b1111) << 13) |
+            ((self.freq_err_correction() as u32 & 0b11111111111) << 2)
     }
 
     pub fn r1(&self) -> u32 {
-        1u32 |
-        ((self.prescaler as u32 & 0b1) << 22) |
-        ((self.integer_n as u32 & 0b11111111) << 14) |
-        ((self.fractional_n as u32 & 0b111111111111) << 2)
+        1u32 | ((self.prescaler as u32 & 0b1) << 22) |
+            ((self.integer_n as u32 & 0b11111111) << 14) |
+            ((self.fractional_n as u32 & 0b111111111111) << 2)
     }
 
     pub fn r2(&self) -> u32 {
-        2u32 |
-        ((self.index_counter as u32 & 0b11) << 23) |
-        ((self.gfsk_mod_control as u32 & 0b111) << 20) |
-        ((self.mod_deviation as u32 & 0b111111111) << 11) |
-        ((self.pa_output_level as u32 & 0b111111) << 5) |
-        ((self.gaussian_ook as u32 & 0b1) << 4) |
-        ((self.mod_control as u32 & 0b11) << 2)
+        2u32 | ((self.index_counter as u32 & 0b11) << 23) |
+            ((self.gfsk_mod_control as u32 & 0b111) << 20) |
+            ((self.mod_deviation as u32 & 0b111111111) << 11) |
+            ((self.pa_output_level as u32 & 0b111111) << 5) |
+            ((self.gaussian_ook as u32 & 0b1) << 4) |
+            ((self.mod_control as u32 & 0b11) << 2)
     }
 
     pub fn r3(&self) -> u32 {
-        3u32 |
-        ((self.pa_bias as u32 & 0b111) << 20) |
-        ((self.vco_bias as u32 & 0b1111) << 16) |
-        ((self.ld_precision as u32 & 0b1) << 15) |
-        ((self.muxout as u32 & 0b1111) << 11) |
-        ((self.vco_disable as u32 & 0b1) << 10) |
-        ((self.bleed_down as u32 & 0b1) << 8) |
-        ((self.bleed_up as u32 & 0b1) << 7) |
-        ((self.charge_pump as u32 & 0b11) << 6) |
-        ((self.data_invert as u32 & 0b1) << 5) |
-        ((self.clkout_enable as u32 & 0b1) << 4) |
-        ((self.pa_enable as u32 & 0b1) << 3) |
-        ((self.pll_enable as u32 & 0b1) << 2)
+        3u32 | ((self.pa_bias as u32 & 0b111) << 20) |
+            ((self.vco_bias as u32 & 0b1111) << 16) |
+            ((self.ld_precision as u32 & 0b1) << 15) |
+            ((self.muxout as u32 & 0b1111) << 11) |
+            ((self.vco_disable as u32 & 0b1) << 10) |
+            ((self.bleed_down as u32 & 0b1) << 8) |
+            ((self.bleed_up as u32 & 0b1) << 7) |
+            ((self.charge_pump as u32 & 0b11) << 6) |
+            ((self.data_invert as u32 & 0b1) << 5) |
+            ((self.clkout_enable as u32 & 0b1) << 4) |
+            ((self.pa_enable as u32 & 0b1) << 3) |
+            ((self.pll_enable as u32 & 0b1) << 2)
     }
 }
 

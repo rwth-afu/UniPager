@@ -1,6 +1,6 @@
-use std::{thread, time};
+use raspi::{Direction, Gpio, Model, Pin};
 use serial::{self, SerialPort};
-use raspi::{Gpio, Pin, Direction, Model};
+use std::{thread, time};
 
 use config::Config;
 use transmitter::Transmitter;
@@ -14,23 +14,26 @@ pub struct C9000Transmitter {
     serial: Box<serial::SerialPort>
 }
 
-impl C9000Transmitter  {
+impl C9000Transmitter {
     pub fn new(_: &Config) -> C9000Transmitter {
         info!("Initializing C9000 transmitter...");
 
         let model = Model::get();
         info!("Detected {}", model);
 
-        let mut serial = serial::open(model.serial_port())
-            .expect("Unable to open serial port");
+        let mut serial = serial::open(model.serial_port()).expect(
+            "Unable to open serial port"
+        );
 
-        serial.configure(&serial::PortSettings {
-            baud_rate: serial::BaudRate::Baud38400,
-            char_size: serial::CharSize::Bits8,
-            parity: serial::Parity::ParityNone,
-            stop_bits: serial::StopBits::Stop1,
-            flow_control: serial::FlowControl::FlowNone
-        }).expect("Unable to configure serial port");
+        serial
+            .configure(&serial::PortSettings {
+                baud_rate: serial::BaudRate::Baud38400,
+                char_size: serial::CharSize::Bits8,
+                parity: serial::Parity::ParityNone,
+                stop_bits: serial::StopBits::Stop1,
+                flow_control: serial::FlowControl::FlowNone
+            })
+            .expect("Unable to configure serial port");
 
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
@@ -52,7 +55,7 @@ impl C9000Transmitter  {
 }
 
 impl Transmitter for C9000Transmitter {
-    fn send(&mut self, gen: &mut Iterator<Item=u32>) {
+    fn send(&mut self, gen: &mut Iterator<Item = u32>) {
         self.ptt_pin.set_high();
 
         for (i, word) in gen.enumerate() {
@@ -67,10 +70,12 @@ impl Transmitter for C9000Transmitter {
                 }
             }
 
-            let bytes = [((word & 0xff000000) >> 24) as u8,
-                         ((word & 0x00ff0000) >> 16) as u8,
-                         ((word & 0x0000ff00) >> 8) as u8,
-                         (word & 0x000000ff) as u8];
+            let bytes = [
+                ((word & 0xff000000) >> 24) as u8,
+                ((word & 0x00ff0000) >> 16) as u8,
+                ((word & 0x0000ff00) >> 8) as u8,
+                (word & 0x000000ff) as u8,
+            ];
 
             if (*self.serial).write_all(&bytes).is_err() {
                 error!("Unable to write data to the serial port");

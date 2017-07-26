@@ -1,6 +1,6 @@
-use std::sync::Mutex;
-use log::{self, Log, LogRecord, LogLevel, LogLevelFilter, LogMetadata};
 use frontend::{Responder, Response};
+use log::{self, Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord};
+use std::sync::Mutex;
 
 struct Logger {
     responder: Mutex<Responder>
@@ -9,7 +9,7 @@ struct Logger {
 impl Log for Logger {
     fn enabled(&self, metadata: &LogMetadata) -> bool {
         metadata.level() <= LogLevel::Info &&
-        metadata.target().starts_with("unipager")
+            metadata.target().starts_with("unipager")
     }
 
     fn log(&self, record: &LogRecord) {
@@ -18,10 +18,11 @@ impl Log for Logger {
                 LogLevel::Error => "\x1B[31m",
                 LogLevel::Warn => "\x1B[33m",
                 LogLevel::Info => "\x1B[32m",
-                _ => ""
+                _ => "",
             };
             println!("{}{}\x1B[39m - {}", color, record.level(), record.args());
-            let res = Response::Log(record.level() as u8, record.args().to_string());
+            let res =
+                Response::Log(record.level() as u8, record.args().to_string());
             self.responder.lock().unwrap().send(res);
         }
     }

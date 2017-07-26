@@ -4,9 +4,7 @@ pub struct TestGenerator {
 
 impl<'a> TestGenerator {
     pub fn new(length: usize) -> TestGenerator {
-        TestGenerator {
-            length: length
-        }
+        TestGenerator { length: length }
     }
 }
 
@@ -17,10 +15,8 @@ impl<'a> Iterator for TestGenerator {
         if self.length > 0 {
             self.length -= 1;
             Some(0xAAAAAAAA)
-        }
-        else {
+        } else {
             None
         }
     }
 }
-

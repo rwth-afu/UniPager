@@ -1,7 +1,7 @@
+use serde_json;
+use std::fmt;
 use std::fs::File;
 use std::io::{Read, Write};
-use std::fmt;
-use serde_json;
 
 const CONFIG_FILE: &'static str = "config.json";
 
@@ -12,9 +12,7 @@ pub struct C9000Config {
 
 impl Default for C9000Config {
     fn default() -> C9000Config {
-        C9000Config {
-            baudrate: 38400
-        }
+        C9000Config { baudrate: 38400 }
     }
 }
 
@@ -42,9 +40,7 @@ pub struct RFM69Config {
 
 impl Default for RFM69Config {
     fn default() -> RFM69Config {
-        RFM69Config {
-            port: String::from("/dev/ttyUSB0")
-        }
+        RFM69Config { port: String::from("/dev/ttyUSB0") }
     }
 }
 
@@ -138,7 +134,7 @@ impl fmt::Display for Transmitter {
             Transmitter::Audio => "Audio",
             Transmitter::C9000 => "C9000",
             Transmitter::Raspager => "RaspagerV1",
-            Transmitter::RFM69 => "RFM69"
+            Transmitter::RFM69 => "RFM69",
         };
         write!(f, "{}", name)
     }
@@ -157,41 +153,43 @@ pub struct Config {
     #[serde(default)]
     pub audio: AudioConfig,
     #[serde(default)]
-    pub rfm69: RFM69Config,
+    pub rfm69: RFM69Config
 }
 
 impl Config {
     pub fn load() -> Config {
-         match File::open(CONFIG_FILE) {
-             Ok(mut file) => {
-                 let mut data = String::new();
-                 file.read_to_string(&mut data)
-                     .expect("Failed to read config file");
+        match File::open(CONFIG_FILE) {
+            Ok(mut file) => {
+                let mut data = String::new();
+                file.read_to_string(&mut data).expect(
+                    "Failed to read config file"
+                );
 
-                 if let Ok(config) = serde_json::from_str(&data) {
-                     config
-                 }
-                 else {
-                     error!("Failed to parse config file. Using default.");
-                     Config::default()
-                 }
-             },
-             Err(_) => {
-                 info!("Creating config file from default config.");
-                 let config = Config::default();
-                 config.save();
-                 config
-             }
+                if let Ok(config) = serde_json::from_str(&data) {
+                    config
+                } else {
+                    error!("Failed to parse config file. Using default.");
+                    Config::default()
+                }
+            }
+            Err(_) => {
+                info!("Creating config file from default config.");
+                let config = Config::default();
+                config.save();
+                config
+            }
         }
     }
 
     pub fn save(&self) {
         let data = serde_json::to_vec_pretty(self).unwrap();
 
-        let mut new_file = File::create(CONFIG_FILE)
-            .expect("Couldn't create config file");
+        let mut new_file = File::create(CONFIG_FILE).expect(
+            "Couldn't create config file"
+        );
 
-        new_file.write_all(data.as_slice())
-            .expect("Couldn't write to config file");
+        new_file.write_all(data.as_slice()).expect(
+            "Couldn't write to config file"
+        );
     }
 }

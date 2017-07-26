@@ -1,11 +1,17 @@
-use raspi::{Gpio, Pin, Direction, Model};
-use serial;
 use config::{PttConfig, PttMethod};
+use raspi::{Direction, Gpio, Model, Pin};
+use serial;
 
 pub enum Ptt {
     Gpio { pin: Pin, inverted: bool },
-    SerialDtr { port: Box<serial::SerialPort>, inverted: bool },
-    SerialRts { port: Box<serial::SerialPort>, inverted: bool }
+    SerialDtr {
+        port: Box<serial::SerialPort>,
+        inverted: bool
+    },
+    SerialRts {
+        port: Box<serial::SerialPort>,
+        inverted: bool
+    }
 }
 
 impl Ptt {
@@ -21,8 +27,9 @@ impl Ptt {
                 }
             }
             PttMethod::SerialDtr => {
-                let port = serial::open(&*config.serial_port)
-                    .expect("Unable to open serial port");
+                let port = serial::open(&*config.serial_port).expect(
+                    "Unable to open serial port"
+                );
 
                 Ptt::SerialDtr {
                     port: Box::new(port),
@@ -31,8 +38,9 @@ impl Ptt {
             }
 
             PttMethod::SerialRts => {
-                let port = serial::open(&*config.serial_port)
-                    .expect("Unable to open serial port");
+                let port = serial::open(&*config.serial_port).expect(
+                    "Unable to open serial port"
+                );
 
                 Ptt::SerialRts {
                     port: Box::new(port),
@@ -46,16 +54,23 @@ impl Ptt {
         match *self {
             Ptt::Gpio { ref pin, inverted } => {
                 pin.set(status != inverted);
-            },
-            Ptt::SerialDtr { ref mut port, inverted } => {
-                port.set_dtr(status != inverted)
-                    .expect("Error setting DTR pin");
-            },
-            Ptt::SerialRts { ref mut port, inverted } => {
-                port.set_rts(status != inverted)
-                    .expect("Error setting RTS pin");
+            }
+            Ptt::SerialDtr {
+                ref mut port,
+                inverted
+            } => {
+                port.set_dtr(status != inverted).expect(
+                    "Error setting DTR pin"
+                );
+            }
+            Ptt::SerialRts {
+                ref mut port,
+                inverted
+            } => {
+                port.set_rts(status != inverted).expect(
+                    "Error setting RTS pin"
+                );
             }
         }
     }
 }
-

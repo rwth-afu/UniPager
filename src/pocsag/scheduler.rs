@@ -1,12 +1,12 @@
-use std::sync::mpsc::{channel, Sender, Receiver};
-use std::sync::mpsc::{TryRecvError, RecvTimeoutError};
-use std::sync::{Arc, Mutex};
-use std::thread::{self, JoinHandle};
 use std::collections::VecDeque;
+use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{Receiver, Sender, channel};
+use std::sync::mpsc::{RecvTimeoutError, TryRecvError};
+use std::thread::{self, JoinHandle};
 
-use pocsag::{TimeSlots, Message, MessageProvider, Generator, TestGenerator};
-use transmitter::{self, Transmitter};
 use config::Config;
+use pocsag::{Generator, Message, MessageProvider, TestGenerator, TimeSlots};
+use transmitter::{self, Transmitter};
 
 enum Command {
     Message(Message),
@@ -86,11 +86,14 @@ impl SchedulerCore {
                 match self.rx.recv() {
                     Ok(Command::Message(msg)) => {
                         message = Some(msg);
-                    },
+                    }
                     Ok(Command::SetTimeSlots(slots)) => {
                         self.slots = slots;
-                    },
-                    Ok(Command::Stop) | Err(_) => { return; },
+                    }
+                    Ok(Command::Stop) |
+                    Err(_) => {
+                        return;
+                    }
                 }
             }
 
@@ -99,12 +102,16 @@ impl SchedulerCore {
             // Calculate remaining time budget
             self.budget = self.slots.calculate_budget();
 
-            if self.budget > 30 { /* transmit immediately */ }
-            else if let Some(next_slot) = self.slots.next_allowed() {
+            if self.budget > 30 {
+                /* transmit immediately */
+            } else if let Some(next_slot) = self.slots.next_allowed() {
                 let mut duration = next_slot.duration_until();
 
-                debug!("Waiting {} seconds until {:?}...",
-                       duration.as_secs(), next_slot);
+                debug!(
+                    "Waiting {} seconds until {:?}...",
+                    duration.as_secs(),
+                    next_slot
+                );
 
                 // Process other commands while waiting for the time slot
                 'waiting: while !next_slot.active() {
@@ -114,18 +121,22 @@ impl SchedulerCore {
                         Ok(Command::Message(msg)) => {
                             self.queue.push_back(msg);
                             status!(queue: self.queue.len() + 1);
-                        },
+                        }
                         Ok(Command::SetTimeSlots(slots)) => {
                             self.slots = slots;
-                        },
-                        Ok(Command::Stop) | Err(RecvTimeoutError::Disconnected) => { return; },
-                        Err(RecvTimeoutError::Timeout) => { break 'waiting; }
+                        }
+                        Ok(Command::Stop) |
+                        Err(RecvTimeoutError::Disconnected) => {
+                            return;
+                        }
+                        Err(RecvTimeoutError::Timeout) => {
+                            break 'waiting;
+                        }
                     }
                 }
 
                 self.budget = self.slots.calculate_budget();
-            }
-            else {
+            } else {
                 warn!("No allowed time slots! Sending anyway...");
                 self.budget = usize::max_value();
             }
@@ -133,7 +144,9 @@ impl SchedulerCore {
             status!(queue: self.queue.len());
             status!(transmitting: true);
             debug!("Available time budget: {}", self.budget);
-            transmitter.send(&mut Generator::new(self, message.unwrap()));
+            transmitter.send(
+                &mut Generator::new(self, message.unwrap())
+            );
             status!(transmitting: false);
         }
     }
@@ -147,7 +160,10 @@ impl SchedulerCore {
 
 impl MessageProvider for SchedulerCore {
     fn next(&mut self, count: usize) -> Option<Message> {
-        debug!("Remaining time budget: {}", self.budget as i32 - count as i32);
+        debug!(
+            "Remaining time budget: {}",
+            self.budget as i32 - count as i32
+        );
 
         if count + 30 > self.budget {
             return None;
@@ -155,17 +171,20 @@ impl MessageProvider for SchedulerCore {
 
         loop {
             match (*self).rx.try_recv() {
-                Ok(Command::Message(msg)) =>{
+                Ok(Command::Message(msg)) => {
                     self.queue.push_back(msg);
                 }
                 Ok(Command::SetTimeSlots(slots)) => {
                     self.slots = slots;
-                },
-                Ok(Command::Stop) | Err(TryRecvError::Disconnected) => {
+                }
+                Ok(Command::Stop) |
+                Err(TryRecvError::Disconnected) => {
                     self.stop = true;
                     return None;
-                },
-                Err(TryRecvError::Empty) => { break; }
+                }
+                Err(TryRecvError::Empty) => {
+                    break;
+                }
             };
         }
 

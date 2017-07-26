@@ -26,9 +26,9 @@ use std::thread;
 use std::time;
 
 use config::Config;
-use pocsag::Scheduler;
-use frontend::{Request, Response};
 use connection::Connection;
+use frontend::{Request, Response};
+use pocsag::Scheduler;
 
 fn print_version() {
     println!("UniPager {}", env!("CARGO_PKG_VERSION"));
@@ -56,8 +56,10 @@ fn main() {
     let mut test = false;
 
     while restart {
-        let (stop_conn, conn_thread) = Connection::start(config.clone(), scheduler.clone());
-        let scheduler_thread = Scheduler::start(config.clone(), scheduler.clone());
+        let (stop_conn, conn_thread) =
+            Connection::start(config.clone(), scheduler.clone());
+        let scheduler_thread =
+            Scheduler::start(config.clone(), scheduler.clone());
         loop {
             match requests.recv().unwrap() {
                 Request::SetConfig(new_config) => {
@@ -70,7 +72,7 @@ fn main() {
                     stop_conn.send(()).ok();
                     scheduler.stop();
                     break;
-                },
+                }
                 Request::DefaultConfig => {
                     config = Config::default();
                     config.save();
@@ -81,7 +83,7 @@ fn main() {
                     stop_conn.send(()).ok();
                     scheduler.stop();
                     break;
-                },
+                }
                 Request::SendMessage { addr, data } => {
                     let msg = pocsag::Message {
                         id: 0,
@@ -92,31 +94,31 @@ fn main() {
                         data: data
                     };
                     scheduler.message(msg);
-                },
+                }
                 Request::GetConfig => {
                     responder.send(Response::Config(config.clone()));
-                },
+                }
                 Request::GetVersion => {
                     let version = env!("CARGO_PKG_VERSION").to_string();
                     responder.send(Response::Version(version));
-                },
+                }
                 Request::GetStatus => {
                     responder.send(Response::Status(status::get()));
-                },
+                }
                 Request::Shutdown => {
                     info!("Initiating shutdown.");
                     restart = false;
                     stop_conn.send(()).ok();
                     scheduler.stop();
                     break;
-                },
+                }
                 Request::Restart => {
                     info!("Initiating restart.");
                     restart = true;
                     stop_conn.send(()).ok();
                     scheduler.stop();
                     break;
-                },
+                }
                 Request::Test => {
                     info!("Initiating test procedure...");
                     restart = true;

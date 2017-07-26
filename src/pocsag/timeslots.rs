@@ -1,6 +1,6 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use std::str::FromStr;
 use std::fmt;
+use std::str::FromStr;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 // Returns the time in deciseconds since the unix epoch
 fn deciseconds(duration: Duration) -> u64 {
@@ -18,7 +18,9 @@ fn now() -> Duration {
 pub struct TimeSlot(usize);
 
 impl TimeSlot {
-    pub fn index(&self) -> usize { self.0 }
+    pub fn index(&self) -> usize {
+        self.0
+    }
 
     pub fn current() -> TimeSlot {
         TimeSlot::at(now())
@@ -47,16 +49,15 @@ impl TimeSlot {
 
         // if the slot is already over use the next block
         if this_slot == current_slot {
-            return Duration::new(0, 0)
-        }
-        else if this_slot < current_slot {
+            return Duration::new(0, 0);
+        } else if this_slot < current_slot {
             block_start += 1 << 10;
         }
 
         let slot_offset = this_slot << 6;
         let slot_start = block_start + slot_offset;
 
-        let seconds = slot_start/10;
+        let seconds = slot_start / 10;
         let nanoseconds = (slot_start % 10) as u32 * 100_000_000;
 
         let start = Duration::new(seconds, nanoseconds);
@@ -65,13 +66,16 @@ impl TimeSlot {
             Some(duration) => duration,
             None => {
                 error!("TimeSlot calculation broken");
-                error!("Current Slot: {:X} This Slot: {:X}", current_slot, this_slot);
+                error!(
+                    "Current Slot: {:X} This Slot: {:X}",
+                    current_slot,
+                    this_slot
+                );
                 error!("Now: {:?}", now);
                 error!("Start: {:?}", start);
                 if !self.active() {
                     Duration::new(1, 0)
-                }
-                else {
+                } else {
                     Duration::new(0, 0)
                 }
             }
@@ -99,7 +103,9 @@ impl TimeSlots {
         let current = TimeSlot::current().index();
         let iterator = self.0.iter().enumerate().cycle().skip(current);
         for (i, allowed) in iterator.take(self.0.len()) {
-            if *allowed { return Some(TimeSlot(i)); }
+            if *allowed {
+                return Some(TimeSlot(i));
+            }
         }
         None
     }
@@ -109,7 +115,9 @@ impl TimeSlots {
         let mut slots = 1;
         let mut end = TimeSlot::current();
 
-        if !self.is_allowed(end) { return 0; }
+        if !self.is_allowed(end) {
+            return 0;
+        }
 
         while slots < max_consecutive && self.is_allowed(end) {
             slots += 1;
@@ -119,8 +127,10 @@ impl TimeSlots {
         // TODO: dynamic baud rate
         let baudrate = 1200;
         let time_remaining = end.duration_until();
-        let millis_remaining = (time_remaining.as_secs() * 1000) as u32 + time_remaining.subsec_nanos() / 1_000_000;
-        let words_remaining = (millis_remaining as f32) / (1000.0/(baudrate as f32)) / 32.0;
+        let millis_remaining = (time_remaining.as_secs() * 1000) as u32 +
+            time_remaining.subsec_nanos() / 1_000_000;
+        let words_remaining = (millis_remaining as f32) /
+            (1000.0 / (baudrate as f32)) / 32.0;
 
         words_remaining as usize
     }
@@ -148,9 +158,11 @@ impl fmt::Debug for TimeSlot {
 
 impl fmt::Debug for TimeSlots {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(f, "TimeSlots {{ "));
+        write!(f, "TimeSlots {{ ")?;
         for (i, slot) in self.0.iter().enumerate() {
-            if *slot { try!(write!(f, "{:X}", i)); }
+            if *slot {
+                write!(f, "{:X}", i)?;
+            }
         }
         write!(f, " }}")
     }

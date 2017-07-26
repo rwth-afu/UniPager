@@ -1,8 +1,24 @@
 use std::str::FromStr;
 
-#[derive(Copy, Clone, Debug)] pub enum MessageSpeed { Baud(usize) }
-#[derive(Copy, Clone, Debug)] pub enum MessageType { SyncRequest, SyncOrder, Slots, Numeric, AlphaNum }
-#[derive(Copy, Clone, Debug)] pub enum MessageFunc { Numeric = 0, Tone = 1, Activation = 2, AlphaNum = 3 }
+#[derive(Copy, Clone, Debug)]
+pub enum MessageSpeed {
+    Baud(usize)
+}
+#[derive(Copy, Clone, Debug)]
+pub enum MessageType {
+    SyncRequest,
+    SyncOrder,
+    Slots,
+    Numeric,
+    AlphaNum
+}
+#[derive(Copy, Clone, Debug)]
+pub enum MessageFunc {
+    Numeric = 0,
+    Tone = 1,
+    Activation = 2,
+    AlphaNum = 3
+}
 
 #[derive(Debug)]
 pub struct Message {
@@ -29,7 +45,7 @@ impl FromStr for MessageSpeed {
             Ok(0) => Ok(MessageSpeed::Baud(512)),
             Ok(1) => Ok(MessageSpeed::Baud(1200)),
             Ok(2) => Ok(MessageSpeed::Baud(2400)),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -44,7 +60,7 @@ impl FromStr for MessageType {
             Ok(4) => Ok(MessageType::Slots),
             Ok(5) => Ok(MessageType::Numeric),
             Ok(6) => Ok(MessageType::AlphaNum),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -58,7 +74,7 @@ impl FromStr for MessageFunc {
             Ok(1) => Ok(MessageFunc::Tone),
             Ok(2) => Ok(MessageFunc::Activation),
             Ok(3) => Ok(MessageFunc::AlphaNum),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
