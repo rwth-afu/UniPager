@@ -1,5 +1,5 @@
 use std::net::{TcpStream, Shutdown};
-use std::io::{BufReader, BufWriter, BufRead, Write, Result};
+use std::io::{self, BufReader, BufWriter, BufRead, Write, Result};
 use std::time::Duration;
 use std::thread::{self, JoinHandle};
 use std::sync::mpsc::{Sender, channel};
@@ -29,20 +29,30 @@ enum AckStatus {
 
 impl Connection {
     pub fn new(config: &Config, scheduler: Scheduler) -> Result<Connection> {
-        let addr = (&*config.master.server, config.master.port);
-        let stream = TcpStream::connect(addr)?;
-        stream.set_write_timeout(Some(Duration::from_millis(10000)))?;
-        stream.set_read_timeout(Some(Duration::from_millis(125000)))?;
+        if config.master.call.len() == 0 {
+            error!("No callsign configured.");
+            Err(io::Error::new(io::ErrorKind::InvalidInput, "No callsign configured"))
+        }
+        else if config.master.auth.len() == 0 {
+            error!("No auth key configured.");
+            Err(io::Error::new(io::ErrorKind::InvalidInput, "No auth key configured"))
+        }
+        else {
+            let addr = (&*config.master.server, config.master.port);
+            let stream = TcpStream::connect(addr)?;
+            stream.set_write_timeout(Some(Duration::from_millis(10000)))?;
+            stream.set_read_timeout(Some(Duration::from_millis(125000)))?;
 
-        Ok(Connection {
-            reader: BufReader::new(stream.try_clone()?),
-            writer: BufWriter::new(stream.try_clone()?),
-            stream: stream,
-            scheduler: scheduler,
-            call: config.master.call.to_owned(),
-            auth: config.master.auth.to_owned(),
-            id: config.transmitter.to_string()
-        })
+            Ok(Connection {
+                reader: BufReader::new(stream.try_clone()?),
+                writer: BufWriter::new(stream.try_clone()?),
+                stream: stream,
+                scheduler: scheduler,
+                call: config.master.call.to_owned(),
+                auth: config.master.auth.to_owned(),
+                id: config.transmitter.to_string()
+            })
+        }
     }
 
     pub fn start(config: Config, scheduler: Scheduler) -> (Sender<()>, JoinHandle<()>) {
