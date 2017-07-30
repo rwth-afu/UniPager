@@ -78,10 +78,7 @@ impl Model {
     }
 
     pub fn serial_port(&self) -> &'static str {
-        match self {
-            &Model::V3B => "/dev/ttyS0",
-            _ => "/dev/ttyAMA0"
-        }
+        "/dev/ttyAMA0"
     }
 }
 
