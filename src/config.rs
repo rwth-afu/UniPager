@@ -7,12 +7,20 @@ const CONFIG_FILE: &'static str = "config.json";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct C9000Config {
-    pub baudrate: u32
+    pub baudrate: u32,
+    pub dummy_enabled: bool,
+    pub dummy_port: String,
+    pub dummy_pa_output_level: u8
 }
 
 impl Default for C9000Config {
     fn default() -> C9000Config {
-        C9000Config { baudrate: 38400 }
+        C9000Config {
+            baudrate: 38400,
+            dummy_enabled: false,
+            dummy_port: String::from("/dev/ttyUSB1"),
+            dummy_pa_output_level: 0
+        }
     }
 }
 
