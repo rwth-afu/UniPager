@@ -2,6 +2,7 @@ use serde_json;
 use std::fmt;
 use std::fs::File;
 use std::io::{Read, Write};
+use serial::{self, SerialPort};
 
 const CONFIG_FILE: &'static str = "config.json";
 
@@ -10,7 +11,7 @@ pub struct C9000Config {
     pub baudrate: u32,
     pub dummy_enabled: bool,
     pub dummy_port: String,
-    pub dummy_pa_output_level: u8
+    pub dummy_pa_output_level: String
 }
 
 impl Default for C9000Config {
@@ -19,7 +20,7 @@ impl Default for C9000Config {
             baudrate: 38400,
             dummy_enabled: false,
             dummy_port: String::from("/dev/ttyUSB1"),
-            dummy_pa_output_level: 0
+            dummy_pa_output_level: String::from("0")
         }
     }
 }
@@ -199,5 +200,31 @@ impl Config {
         new_file.write_all(data.as_slice()).expect(
             "Couldn't write to config file"
         );
+        if self.c9000.dummy_enabled {
+            info!("Setting C9000 PA dummy output power ({})", self.c9000.dummy_pa_output_level);
+            let mut serial = serial::open(&self.c9000.dummy_port).expect(
+                "Unable to open serial port"
+            );
+
+            serial
+                .configure(&serial::PortSettings {
+                    baud_rate: serial::BaudRate::Baud38400,
+                    char_size: serial::CharSize::Bits8,
+                    parity: serial::Parity::ParityNone,
+                    stop_bits: serial::StopBits::Stop1,
+                    flow_control: serial::FlowControl::FlowNone
+                })
+                .expect("Unable to configure serial port");
+
+            // let power = &self.c9000.dummy_pa_output_level;
+            if serial.write(&self.c9000.dummy_pa_output_level.as_bytes()).is_err() {
+            // if serial.write(power.as_bytes()).is_err() {
+                error!("Unable to write data to the serial port");
+            };
+
+            if serial.flush().is_err() {
+                error!("Unable to flush serial port");
+            }
+        }
     }
 }

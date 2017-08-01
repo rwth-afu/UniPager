@@ -80,7 +80,6 @@
             </div>
           </div>
         </div>
-
         <div class="box" v-if="config.transmitter == 'C9000'">
           <div class="box-header">
             <h3>Compact9000 Config</h3>
@@ -92,16 +91,17 @@
                 <input type="checkbox" id="c9000-dummy-enabled"
                        v-model="config.c9000.dummy_enabled">
               </div>
-              <div class="form-group">
-                <label for="c9000-dummy_port">PA Dummy Serial Port</label>
+              <div class="form-group" v-if="config.c9000.dummy_enabled">
+                <label for="c9000-dummy-port">PA Dummy Serial Port</label>
                 <input type="text" id="c9000-dummy-port"
                        v-model="config.c9000.dummy_port">
               </div>
             </div>
-            <div class="form-row">
+            <div class="form-row" v-if="config.c9000.dummy_enabled">
               <div class="form-group">
-                <label for="c9000-dummy-pa-output-Level">PA Output Level (W)</label>
-                <select id="c9000-dummy-pa-output-level" v-model="config.c9000.dummy_pa_output_level">
+                <label for="c9000-dummy-pa-output-level">PA Output Level (W)</label>
+                <select id="c9000-dummy-pa-output-level"
+                        v-model="config.c9000.dummy_pa_output_level">
                   <option value="0">5W (25W)</option>
                   <option value="1">7W (38W)</option>
                   <option value="2">9W (50W)</option>
