@@ -2,7 +2,6 @@ use serde_json;
 use std::fmt;
 use std::fs::File;
 use std::io::{Read, Write};
-use serial::{self, SerialPort};
 
 const CONFIG_FILE: &'static str = "config.json";
 
@@ -200,31 +199,5 @@ impl Config {
         new_file.write_all(data.as_slice()).expect(
             "Couldn't write to config file"
         );
-        if self.c9000.dummy_enabled {
-            info!("Setting C9000 PA dummy output power ({})", self.c9000.dummy_pa_output_level);
-            let mut serial = serial::open(&self.c9000.dummy_port).expect(
-                "Unable to open serial port"
-            );
-
-            serial
-                .configure(&serial::PortSettings {
-                    baud_rate: serial::BaudRate::Baud38400,
-                    char_size: serial::CharSize::Bits8,
-                    parity: serial::Parity::ParityNone,
-                    stop_bits: serial::StopBits::Stop1,
-                    flow_control: serial::FlowControl::FlowNone
-                })
-                .expect("Unable to configure serial port");
-
-            // let power = &self.c9000.dummy_pa_output_level;
-            if serial.write(&self.c9000.dummy_pa_output_level.as_bytes()).is_err() {
-            // if serial.write(power.as_bytes()).is_err() {
-                error!("Unable to write data to the serial port");
-            };
-
-            if serial.flush().is_err() {
-                error!("Unable to flush serial port");
-            }
-        }
     }
 }
