@@ -31,10 +31,10 @@ impl C9000Transmitter {
                            stop_bits: serial::StopBits::Stop1,
                            flow_control: serial::FlowControl::FlowNone
                        }).is_err() {
-                    error!("Unable to configure serial port");
+                    error!("Unable to configure serial port {}", config.c9000.dummy_port);
                 } else {
                     if port.write_all(&[config.c9000.dummy_pa_output_level]).is_err() {
-                        error!("Unable to write data to the serial port");
+                        error!("Unable to write data to the serial port {}", config.c9000.dummy_port);
                     }
                 }
             } else {
