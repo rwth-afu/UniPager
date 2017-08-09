@@ -20,25 +20,27 @@ impl C9000Transmitter {
         info!("Initializing C9000 transmitter...");
 
         if config.c9000.dummy_enabled {
-            let mut port = serial::open(&*config.c9000.dummy_port).expect(
-                "Unable to open serial port"
-            );
-
             info!("Setting C9000 PA dummy output power");
 
-            port
-                .configure(&serial::PortSettings {
-                    baud_rate: serial::BaudRate::Baud38400,
-                    char_size: serial::CharSize::Bits8,
-                    parity: serial::Parity::ParityNone,
-                    stop_bits: serial::StopBits::Stop1,
-                    flow_control: serial::FlowControl::FlowNone
-                })
-            .expect("Unable to configure serial port");
-
-            if port.write_all(&[config.c9000.dummy_pa_output_level]).is_err() {
-                error!("Unable to write data to the serial port");
+            if let Ok(mut port) = serial::open(&*config.c9000.dummy_port) {
+                if port
+                       .configure(&serial::PortSettings {
+                           baud_rate: serial::BaudRate::Baud38400,
+                           char_size: serial::CharSize::Bits8,
+                           parity: serial::Parity::ParityNone,
+                           stop_bits: serial::StopBits::Stop1,
+                           flow_control: serial::FlowControl::FlowNone
+                       }).is_err() {
+                    error!("Unable to configure serial port");
+                } else {
+                    if port.write_all(&[config.c9000.dummy_pa_output_level]).is_err() {
+                        error!("Unable to write data to the serial port");
+                    }
+                }
+            } else {
+               error!("Unable to open serial port {}", config.c9000.dummy_port);
             }
+
         }
 
         let model = Model::get();
