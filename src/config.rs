@@ -10,7 +10,7 @@ pub struct C9000Config {
     pub baudrate: u32,
     pub dummy_enabled: bool,
     pub dummy_port: String,
-    pub dummy_pa_output_level: String
+    pub dummy_pa_output_level: u8
 }
 
 impl Default for C9000Config {
@@ -19,7 +19,7 @@ impl Default for C9000Config {
             baudrate: 38400,
             dummy_enabled: false,
             dummy_port: String::from("/dev/ttyUSB1"),
-            dummy_pa_output_level: String::from("0")
+            dummy_pa_output_level: 0
         }
     }
 }

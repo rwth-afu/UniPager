@@ -85,7 +85,7 @@
             <h3>Compact9000 Config</h3>
           </div>
           <div class="box-content">
-            PA Dummy<br />
+            PA Dummy<br>
             <div class="form-row">
               <div class="form-group">
                 <label for="c9000-dummy-enabled">Enabled</label>
@@ -101,26 +101,26 @@
             <div class="form-row" v-if="config.c9000.dummy_enabled">
               <div class="form-group">
                 <label for="c9000-dummy-pa-output-level">Output Level (W) 
-                  <span class="help" title="Approxmate output power of exciter (Output power with amplifier)">?</span>
+                   <span class="help" title="Approximate output power of exciter (Output power with amplifier).&#13;* setting only useable with recent versions of C9000 firmware">?</span>
                 </label>
                 <select id="c9000-dummy-pa-output-level"
                         v-model="config.c9000.dummy_pa_output_level">
-                  <option value="66">2W (25W)</option>
-                  <option value="82">3W (37W)</option>
-                  <option value="99">4W (51W)</option>
-                  <option value="111">5W (63W)</option>
-                  <option value="122">6W (74W)</option>
-                  <option value="132">7W (85W)</option>
-                  <option value="147">8W (103W)</option>
-                  <option value="154">9W (111W)</option>
-                  <option value="163">10W (124W)</option>
-                  <option value="174">11W (140W)</option>
-                  <option value="183">12W (153W)</option>
-                  <option value="188">13W (161W)</option>
-                  <option value="194">14W (171W)</option>
-                  <option value="204">16W (187W)</option>
-                  <option value="211">18W (200W)</option>
-                  <option value="216">20W (210W*)</option>
+                  <option v-bind:value="66">2W (25W)</option>
+                  <option v-bind:value="82">3W (37W)</option>
+                  <option v-bind:value="99">4W (51W)</option>
+                  <option v-bind:value="111">5W (63W)</option>
+                  <option v-bind:value="122">6W (74W)</option>
+                  <option v-bind:value="132">7W (85W)</option>
+                  <option v-bind:value="147">8W (103W)</option>
+                  <option v-bind:value="154">9W (111W)</option>
+                  <option v-bind:value="163">10W (124W)</option>
+                  <option v-bind:value="174">11W (140W)</option>
+                  <option v-bind:value="183">12W (153W)</option>
+                  <option v-bind:value="188">13W (161W)</option>
+                  <option v-bind:value="194">14W (171W)</option>
+                  <option v-bind:value="204">16W (187W)</option>
+                  <option v-bind:value="211">18W (200W)</option>
+                  <option v-bind:value="216">20W (210W)*</option>
                 </select>
               </div>
             </div>

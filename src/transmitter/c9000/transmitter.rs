@@ -24,13 +24,6 @@ impl C9000Transmitter {
                 "Unable to open serial port"
             );
 
-            let pa_output_level= match &*config.c9000.dummy_pa_output_level {
-                "" => String::from("0"),
-                other => other.to_owned(),
-            };
-
-            let level: u8 = pa_output_level.parse::<u8>().unwrap();
-
             info!("Setting C9000 PA dummy output power");
 
             port
@@ -43,7 +36,7 @@ impl C9000Transmitter {
                 })
             .expect("Unable to configure serial port");
 
-            if port.write(&[level]).is_err() {
+            if port.write_all(&[config.c9000.dummy_pa_output_level]).is_err() {
                 error!("Unable to write data to the serial port");
             }
         }
