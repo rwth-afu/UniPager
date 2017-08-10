@@ -1,6 +1,7 @@
 use raspi::{Direction, Gpio, Model, Pin};
 use serial::{self, SerialPort};
 use std::{thread, time};
+use std::io::{Write};
 
 use config::Config;
 use transmitter::Transmitter;
@@ -15,8 +16,32 @@ pub struct C9000Transmitter {
 }
 
 impl C9000Transmitter {
-    pub fn new(_: &Config) -> C9000Transmitter {
+    pub fn new(config: &Config) -> C9000Transmitter {
         info!("Initializing C9000 transmitter...");
+
+        if config.c9000.dummy_enabled {
+            info!("Setting C9000 PA dummy output power");
+
+            if let Ok(mut port) = serial::open(&*config.c9000.dummy_port) {
+                if port
+                       .configure(&serial::PortSettings {
+                           baud_rate: serial::BaudRate::Baud38400,
+                           char_size: serial::CharSize::Bits8,
+                           parity: serial::Parity::ParityNone,
+                           stop_bits: serial::StopBits::Stop1,
+                           flow_control: serial::FlowControl::FlowNone
+                       }).is_err() {
+                    error!("Unable to configure serial port {}", config.c9000.dummy_port);
+                } else {
+                    if port.write_all(&[config.c9000.dummy_pa_output_level]).is_err() {
+                        error!("Unable to write data to the serial port {}", config.c9000.dummy_port);
+                    }
+                }
+            } else {
+               error!("Unable to open serial port {}", config.c9000.dummy_port);
+            }
+
+        }
 
         let model = Model::get();
         info!("Detected {}", model);
