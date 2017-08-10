@@ -18,7 +18,7 @@ impl Default for C9000Config {
         C9000Config {
             baudrate: 38400,
             dummy_enabled: false,
-            dummy_port: String::from("/dev/ttyUSB1"),
+            dummy_port: String::from("/dev/ttyUSB0"),
             dummy_pa_output_level: 0
         }
     }
