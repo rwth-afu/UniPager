@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Read;
+use std::ops::BitAnd;
 use std::u32;
 use std::fmt;
 
@@ -31,7 +32,8 @@ impl Model {
             .and_then(|line| line.split(':').nth(1))
             .map(str::trim)
             .and_then(|res| u32::from_str_radix(res, 16).ok())
-            .unwrap_or(0x0);
+            .unwrap_or(0x0)
+            .bitand(0x00ffffff);
 
         match revision {
             0x2...0x3 => Model::V1B { rev: 1 },
