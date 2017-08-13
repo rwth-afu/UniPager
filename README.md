@@ -143,7 +143,7 @@ Start the build:
 
 ```bash
 cd UniPager
-cargo build --target $TARGET --release 
+cargo build --target $TARGET --release
 ```
 
 The cross-compiled binary will be created at `./target/$TARGET/release/unipager`.
@@ -182,6 +182,19 @@ Make sure that the serial port is activated. To do this add `enable_uart=1` to
 reboot.
 
 This is not needed for the RASPAGERV1 and Audio transmitter type.
+
+## Authors
+
+### Author and Maintainer
+
+- Thomas Gatzweiler (DL2IC)
+
+### Contributors
+
+- Mathis Schmieder (DB9MAT)
+- Florian Wolters (DF2ET)
+- Ralf Wilke (DH3WR)
+- Johannes Gierlach (DJ7LC)
 
 ## License
 
