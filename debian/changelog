@@ -1,8 +1,10 @@
 unipager (0.7.0) unstable; urgency=medium
 
+  * Adds C9000 output power configuration (DF2ET)
   * Improves the adherence to time slot restrictions
+  * Several bug fixes
 
- -- RWTH Amateurfunkgruppe <rwth-afu@online.de>  Thu, 03 Aug 2017 18:00:00 +0200
+ -- RWTH Amateurfunkgruppe <rwth-afu@online.de>  Thu, 17 Aug 2017 18:00:00 +0200
 
 unipager (0.6.0) unstable; urgency=medium
 
