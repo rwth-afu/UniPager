@@ -127,6 +127,7 @@ impl SchedulerCore {
                         }
                         Ok(Command::Stop) |
                         Err(RecvTimeoutError::Disconnected) => {
+                            self.queue.push_front(message.unwrap());
                             return;
                         }
                         Err(RecvTimeoutError::Timeout) => {
