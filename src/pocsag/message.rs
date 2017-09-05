@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize)]
 pub enum MessageSpeed {
     Baud(usize)
 }
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize)]
 pub enum MessageType {
     SyncRequest,
     SyncOrder,
@@ -12,7 +12,7 @@ pub enum MessageType {
     Numeric,
     AlphaNum
 }
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Serialize, Debug)]
 pub enum MessageFunc {
     Numeric = 0,
     Tone = 1,
@@ -20,7 +20,7 @@ pub enum MessageFunc {
     AlphaNum = 3
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Message {
     pub id: u8,
     pub mtype: MessageType,

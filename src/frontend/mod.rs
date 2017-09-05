@@ -8,6 +8,7 @@ use std::thread;
 
 use config::Config;
 use status::Status;
+use pocsag::Message;
 
 #[derive(Debug, Deserialize)]
 pub enum Request {
@@ -27,6 +28,7 @@ pub enum Response {
     Status(Status),
     Config(Config),
     Version(String),
+    Message(Message),
     Log(u8, String)
 }
 

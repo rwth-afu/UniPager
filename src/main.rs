@@ -93,7 +93,9 @@ fn main() {
                         func: pocsag::MessageFunc::AlphaNum,
                         data: data
                     };
+                    let msg_copy = msg.clone();
                     scheduler.message(msg);
+                    responder.send(Response::Message(msg_copy));
                 }
                 Request::GetConfig => {
                     responder.send(Response::Config(config.clone()));
