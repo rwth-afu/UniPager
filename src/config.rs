@@ -5,17 +5,24 @@ use std::io::{Read, Write};
 
 const CONFIG_FILE: &'static str = "config.json";
 
-const FALLBACK_SERVERS: &[(&'static str, u16)] = &[
-    ("dapnet.db0sda.ampr.org", 43434),
-    ("dapnet.db0fa.ampr.org", 43434),
-    ("debian2.dl4ste.ampr.org", 43434),
-    ("dl5ml.db0sda.ampr.org", 43434),
-    ("db0rta.ampr.org", 43434),
-    ("dapnet.db0vvs.de.ampr.org", 43434),
-    ("db0wa.ampr.org", 43434),
-    ("dapnet.ampr.org", 43434),
-    ("on3dhc.db0sda.ampr.org", 43434)
-];
+fn default_fallback_servers() -> Vec<(String, u16)> {
+    [
+        ("dapnet.db0sda.ampr.org", 43434),
+        ("dapnet.db0fa.ampr.org", 43434),
+        ("debian2.dl4ste.ampr.org", 43434),
+        ("dl5ml.db0sda.ampr.org", 43434),
+        ("db0rta.ampr.org", 43434),
+        ("dapnet.db0vvs.de.ampr.org", 43434),
+        ("db0wa.ampr.org", 43434),
+        ("dapnet.ampr.org", 43434),
+        ("on3dhc.db0sda.ampr.org", 43434)
+    ]
+        .iter()
+        .map(|&(ref host, port)| (host.to_string(), port))
+        .collect()
+}
+
+fn default_mod_deviation() -> u16 { 13 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct C9000Config {
@@ -40,7 +47,9 @@ impl Default for C9000Config {
 pub struct RaspagerConfig {
     pub freq: u32,
     pub freq_corr: i16,
-    pub pa_output_level: u8
+    pub pa_output_level: u8,
+    #[serde(default="default_mod_deviation")]
+    pub mod_deviation: u16,
 }
 
 impl Default for RaspagerConfig {
@@ -48,7 +57,8 @@ impl Default for RaspagerConfig {
         RaspagerConfig {
             freq: 439987500,
             freq_corr: 0,
-            pa_output_level: 30
+            pa_output_level: 30,
+            mod_deviation: default_mod_deviation()
         }
     }
 }
@@ -119,7 +129,7 @@ pub struct MasterConfig {
     pub call: String,
     #[serde(default)]
     pub auth: String,
-    #[serde(default)]
+    #[serde(default="default_fallback_servers")]
     pub fallback: Vec<(String, u16)>
 }
 
@@ -130,9 +140,7 @@ impl Default for MasterConfig {
             port: 43434,
             call: String::from(""),
             auth: String::from(""),
-            fallback: FALLBACK_SERVERS.iter()
-                .map(|&(ref host, port)| (host.to_string(), port))
-                .collect()
+            fallback: default_fallback_servers()
         }
     }
 }
@@ -183,7 +191,7 @@ pub struct Config {
 
 impl Config {
     pub fn load() -> Config {
-        let mut config = match File::open(CONFIG_FILE) {
+        match File::open(CONFIG_FILE) {
             Ok(mut file) => {
                 let mut data = String::new();
                 file.read_to_string(&mut data).expect(
@@ -203,15 +211,7 @@ impl Config {
                 config.save();
                 config
             }
-        };
-
-        if config.master.fallback.len() == 0 {
-            config.master.fallback = FALLBACK_SERVERS.iter()
-                .map(|&(ref host, port)| (host.to_string(), port))
-                .collect()
         }
-
-        config
     }
 
     pub fn save(&self) {

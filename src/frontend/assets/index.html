@@ -77,6 +77,12 @@
                        v-model="config.raspager.pa_output_level"
                        step="1" min="0" max="63" number class="u8-number">
               </div>
+              <div class="form-group">
+                <label for="raspager-mod-deviation">Mod. Deviation</label>
+                <input type="number" id="raspager-mod-deviation"
+                       v-model="config.raspager.mod_deviation"
+                       step="1" min="0" max="511" number class="u16-number">
+              </div>
             </div>
           </div>
         </div>
@@ -100,7 +106,7 @@
             </div>
             <div class="form-row" v-if="config.c9000.dummy_enabled">
               <div class="form-group">
-                <label for="c9000-dummy-pa-output-level">Output Level (W) 
+                <label for="c9000-dummy-pa-output-level">Output Level (W)
                    <span class="help" title="Approximate output power of exciter (Output power with amplifier).&#13;* setting only usable with recent versions of C9000 firmware">?</span>
                 </label>
                 <select id="c9000-dummy-pa-output-level"

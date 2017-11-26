@@ -53,6 +53,7 @@ impl RaspagerTransmitter {
         tx.config.set_pa_output_level(
             config.raspager.pa_output_level
         );
+        tx.config.set_mod_deviation(config.raspager.mod_deviation);
         tx.write_config();
 
         tx

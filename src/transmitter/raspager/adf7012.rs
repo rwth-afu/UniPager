@@ -173,6 +173,10 @@ impl Adf7012Config {
         }
     }
 
+    pub fn set_mod_deviation(&mut self, value: u16) {
+        self.mod_deviation = value;
+    }
+
     pub fn r0(&self) -> u32 {
         ((self.output_divider as u32 & 0b11) << 25) |
             ((self.vco_adjust as u32 & 0b11) << 23) |
