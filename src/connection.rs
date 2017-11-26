@@ -1,9 +1,9 @@
 use std::io::{self, BufRead, BufReader, BufWriter, Result, Write};
-use std::net::{Shutdown, TcpStream};
+use std::net::{Shutdown, TcpStream, ToSocketAddrs};
 use std::str::FromStr;
 use std::sync::mpsc::{Sender, channel};
 use std::thread::{self, JoinHandle};
-use std::time::Duration;
+use std::time::{Duration};
 
 use config::Config;
 use pocsag::{Message, MessageFunc, MessageSpeed, MessageType};
@@ -28,7 +28,8 @@ enum AckStatus {
 }
 
 impl Connection {
-    pub fn new(config: &Config, scheduler: Scheduler) -> Result<Connection> {
+    pub fn new(host: &String, port: u16, config: &Config, scheduler: Scheduler)
+               -> Result<Connection> {
         if config.master.call.len() == 0 {
             error!("No callsign configured.");
             Err(io::Error::new(
@@ -42,8 +43,15 @@ impl Connection {
                 "No auth key configured"
             ))
         } else {
-            let addr = (&*config.master.server, config.master.port);
-            let stream = TcpStream::connect(addr)?;
+            info!("Connection to {}:{}...", host, port);
+
+            let addr = (&**host, port).to_socket_addrs()?
+                .next().ok_or(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Cannot resolve hostname"
+                ))?;
+
+            let stream = TcpStream::connect_timeout(&addr, Duration::from_millis(10000))?;
             stream.set_write_timeout(Some(Duration::from_millis(10000)))?;
             stream.set_read_timeout(Some(Duration::from_millis(125000)))?;
 
@@ -62,45 +70,68 @@ impl Connection {
     pub fn start(config: Config, scheduler: Scheduler)
         -> (Sender<()>, JoinHandle<()>) {
         let (stop_tx, stop_rx) = channel();
-        let mut reconnect = true;
-        let mut delay = Duration::from_millis(5000);
 
-        let handle = thread::spawn(move || while reconnect {
-            info!("Trying to connect to master...");
-            let connection = Connection::new(&config, scheduler.clone());
+        let handle = thread::spawn(move || {
+            let mut reconnect = true;
+            let mut try_fallback = false;
+            let mut fallback = config.master.fallback.iter().cycle();
 
-            if let Ok(mut connection) = connection {
-                info!("Connection established.");
-                status!(connected: true);
+            while reconnect {
+                let connection = if try_fallback {
+                    warn!("Connecting to next fallback server...");
+                    if let Some(&(ref host, port)) = fallback.next() {
+                        Connection::new(&host, port, &config, scheduler.clone())
+                    }
+                    else {
+                        error!("No fallback servers defined.");
+                        let (host, port) = (&config.master.server, config.master.port);
+                        Connection::new(&host, port, &config, scheduler.clone())
+                    }
+                }
+                else {
+                    let (host, port) = (&config.master.server, config.master.port);
+                    Connection::new(&host, port, &config, scheduler.clone())
+                };
 
-                let stream = connection.stream.try_clone().unwrap();
+                let delay = if let Ok(mut connection) = connection {
+                    info!("Connection established.");
+                    status!(connected: true);
+                    try_fallback = false;
 
-                let (stopped_tx, stopped_rx) = channel();
-                let handle = thread::spawn(move || {
-                    connection.run().ok();
-                    stopped_tx.send(()).unwrap();
-                });
+                    let stream = connection.stream.try_clone().unwrap();
 
-                select! {
+                    let (stopped_tx, stopped_rx) = channel();
+                    let handle = thread::spawn(move || {
+                        connection.run().ok();
+                        stopped_tx.send(()).unwrap();
+                    });
+
+                    select! {
                         _ = stopped_rx.recv() => reconnect = true,
                         _ = stop_rx.recv() => reconnect = false
                     }
 
-                stream.shutdown(Shutdown::Both).ok();
-                handle.join().unwrap();
+                    stream.shutdown(Shutdown::Both).ok();
+                    handle.join().unwrap();
 
-                status!(connected: false);
-                warn!("Disconnected from master.");
-                delay = Duration::from_millis(2500);
-            } else {
-                status!(connected: false);
-                error!("Connection failed.");
-                delay = Duration::from_millis(5000);
-            }
-            if reconnect {
-                if let Ok(()) = stop_rx.recv_timeout(delay) {
+                    status!(connected: false);
+                    warn!("Disconnected from master.");
+
+                    Duration::from_millis(2500)
+                } else {
+                    status!(connected: false);
+                    error!("Connection failed.");
+
+                    try_fallback = !try_fallback;
+
+                    Duration::from_millis(5000)
+                };
+
+                if reconnect {
+                    if let Ok(()) = stop_rx.recv_timeout(delay) {
                         reconnect = false;
                     }
+                }
             }
         });
 

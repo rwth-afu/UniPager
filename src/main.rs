@@ -1,4 +1,4 @@
-#![feature(alloc_system, mpsc_select)]
+#![feature(alloc_system, mpsc_select, tcpstream_connect_timeout)]
 extern crate alloc_system;
 extern crate serial;
 extern crate raspi;
