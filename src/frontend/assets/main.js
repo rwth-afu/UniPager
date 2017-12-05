@@ -19,6 +19,20 @@ var vm = new Vue({
         message: "",
         addr: localStorage ? (localStorage.pager_addr || 0) : 0
     },
+    watch: {
+        config: {
+            deep: true,
+            handler: function(config) {
+                if (config.master.call) {
+                    document.title = config.master.call + " - UniPager";
+                }
+                else {
+                    document.title = "UniPager";
+                }
+            }
+        },
+        deep: true
+    },
     methods: {
         connect: function(event) {
             this.socket = new WebSocket("ws://" + location.hostname + ":8055");
