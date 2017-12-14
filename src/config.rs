@@ -25,6 +25,7 @@ fn default_fallback_servers() -> Vec<(String, u16)> {
 fn default_mod_deviation() -> u16 { 13 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct C9000Config {
     pub baudrate: u32,
     pub dummy_enabled: bool,
@@ -44,11 +45,11 @@ impl Default for C9000Config {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct RaspagerConfig {
     pub freq: u32,
     pub freq_corr: i16,
     pub pa_output_level: u8,
-    #[serde(default="default_mod_deviation")]
     pub mod_deviation: u16,
 }
 
@@ -64,6 +65,7 @@ impl Default for RaspagerConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct RFM69Config {
     pub port: String
 }
@@ -75,6 +77,7 @@ impl Default for RFM69Config {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct AudioConfig {
     #[serde(default)]
     pub device: String,
@@ -103,6 +106,7 @@ pub enum PttMethod {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct PttConfig {
     pub method: PttMethod,
     pub inverted: bool,
@@ -122,14 +126,12 @@ impl Default for PttConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct MasterConfig {
     pub server: String,
     pub port: u16,
-    #[serde(default)]
     pub call: String,
-    #[serde(default)]
     pub auth: String,
-    #[serde(default="default_fallback_servers")]
     pub fallback: Vec<(String, u16)>
 }
 
@@ -174,18 +176,14 @@ impl fmt::Display for Transmitter {
 }
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug)]
+#[serde(default)]
 pub struct Config {
     pub master: MasterConfig,
     pub transmitter: Transmitter,
-    #[serde(default)]
     pub ptt: PttConfig,
-    #[serde(default)]
     pub raspager: RaspagerConfig,
-    #[serde(default)]
     pub c9000: C9000Config,
-    #[serde(default)]
     pub audio: AudioConfig,
-    #[serde(default)]
     pub rfm69: RFM69Config
 }
 
