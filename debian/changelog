@@ -1,3 +1,9 @@
+unipager (0.7.1) unstable; urgency=medium
+
+  * Fix configuration migration failure
+
+ -- RWTH Amateurfunkgruppe <rwth-afu@online.de>  Thu, 14 Dec 2017 18:00:00 +0200
+
 unipager (0.7.0) unstable; urgency=medium
 
   * Implements automatic fallback server selection
