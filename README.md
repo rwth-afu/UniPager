@@ -55,6 +55,13 @@ sudo apt-get update
 sudo apt-get install unipager
 ```
 
+## Update
+Once the package is installed, you can install updates as for every other debian package with the following commands:
+```bash
+sudo apt-get update
+sudo apt-get upgrade
+```
+
 ## Compilation
 Install rust:
 
