@@ -15,8 +15,8 @@ fn default_fallback_servers() -> Vec<(String, u16)> {
         ("dapnet.db0vvs.ampr.org", 43434),
         ("db0wa.ampr.org", 43434),
         ("dapnet.ampr.org", 43434),
-        ("on3dhc.db0sda.ampr.org", 43434)
-        ("dapnet.afu.rwth-aachen.de", 43434)
+        ("on3dhc.db0sda.ampr.org", 43434),
+        ("dapnet.afu.rwth-aachen.de", 43434),
         ("db0dbn.ig-funk-siebengebirge.de", 43434)
     ]
         .iter()
