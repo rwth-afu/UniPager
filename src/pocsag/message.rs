@@ -1,10 +1,10 @@
 use std::str::FromStr;
 
-#[derive(Copy, Clone, Debug, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum MessageSpeed {
     Baud(usize)
 }
-#[derive(Copy, Clone, Debug, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum MessageType {
     SyncRequest,
     SyncOrder,
@@ -12,7 +12,7 @@ pub enum MessageType {
     Numeric,
     AlphaNum
 }
-#[derive(Copy, Clone, Serialize, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum MessageFunc {
     Numeric = 0,
     Tone = 1,
@@ -20,7 +20,8 @@ pub enum MessageFunc {
     AlphaNum = 3
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Message {
     pub id: u8,
     pub mtype: MessageType,
@@ -36,6 +37,21 @@ impl Message {
         self.data.len()
     }
 }
+
+impl Default for Message {
+    fn default() -> Message {
+        Message {
+            id: 0,
+            mtype: MessageType::AlphaNum,
+            speed: MessageSpeed::Baud(1200),
+            addr: 0,
+            func: MessageFunc::AlphaNum,
+            data: "".to_owned()
+        }
+    }
+}
+
+
 
 impl FromStr for MessageSpeed {
     type Err = ();

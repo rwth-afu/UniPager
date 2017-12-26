@@ -84,15 +84,7 @@ fn main() {
                     scheduler.stop();
                     break;
                 }
-                Request::SendMessage { addr, data } => {
-                    let msg = pocsag::Message {
-                        id: 0,
-                        mtype: pocsag::MessageType::AlphaNum,
-                        speed: pocsag::MessageSpeed::Baud(1200),
-                        addr: addr,
-                        func: pocsag::MessageFunc::AlphaNum,
-                        data: data
-                    };
+                Request::SendMessage(msg) => {
                     let msg_copy = msg.clone();
                     scheduler.message(msg);
                     responder.send(Response::Message(msg_copy));

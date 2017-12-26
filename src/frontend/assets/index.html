@@ -33,8 +33,8 @@
               <div class="form-group">
                 <label for="master">Port</label>
                 <input type="number" id="master-port"
-                       v-model="config.master.port" class="u16-number"
-                       step="1" min="0" max="65535" number>
+                       v-model.number="config.master.port" class="u16-number"
+                       step="1" min="0" max="65535">
               </div>
             </div>
             <div class="form-row">
@@ -61,27 +61,27 @@
               <div class="form-group">
                 <label for="raspager-freq">Frequency (Hz)</label>
                 <input type="number" id="raspager-freq"
-                       v-model="config.raspager.freq" class="u32-number" number>
+                       v-model.number="config.raspager.freq" class="u32-number">
               </div>
               <div class="form-group">
                 <label for="raspager-freq-corr">Frequency Correction</label>
                 <input type="number" id="raspager-freq-corr"
-                       v-model="config.raspager.freq_corr" class="u16-number"
-                       step="1" min="-1024" max="1023" number>
+                       v-model.number="config.raspager.freq_corr" class="u16-number"
+                       step="1" min="-1024" max="1023">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="raspager-pa-output-Level">PA Output Level</label>
                 <input type="number" id="raspager-pa-output-level"
-                       v-model="config.raspager.pa_output_level"
-                       step="1" min="0" max="63" number class="u8-number">
+                       v-model.number="config.raspager.pa_output_level"
+                       step="1" min="0" max="63" class="u8-number">
               </div>
               <div class="form-group">
                 <label for="raspager-mod-deviation">Mod. Deviation</label>
                 <input type="number" id="raspager-mod-deviation"
-                       v-model="config.raspager.mod_deviation"
-                       step="1" min="0" max="511" number class="u16-number">
+                       v-model.number="config.raspager.mod_deviation"
+                       step="1" min="0" max="511" class="u16-number">
               </div>
             </div>
           </div>
@@ -179,8 +179,8 @@
               <div class="form-group">
                 <label for="audio-tx-delay">TX Delay (ms)</label>
                 <input type="number" id="audio-tx-delay"
-                       v-model="config.audio.tx_delay"
-                       step="1" min="0" max="100" number
+                       v-model.number="config.audio.tx_delay"
+                       step="1" min="0" max="100"
                        class="u8-number">
               </div>
             </div>
@@ -206,8 +206,8 @@
               <div class="form-group" v-if="config.ptt.method == 'Gpio'">
                 <label for="ptt-gpio-pin">GPIO Pin</label>
                 <input type="number" id="ptt-gpio-pin"
-                       v-model="config.ptt.gpio_pin"
-                       step="1" min="0" number class="u8-number">
+                       v-model.number="config.ptt.gpio_pin"
+                       step="1" min="0" class="u8-number">
               </div>
 
               <div class="form-group" v-if="config.ptt.method == 'SerialDtr' || config.ptt.method == 'SerialRts'">
@@ -231,14 +231,41 @@
           <div class="box-content">
             <div class="form-row">
               <div class="form-group">
-                <label for="addr">Address</label>
-                <input type="number" id="addr" v-model="addr" class="u16-number">
+                <label for="message-addr">Address</label>
+                <input type="number" id="message-addr" v-model.number="message.addr"
+                  class="u16-number">
               </div>
               <div class="form-group">
-                <label for="message">Message</label>
-                <input type="text" id="message" v-model="message">
+                <label for="message-data">Data</label>
+                <input type="text" id="message-data" v-model="message.data">
               </div>
-              <button @click="send_message" :disabled="!message">Send</button>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="message-speed">Baudrate</label>
+                <select id="message-speed" v-model="message.speed">
+                  <option v-bind:value="{'Baud': 512}">512</option>
+                  <option v-bind:value="{'Baud': 1200}">1200</option>
+                  <option v-bind:value="{'Baud': 2400}">2400</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="message-mtype">Type</label>
+                <select id="message-mtype" v-model="message.mtype">
+                  <option>AlphaNum</option>
+                  <option>Numeric</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="message-func">Function</label>
+                <select id="message-func" v-model="message.func">
+                  <option value="Numeric">0</option>
+                  <option value="Tone">1</option>
+                  <option value="Activation">2</option>
+                  <option value="AlphaNum">3</option>
+                </select>
+              </div>
+              <button @click="send_message">Send</button>
             </div>
           </div>
         </div>

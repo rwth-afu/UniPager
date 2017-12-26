@@ -14,7 +14,7 @@ use pocsag::Message;
 pub enum Request {
     SetConfig(Config),
     DefaultConfig,
-    SendMessage { addr: u32, data: String },
+    SendMessage(Message),
     GetConfig,
     GetVersion,
     GetStatus,
