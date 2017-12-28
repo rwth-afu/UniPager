@@ -15,6 +15,7 @@ pub enum Request {
     SetConfig(Config),
     DefaultConfig,
     SendMessage(Message),
+    Authenticate(String),
     GetConfig,
     GetVersion,
     GetStatus,
@@ -29,14 +30,15 @@ pub enum Response {
     Config(Config),
     Version(String),
     Message(Message),
-    Log(u8, String)
+    Log(u8, String),
+    Authenticated(bool)
 }
 
-pub fn run() -> (Responder, Receiver<Request>) {
+pub fn run(pass: Option<&str>) -> (Responder, Receiver<Request>) {
     thread::spawn(http::run);
 
     let (tx, rx) = channel();
-    let responder = websocket::create(tx);
+    let responder = websocket::create(tx, pass);
 
     (responder, rx)
 }

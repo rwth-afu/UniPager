@@ -1,6 +1,6 @@
 var vm = new Vue({
-    el: "#wrapper",
-    created() {
+    el: "#app",
+    mounted() {
         this.connect();
     },
     data: {
@@ -22,7 +22,9 @@ var vm = new Vue({
             speed: {"Baud": 1200},
             mtype: "AlphaNum",
             func: "AlphaNum"
-        }
+        },
+        auth: false,
+        password: null
     },
     watch: {
         config: {
@@ -47,29 +49,26 @@ var vm = new Vue({
         },
         onopen: function(event) {
             this.connected = true;
-            this.log.push({msg: "Connected to UniPager."});
-            this.log_scroll();
-            this.send("GetVersion");
-            this.send("GetConfig");
-            this.send("GetStatus");
+            this.log.unshift({msg: "Connected to UniPager.", time: new Date()});
+            this.send({Authenticate: this.password || ""});
         },
         onmessage: function(event) {
             var response = JSON.parse(event.data) || {};
             for (var key in response) {
                 var value = response[key];
                 switch (key) {
-                    case "Log": this.log_append(value); break;
+                    case "Log": this.log_add(value); break;
                     case "Version": this.version = value; break;
                     case "Config": this.config = value; break;
                     case "Status": this.status = value; break;
+                    case "Authenticated": this.authenticated(value); break;
                     default: console.log("Unknown Key: ", key);
                 }
             }
         },
         onclose: function(event) {
             if (this.connected) {
-                this.log.push({msg: "Disconnected from UniPager."});
-                this.log_scroll();
+                this.log.unshift({msg: "Disconnected from UniPager.", time: new Date()});
             }
             this.connected = false;
             setTimeout(function() { this.connect(); }.bind(this), 1000);
@@ -77,7 +76,7 @@ var vm = new Vue({
         send: function(data) {
             this.socket.send(JSON.stringify(data));
         },
-        log_append: function(record) {
+        log_add: function(record) {
             var level = record[0] || "info";
             var msg = record[1] || "";
             switch (record[0]) {
@@ -88,12 +87,8 @@ var vm = new Vue({
                 case 5: level = "trace"; break;
                 default: level = "info";
             }
-            this.log.push({level: level, msg: msg});
-            this.log_scroll();
-        },
-        log_scroll: function() {
-            var container = this.$el.querySelector("#log");
-            container.scrollTop = container.scrollHeight + 1e10;
+            this.log.unshift({level: level, msg: msg, time: new Date()});
+            this.log = this.log.slice(0, 50);
         },
         restart: function(event) {
             this.send("Restart");
@@ -115,6 +110,20 @@ var vm = new Vue({
         },
         test_submission: function(event) {
             this.send("Test");
+        },
+        authenticate: function(event) {
+            this.send({"Authenticate": this.password});
+        },
+        authenticated: function(auth) {
+            if (auth) {
+                this.send("GetVersion");
+                this.send("GetConfig");
+                this.send("GetStatus");
+            }
+            else {
+                this.password = "";
+            }
+            this.auth = auth;
         }
     }
 });

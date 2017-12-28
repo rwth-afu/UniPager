@@ -24,6 +24,8 @@ mod frontend;
 
 use std::thread;
 use std::time;
+use std::fs::File;
+use std::io::Read;
 
 use config::Config;
 use connection::Connection;
@@ -42,7 +44,17 @@ fn print_version() {
 fn main() {
     print_version();
 
-    let (responder, requests) = frontend::run();
+    let pass = File::open("password")
+        .and_then(|mut f| {
+            let mut s = String::new();
+            f.read_to_string(&mut s)?;
+            Ok(s)
+        })
+        .map(|s| s.trim().to_owned())
+        .ok();
+
+    let (responder, requests) = frontend::run(pass.as_ref().map(|x| &**x));
+
 
     logging::init(responder.clone());
     status::subscribe(responder.clone());
@@ -119,6 +131,9 @@ fn main() {
                     test = true;
                     stop_conn.send(()).ok();
                     scheduler.stop();
+                    break;
+                }
+                Request::Authenticate(_) => {
                     break;
                 }
             }

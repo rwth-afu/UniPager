@@ -6,7 +6,10 @@ use ws;
 use frontend::{Request, Response};
 
 struct Server {
-    tx: Sender<Request>
+    ws: ws::Sender,
+    tx: Sender<Request>,
+    password: Option<String>,
+    auth: bool
 }
 
 impl ws::Handler for Server {
@@ -16,7 +19,23 @@ impl ws::Handler for Server {
         );
 
         if let Some(req) = req {
-            self.tx.send(req).unwrap();
+            if let Request::Authenticate(ref pass) = req {
+                self.auth = self.password.as_ref()
+                    .map(|p| pass == p)
+                    .unwrap_or(true);
+
+                let res = Response::Authenticated(self.auth);
+                let data = serde_json::to_string(&res).unwrap();
+                self.ws.send(data).unwrap();
+            }
+            else if self.auth {
+                self.tx.send(req).unwrap();
+            }
+            else {
+                let res = Response::Authenticated(false);
+                let data = serde_json::to_string(&res).unwrap();
+                self.ws.send(data).unwrap();
+            }
         }
         Ok(())
     }
@@ -32,11 +51,16 @@ impl Responder {
     }
 }
 
-pub fn create(tx: Sender<Request>) -> Responder {
+pub fn create(tx: Sender<Request>, pass: Option<&str>) -> Responder {
+    let pass = pass.map(str::to_owned);
     let socket = ws::Builder::new()
-        .build(move |_| {
-            let tx = tx.clone();
-            Server { tx: tx }
+        .build(move |ws| {
+            Server {
+                tx: tx.clone(),
+                password: pass.clone(),
+                auth: !pass.is_some(),
+                ws: ws
+            }
         })
         .unwrap();
 

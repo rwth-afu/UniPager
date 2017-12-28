@@ -4,7 +4,21 @@ html {
 
 body {
     margin: 0;
-    font-family: sans-serif;
+    font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+
+#login {
+    margin-top: 100px;
+    text-align: center;
+}
+
+#login h1 {
+    font-size: 3em;
+    font-weight: 100;
+}
+
+#login input, button {
+    font-size: 2em;
 }
 
 #wrapper {
@@ -249,6 +263,11 @@ button.red:active { background-color: ##B71C1C; }
 .log-level.debug { color: #9E9E9E; }
 .log-level.warn { color: #FFC107; }
 .log-level.error { color: #F44336; }
+
+.log-time {
+    color: #90a4ae;
+    padding-right: 5px;
+}
 
 footer {
     margin: 1rem 0;
