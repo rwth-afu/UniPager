@@ -6,18 +6,15 @@ pub enum MessageSpeed {
 }
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum MessageType {
-    SyncRequest,
-    SyncOrder,
-    Slots,
     Numeric,
     AlphaNum
 }
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub enum MessageFunc {
-    Numeric = 0,
-    Tone = 1,
-    Activation = 2,
-    AlphaNum = 3
+    Func0 = 0,
+    Func1 = 1,
+    Func2 = 2,
+    Func3 = 3
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,7 +42,7 @@ impl Default for Message {
             mtype: MessageType::AlphaNum,
             speed: MessageSpeed::Baud(1200),
             addr: 0,
-            func: MessageFunc::AlphaNum,
+            func: MessageFunc::Func3,
             data: "".to_owned()
         }
     }
@@ -71,9 +68,6 @@ impl FromStr for MessageType {
 
     fn from_str(s: &str) -> Result<MessageType, Self::Err> {
         match u8::from_str(s) {
-            Ok(2) => Ok(MessageType::SyncRequest),
-            Ok(3) => Ok(MessageType::SyncOrder),
-            Ok(4) => Ok(MessageType::Slots),
             Ok(5) => Ok(MessageType::Numeric),
             Ok(6) => Ok(MessageType::AlphaNum),
             _ => Err(()),
@@ -86,10 +80,10 @@ impl FromStr for MessageFunc {
 
     fn from_str(s: &str) -> Result<MessageFunc, Self::Err> {
         match u8::from_str(s) {
-            Ok(0) => Ok(MessageFunc::Numeric),
-            Ok(1) => Ok(MessageFunc::Tone),
-            Ok(2) => Ok(MessageFunc::Activation),
-            Ok(3) => Ok(MessageFunc::AlphaNum),
+            Ok(0) => Ok(MessageFunc::Func0),
+            Ok(1) => Ok(MessageFunc::Func1),
+            Ok(2) => Ok(MessageFunc::Func2),
+            Ok(3) => Ok(MessageFunc::Func3),
             _ => Err(()),
         }
     }

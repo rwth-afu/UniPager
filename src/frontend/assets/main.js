@@ -21,7 +21,7 @@ var vm = new Vue({
             data: "",
             speed: {"Baud": 1200},
             mtype: "AlphaNum",
-            func: "AlphaNum"
+            func: "Func3"
         },
         auth: false,
         password: null

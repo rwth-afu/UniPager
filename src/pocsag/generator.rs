@@ -1,4 +1,4 @@
-use pocsag::{Encoding, Message, MessageFunc, MessageProvider, encoding};
+use pocsag::{Encoding, Message, MessageType, MessageProvider, encoding};
 
 /// Preamble length in number of 32-bit codewords
 pub const PREAMBLE_LENGTH: u8 = 18;
@@ -109,21 +109,29 @@ impl<'a> Iterator for Generator<'a> {
 
             // Send the address word for the current message
             (codeword, State::AddressWord) => {
-                let &Message { addr, func, .. } =
+                let length = self.message.as_ref()
+                    .map(|m| m.data.len()).unwrap_or(0);
+
+                let &Message { addr, func, mtype, .. } =
                     self.message.as_ref().unwrap();
+
                 self.codewords -= 1;
 
                 // Send idle words until the current batch position
                 // matches the position required by the address.
                 if ((addr & 0b111) << 1) as u8 == 16 - codeword {
                     // Set the next state according to the message type
-                    self.state = match func {
-                        MessageFunc::Tone => self.next_message(),
-                        MessageFunc::Numeric => {
-                            State::MessageWord(0, encoding::NUMERIC)
-                        }
-                        MessageFunc::AlphaNum | MessageFunc::Activation => {
-                            State::MessageWord(0, encoding::ALPHANUM)
+                    self.state = if length == 0 {
+                        self.next_message()
+                    }
+                    else {
+                        match mtype {
+                            MessageType::Numeric => {
+                                State::MessageWord(0, encoding::NUMERIC)
+                            }
+                            MessageType::AlphaNum => {
+                                State::MessageWord(0, encoding::ALPHANUM)
+                            }
                         }
                     };
 
