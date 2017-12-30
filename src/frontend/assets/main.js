@@ -71,6 +71,7 @@ var vm = new Vue({
                 this.log.unshift({msg: "Disconnected from UniPager.", time: new Date()});
             }
             this.connected = false;
+            this.status = {};
             setTimeout(function() { this.connect(); }.bind(this), 1000);
         },
         send: function(data) {
