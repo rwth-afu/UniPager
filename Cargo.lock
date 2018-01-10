@@ -1,6 +1,6 @@
 [root]
 name = "unipager"
-version = "0.7.1"
+version = "1.0.0"
 dependencies = [
  "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
