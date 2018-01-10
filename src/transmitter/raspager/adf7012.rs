@@ -78,7 +78,7 @@ impl Adf7012Config {
             xtal_disable: false,
             xtal_doubler: false,
             r_divider: 1,
-            freq_err_correction: -47,
+            freq_err_correction: 0,
 
             prescaler: Prescaler::Scale4_5,
             integer_n: 179,
@@ -87,7 +87,7 @@ impl Adf7012Config {
             index_counter: 0,
             gfsk_mod_control: 0,
             mod_deviation: 13,
-            pa_output_level: 30,
+            pa_output_level: 63,
             gaussian_ook: false,
             mod_control: Modulation::FSK,
 

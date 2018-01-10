@@ -60,7 +60,7 @@ impl Default for RaspagerConfig {
         RaspagerConfig {
             freq: 439987500,
             freq_corr: 0,
-            pa_output_level: 30,
+            pa_output_level: 63,
             mod_deviation: default_mod_deviation()
         }
     }
