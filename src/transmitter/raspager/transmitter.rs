@@ -25,7 +25,8 @@ pub struct RaspagerTransmitter {
     atdata: Pin,
     handshake: Pin,
     ptt: Pin,
-    config: Adf7012Config
+    config: Adf7012Config,
+    output_level: u8
 }
 
 impl RaspagerTransmitter {
@@ -44,15 +45,13 @@ impl RaspagerTransmitter {
             atdata: gpio.pin(10, Direction::Output),
             handshake: gpio.pin(5, Direction::Input),
             ptt: gpio.pin(4, Direction::Input),
-            config: Adf7012Config::new()
+            config: Adf7012Config::new(),
+            output_level: config.raspager.pa_output_level
         };
 
         tx.reset();
         tx.config.set_freq_err_correction(config.raspager.freq_corr);
         tx.config.set_freq(config.raspager.freq);
-        tx.config.set_pa_output_level(
-            config.raspager.pa_output_level
-        );
         tx.config.set_mod_deviation(config.raspager.mod_deviation);
         tx.write_config();
 
@@ -70,7 +69,7 @@ impl RaspagerTransmitter {
         if self.muxout.read() {
             if self.lock_pll() {
                 self.config.set_pa_enable(true);
-                self.config.set_pa_output_level(63);
+                self.config.set_pa_output_level(self.output_level);
                 self.write_config();
                 delay_ms(50);
                 true
