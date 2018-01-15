@@ -13,6 +13,14 @@ struct Server {
 }
 
 impl ws::Handler for Server {
+    fn on_open(&mut self, hs: ws::Handshake) -> ws::Result<()> {
+        if hs.peer_addr.map(|addr| addr.ip().is_loopback()).unwrap_or(false) {
+            self.password = None;
+            self.auth = true;
+        }
+        Ok(())
+    }
+
     fn on_message(&mut self, msg: ws::Message) -> ws::Result<()> {
         let req = msg.as_text().ok().and_then(
             |text| serde_json::from_str(text).ok()
