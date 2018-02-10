@@ -303,7 +303,7 @@
                 On Air
               </div>
               <div class="status" v-bind:class="{ 'connected': status.connected }">
-                Connected
+                {{status.master ? status.master : "No master connection"}}
               </div>
               <div class="status" v-bind:class="{ 'active': status.queue > 0, 'critical': status.queue > 30 }">
                 Queue: {{status.queue}}

@@ -61,6 +61,7 @@ var vm = new Vue({
                     case "Version": this.version = value; break;
                     case "Config": this.config = value; break;
                     case "Status": this.status = value; break;
+                    case "StatusUpdate": this.status[value[0]] = value[1]; break;
                     case "Authenticated": this.authenticated(value); break;
                     default: console.log("Unknown Key: ", key);
                 }

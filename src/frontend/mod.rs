@@ -5,6 +5,7 @@ pub use self::websocket::Responder;
 
 use std::sync::mpsc::{Receiver, channel};
 use std::thread;
+use serde_json;
 
 use config::Config;
 use status::Status;
@@ -27,6 +28,7 @@ pub enum Request {
 #[derive(Debug, Serialize)]
 pub enum Response {
     Status(Status),
+    StatusUpdate(String, serde_json::value::Value),
     Config(Config),
     Version(String),
     Message(Message),

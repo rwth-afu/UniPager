@@ -68,6 +68,7 @@ impl Scheduler {
 
     pub fn message(&self, msg: Message) -> bool {
         info!("Received {:?}", msg);
+        status_inc!(calls_rx: 1);
         self.tx.send(Command::Message(msg)).is_ok()
     }
 
@@ -142,12 +143,14 @@ impl SchedulerCore {
                 self.budget = usize::max_value();
             }
 
-            status!(queue: self.queue.len());
-            status!(transmitting: true);
+            status!(queue: self.queue.len(), transmitting: true);
+            status_inc!(calls_tx: 1);
+
             debug!("Available time budget: {}", self.budget);
             transmitter.send(
                 &mut Generator::new(self, message.unwrap())
             );
+
             status!(transmitting: false);
         }
     }
@@ -191,6 +194,11 @@ impl MessageProvider for SchedulerCore {
 
         let message = self.queue.pop_front();
         status!(queue: self.queue.len());
+
+        if (message.is_some()) {
+            status_inc!(calls_tx: 1);
+        }
+
         message
     }
 }

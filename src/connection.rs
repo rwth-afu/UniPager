@@ -77,25 +77,25 @@ impl Connection {
             let mut fallback = config.master.fallback.iter().cycle();
 
             while reconnect {
-                let connection = if try_fallback {
+                let (ref host, port) = if try_fallback {
                     warn!("Connecting to next fallback server...");
                     if let Some(&(ref host, port)) = fallback.next() {
-                        Connection::new(&host, port, &config, scheduler.clone())
+                        (host, port)
                     }
                     else {
                         error!("No fallback servers defined.");
-                        let (host, port) = (&config.master.server, config.master.port);
-                        Connection::new(&host, port, &config, scheduler.clone())
+                        (&config.master.server, config.master.port)
                     }
                 }
                 else {
-                    let (host, port) = (&config.master.server, config.master.port);
-                    Connection::new(&host, port, &config, scheduler.clone())
+                    (&config.master.server, config.master.port)
                 };
+
+                let connection = Connection::new(&host, port, &config, scheduler.clone());
 
                 let delay = if let Ok(mut connection) = connection {
                     info!("Connection established.");
-                    status!(connected: true);
+                    status!(connected: true, master: Some(host.to_string()));
                     try_fallback = false;
 
                     let stream = connection.stream.try_clone().unwrap();
@@ -114,12 +114,12 @@ impl Connection {
                     stream.shutdown(Shutdown::Both).ok();
                     handle.join().unwrap();
 
-                    status!(connected: false);
+                    status!(connected: false, master: None::<String>);
                     warn!("Disconnected from master.");
 
                     Duration::from_millis(2500)
                 } else {
-                    status!(connected: false);
+                    status!(connected: false, master: None::<String>);
                     error!("Connection failed.");
 
                     try_fallback = !try_fallback;
