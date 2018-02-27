@@ -195,7 +195,7 @@ impl MessageProvider for SchedulerCore {
         let message = self.queue.pop_front();
         status!(queue: self.queue.len());
 
-        if (message.is_some()) {
+        if message.is_some() {
             status_inc!(calls_tx: 1);
         }
 
