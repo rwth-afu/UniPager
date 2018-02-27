@@ -42,9 +42,10 @@ impl Model {
             0x12 | 0x15 | 0x900021 => Model::V1Aplus,
             0x10 | 0x13 | 0x900032 => Model::V1Bplus,
             0xA01040 | 0xA01041 => Model::V2B,
+            0xA21041 => Model::V2B,
             0xA22042 => Model::V2B, // with BCM2837
             0x900092 | 0x900093 | 0x920093 => Model::Zero,
-            0xA02082 | 0xA22082 => Model::V3B,
+            0xA02082 | 0xA22082 | 0xA32082 => Model::V3B,
             _ => Model::Unknown
         }
     }
