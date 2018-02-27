@@ -155,6 +155,7 @@ pub enum Transmitter {
     Audio,
     C9000,
     Raspager,
+    Raspager2,
     RFM69
 }
 
@@ -170,7 +171,8 @@ impl fmt::Display for Transmitter {
             Transmitter::Dummy => "Dummy",
             Transmitter::Audio => "Audio",
             Transmitter::C9000 => "C9000",
-            Transmitter::Raspager => "RaspagerV1",
+            Transmitter::Raspager => "Raspager1",
+            Transmitter::Raspager2 => "Raspager2",
             Transmitter::RFM69 => "RFM69",
         };
         write!(f, "{}", name)

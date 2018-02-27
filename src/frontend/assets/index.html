@@ -26,7 +26,8 @@
                 <select id="transmitter" v-model="config.transmitter">
                   <option>Dummy</option>
                   <option>Audio</option>
-                  <option value="Raspager">Raspager V1</option>
+                  <option value="Raspager">Raspager 1</option>
+                  <option value="Raspager2">Raspager 2</option>
                   <option>C9000</option>
                   <option>RFM69</option>
                 </select>
@@ -59,7 +60,7 @@
             </div>
           </div>
 
-          <div class="box" v-if="config.transmitter == 'Raspager'">
+          <div class="box" v-if="config.transmitter && config.transmitter.indexOf('Raspager') == 0">
             <div class="box-header">
               <h3>Raspager Config</h3>
             </div>

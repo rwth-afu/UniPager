@@ -28,7 +28,14 @@ pub fn from_config(config: &Config) -> Box<Transmitter> {
             Box::new(AudioTransmitter::new(config)) as Box<Transmitter>
         }
         config::Transmitter::Raspager => {
-            Box::new(RaspagerTransmitter::new(config)) as Box<Transmitter>
+            Box::new(
+                RaspagerTransmitter::new(config, raspager::pins::RASPAGER1_PINS)
+            ) as Box<Transmitter>
+        }
+        config::Transmitter::Raspager2 => {
+            Box::new(
+                RaspagerTransmitter::new(config, raspager::pins::RASPAGER2_PINS)
+            ) as Box<Transmitter>
         }
         config::Transmitter::C9000 => {
             Box::new(C9000Transmitter::new(config)) as Box<Transmitter>

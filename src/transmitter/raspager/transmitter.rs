@@ -4,6 +4,7 @@ use config::Config;
 use raspi::{Direction, Gpio, Model, Pin};
 use transmitter::Transmitter;
 use transmitter::raspager::adf7012::{Adf7012Config, MuxOut};
+use transmitter::raspager::pins::RaspagerPins;
 
 #[inline]
 fn delay_us(micros: u32) {
@@ -30,21 +31,21 @@ pub struct RaspagerTransmitter {
 }
 
 impl RaspagerTransmitter {
-    pub fn new(config: &Config) -> RaspagerTransmitter {
+    pub fn new(config: &Config, pins: RaspagerPins) -> RaspagerTransmitter {
         info!("Initializing RasPager transmitter...");
         info!("Detected {}", Model::get());
         let gpio = Gpio::new().expect("Failed to map GPIO");
 
         let mut tx = RaspagerTransmitter {
-            le: gpio.pin(0, Direction::Output),
-            ce: gpio.pin(7, Direction::Output),
-            clk: gpio.pin(3, Direction::Output),
-            sdata: gpio.pin(2, Direction::Output),
-            muxout: gpio.pin(13, Direction::Input),
-            atclk: gpio.pin(11, Direction::Output),
-            atdata: gpio.pin(10, Direction::Output),
-            handshake: gpio.pin(5, Direction::Input),
-            ptt: gpio.pin(4, Direction::Input),
+            le: gpio.pin(pins.le, Direction::Output),
+            ce: gpio.pin(pins.ce, Direction::Output),
+            clk: gpio.pin(pins.clk, Direction::Output),
+            sdata: gpio.pin(pins.sdata, Direction::Output),
+            muxout: gpio.pin(pins.muxout, Direction::Input),
+            atclk: gpio.pin(pins.atclk, Direction::Output),
+            atdata: gpio.pin(pins.atdata, Direction::Output),
+            handshake: gpio.pin(pins.handshake, Direction::Input),
+            ptt: gpio.pin(pins.ptt, Direction::Input),
             config: Adf7012Config::new(),
             output_level: config.raspager.pa_output_level
         };
