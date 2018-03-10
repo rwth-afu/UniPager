@@ -18,7 +18,6 @@ pub trait Transmitter {
     fn send(&mut self, &mut Iterator<Item = u32>);
 }
 
-
 pub fn from_config(config: &Config) -> Box<Transmitter> {
     match config.transmitter {
         config::Transmitter::Dummy => {

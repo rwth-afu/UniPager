@@ -212,7 +212,11 @@
               </div>
               <div class="form-row">
                 <div class="form-group" v-if="config.ptt.method == 'Gpio'">
-                  <label for="ptt-gpio-pin">GPIO Pin</label>
+                  <label for="ptt-gpio-pin">
+                    GPIO Pin
+                    <a href="/pin_numbers.png" target="_blank" class="help"
+                       title="Wiring Pi Assignments">?</a>
+                  </label>
                   <input type="number" id="ptt-gpio-pin"
                     v-model.number="config.ptt.gpio_pin"
                     step="1" min="0" class="u8-number">
@@ -342,7 +346,6 @@
               <a href="https://github.com/rwth-afu/UniPager">GitHub</a>
               &bull; <a href="https://github.com/rwth-afu/UniPager/issues">Report Issues</a>
               &bull; <a href="https://www.afu.rwth-aachen.de/ueber-uns/spendenaufruf">Donate</a>
-              &bull; <a href="/pin_numbers.png" target="_blank">GPIO Pin Assigment</a>
               &bull; <a href="http://hampager.de/dokuwiki/doku.php?id=unipager" target="_blank">DokuWiki</a>
               &bull; <a href="http://hampager.de/dokuwiki/doku.php?id=unipagerled" target="_blank">LED Control</a>
               &bull; <a href="http://hampager.de/dokuwiki/doku.php?id=unipagernextion" target="_blank">Nextion Display Software</a>

@@ -297,3 +297,8 @@ input.u32-number { width: 8rem; }
     text-align: center;
     font-weight: bold;
 }
+
+a.help {
+    cursor: pointer;
+    text-decoration: none;
+}
