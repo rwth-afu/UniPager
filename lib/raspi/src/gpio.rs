@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use std::intrinsics::{offset, volatile_load, volatile_store};
+use std::ptr::{read_volatile, write_volatile};
 use libc;
 use model::Model;
 
@@ -88,11 +88,11 @@ impl Pin {
 
         match self.direction {
             Direction::Input => unsafe {
-                let p = offset((*self.base).0, (number/10) as isize) as *mut u32;
+                let p = (*self.base).0.offset((number/10) as isize) as *mut u32;
                 *p &= !(0b111 << ((number % 10) * 3));
             },
             Direction::Output => unsafe {
-                let p = offset((*self.base).0, (number/10) as isize) as *mut u32;
+                let p = (*self.base).0.offset((number/10) as isize) as *mut u32;
                 *p &= !(0b111 << ((number % 10) * 3));
                 *p |= 0b1 << ((number % 10) * 3);
             }
@@ -111,14 +111,14 @@ impl Pin {
         assert_eq!(self.direction, Direction::Output);
         if value {
             unsafe {
-                let gpio_set = offset((*self.base).0, 7) as *mut u32;
-                volatile_store(gpio_set, 1 << self.number);
+                let gpio_set = (*self.base).0.offset(7) as *mut u32;
+                write_volatile(gpio_set, 1 << self.number);
             }
         }
         else {
             unsafe {
-                let gpio_clr = offset((*self.base).0, 10) as *mut u32;
-                volatile_store(gpio_clr, 1 << self.number);
+                let gpio_clr = (*self.base).0.offset(10) as *mut u32;
+                write_volatile(gpio_clr, 1 << self.number);
             }
         }
     }
@@ -126,7 +126,7 @@ impl Pin {
     pub fn read(&self) -> bool {
         assert_eq!(self.direction, Direction::Input);
         unsafe {
-            let gpio_val = volatile_load(offset((*self.base).0, 13) as *mut u32);
+            let gpio_val = read_volatile((*self.base).0.offset(13) as *mut u32);
             (gpio_val & (1 << self.number)) != 0
         }
     }

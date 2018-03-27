@@ -1,4 +1,3 @@
-#![feature(core_intrinsics)]
 extern crate libc;
 
 pub mod gpio;
