@@ -1,5 +1,5 @@
 use frontend::{Responder, Response};
-use log::{self, Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord};
+use log::{self, Log, Level, LevelFilter, Metadata, Record};
 use std::sync::Mutex;
 
 struct Logger {
@@ -7,17 +7,17 @@ struct Logger {
 }
 
 impl Log for Logger {
-    fn enabled(&self, metadata: &LogMetadata) -> bool {
-        metadata.level() <= LogLevel::Info &&
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        metadata.level() <= Level::Info &&
             metadata.target().starts_with("unipager")
     }
 
-    fn log(&self, record: &LogRecord) {
+    fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
             let color = match record.level() {
-                LogLevel::Error => "\x1B[31m",
-                LogLevel::Warn => "\x1B[33m",
-                LogLevel::Info => "\x1B[32m",
+                Level::Error => "\x1B[31m",
+                Level::Warn => "\x1B[33m",
+                Level::Info => "\x1B[32m",
                 _ => "",
             };
             println!("{}{}\x1B[39m - {}", color, record.level(), record.args());
@@ -26,11 +26,13 @@ impl Log for Logger {
             self.responder.lock().unwrap().send(res);
         }
     }
+
+    fn flush(&self) {}
 }
 
 pub fn init(responder: Responder) {
-    log::set_logger(|max_log_level| {
-        max_log_level.set(LogLevelFilter::Info);
-        Box::new(Logger { responder: Mutex::new(responder) })
-    }).expect("Unable to setup logger");
+    log::set_boxed_logger(Box::new(
+        Logger { responder: Mutex::new(responder) }
+    )).expect("Unable to setup logger");
+    log::set_max_level(LevelFilter::Info);
 }
