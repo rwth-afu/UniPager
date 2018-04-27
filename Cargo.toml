@@ -1,6 +1,6 @@
 [package]
 name = "unipager"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Thomas Gatzweiler <mail@thomasgatzweiler.com>"]
 
 [dependencies]

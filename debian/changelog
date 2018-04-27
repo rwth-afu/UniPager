@@ -1,3 +1,9 @@
+unipager (1.0.1) unstable; urgency=medium
+
+  * Adds support for Raspberry Pi 3 B+
+
+ -- RWTH Amateurfunkgruppe <rwth-afu@online.de>  Fri, 27 Apr 2018 19:00:00 +0200
+
 unipager (1.0.0) unstable; urgency=medium
 
   * Implements statistics HTTP API endpoint at /status
