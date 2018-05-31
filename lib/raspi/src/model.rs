@@ -13,6 +13,7 @@ pub enum Model {
     V3B,
     V3Bplus,
     Zero,
+    ZeroW,
     Unknown
 }
 
@@ -46,6 +47,7 @@ impl Model {
             0xA21041 => Model::V2B,
             0xA22042 => Model::V2B, // with BCM2837
             0x900092 | 0x900093 | 0x920093 => Model::Zero,
+            0x9000C1 => Model::ZeroW,
             0xA02082 | 0xA22082 | 0xA32082 => Model::V3B,
             0xA020D3 => Model::V3Bplus,
             _ => Model::Unknown
@@ -59,7 +61,7 @@ impl Model {
                 => Some(0x20200000),
             &Model::V2B => Some(0x3F200000),
             &Model::V3B | &Model::V3Bplus => Some(0x3F200000),
-            &Model::Zero => Some(0x20200000),
+            &Model::Zero | &Model::ZeroW => Some(0x20200000),
             &Model::Unknown => None
         }
     }
@@ -70,7 +72,8 @@ impl Model {
                 vec![17, 18, 21, 22, 23, 24, 25, 4,
                      0, 1, 8, 7, 10, 9, 11, 14, 15],
             &Model::V1A | &Model::V1B { rev: _ } | &Model::V2B |
-            &Model::V1Aplus | &Model::V1Bplus | &Model::Zero =>
+            &Model::V1Aplus | &Model::V1Bplus |
+            &Model::Zero | &Model::ZeroW =>
                 vec![17, 18, 27, 22, 23, 24, 25, 4,
                      2, 3, 8, 7, 10, 9, 11, 14, 15],
             &Model::V3B | &Model::V3Bplus =>
@@ -98,6 +101,7 @@ impl fmt::Display for Model {
             &Model::V3B => write!(f, "Raspberry Pi 3 Model B"),
             &Model::V3Bplus => write!(f, "Raspberry Pi 3 Model B+"),
             &Model::Zero => write!(f, "Raspberry Pi Zero"),
+            &Model::ZeroW => write!(f, "Raspberry Pi Zero W"),
             &Model::Unknown => write!(f, "Unknown Raspberry Pi")
         }
     }
