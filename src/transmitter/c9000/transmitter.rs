@@ -7,11 +7,11 @@ use config::Config;
 use transmitter::Transmitter;
 
 pub struct C9000Transmitter {
-    reset_pin: Pin,
-    ptt_pin: Pin,
-    send_pin: Pin,
-    status_led_pin: Pin,
-    connected_led_pin: Pin,
+    reset_pin: Box<Pin>,
+    ptt_pin: Box<Pin>,
+    send_pin: Box<Pin>,
+    status_led_pin: Box<Pin>,
+    connected_led_pin: Box<Pin>,
     serial: Box<serial::SerialPort>
 }
 

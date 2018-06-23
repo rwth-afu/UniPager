@@ -14,6 +14,7 @@ pub enum Model {
     V3Bplus,
     Zero,
     ZeroW,
+    OrangePi,
     Unknown
 }
 
@@ -37,6 +38,11 @@ impl Model {
             .unwrap_or(0x0)
             .bitand(0x00ffffff);
 
+        let hardware = cpuinfo.split('\n')
+            .filter(|line| line.starts_with("Hardware")).next()
+            .and_then(|line| line.split(':').nth(1))
+            .map(str::trim);
+
         match revision {
             0x2...0x3 => Model::V1B { rev: 1 },
             0x4...0x6 | 0xd...0x0f => Model::V1B { rev: 2 },
@@ -50,7 +56,10 @@ impl Model {
             0x9000C1 => Model::ZeroW,
             0xA02082 | 0xA22082 | 0xA32082 => Model::V3B,
             0xA020D3 => Model::V3Bplus,
-            _ => Model::Unknown
+            _ => match hardware {
+                Some("Allwinner sun8i Family") => Model::OrangePi,
+                _ => Model::Unknown
+            }
         }
     }
 
@@ -62,26 +71,28 @@ impl Model {
             &Model::V2B => Some(0x3F200000),
             &Model::V3B | &Model::V3Bplus => Some(0x3F200000),
             &Model::Zero | &Model::ZeroW => Some(0x20200000),
+            &Model::OrangePi => None,
             &Model::Unknown => None
         }
     }
 
-    pub fn pin_mapping(&self) -> Vec<usize> {
+    pub fn pin_mapping(&self) -> Option<Vec<usize>> {
         match self {
             &Model::V1B { rev: 1 } =>
-                vec![17, 18, 21, 22, 23, 24, 25, 4,
-                     0, 1, 8, 7, 10, 9, 11, 14, 15],
+                Some(vec![17, 18, 21, 22, 23, 24, 25, 4,
+                          0, 1, 8, 7, 10, 9, 11, 14, 15]),
             &Model::V1A | &Model::V1B { rev: _ } | &Model::V2B |
             &Model::V1Aplus | &Model::V1Bplus |
             &Model::Zero | &Model::ZeroW =>
-                vec![17, 18, 27, 22, 23, 24, 25, 4,
-                     2, 3, 8, 7, 10, 9, 11, 14, 15],
+                Some(vec![17, 18, 27, 22, 23, 24, 25, 4,
+                          2, 3, 8, 7, 10, 9, 11, 14, 15]),
             &Model::V3B | &Model::V3Bplus =>
-                vec![17, 18, 27, 22, 23, 24, 25, 4,
+                Some(vec![17, 18, 27, 22, 23, 24, 25, 4,
                      2, 3, 8, 7, 10, 9, 11, 14, 15,
                      0, 0, 0, 0, 5, 6, 13, 19, 26,
-                     12, 16, 20, 21, 0, 1],
-            &Model::Unknown => vec![]
+                     12, 16, 20, 21, 0, 1]),
+            &Model::OrangePi => None,
+            &Model::Unknown => None
         }
     }
 
@@ -102,6 +113,7 @@ impl fmt::Display for Model {
             &Model::V3Bplus => write!(f, "Raspberry Pi 3 Model B+"),
             &Model::Zero => write!(f, "Raspberry Pi Zero"),
             &Model::ZeroW => write!(f, "Raspberry Pi Zero W"),
+            &Model::OrangePi => write!(f, "Orange Pi"),
             &Model::Unknown => write!(f, "Unknown Raspberry Pi")
         }
     }

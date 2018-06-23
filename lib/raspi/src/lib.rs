@@ -1,4 +1,5 @@
 extern crate libc;
+extern crate sysfs_gpio;
 
 pub mod gpio;
 pub mod model;

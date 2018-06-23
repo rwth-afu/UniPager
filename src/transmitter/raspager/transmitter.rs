@@ -17,15 +17,15 @@ fn delay_ms(millis: u64) {
 }
 
 pub struct RaspagerTransmitter {
-    le: Pin,
-    ce: Pin,
-    clk: Pin,
-    sdata: Pin,
-    muxout: Pin,
-    atclk: Pin,
-    atdata: Pin,
-    handshake: Pin,
-    ptt: Pin,
+    le: Box<Pin>,
+    ce: Box<Pin>,
+    clk: Box<Pin>,
+    sdata: Box<Pin>,
+    muxout: Box<Pin>,
+    atclk: Box<Pin>,
+    atdata: Box<Pin>,
+    handshake: Box<Pin>,
+    ptt: Box<Pin>,
     config: Adf7012Config,
     output_level: u8
 }

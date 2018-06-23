@@ -67,22 +67,30 @@ impl Transmitter for AudioTransmitter {
             }
         }
 
-        let mut child = Command::new("aplay")
+        let child = Command::new("aplay")
             .stdin(Stdio::piped())
             .args(&["-t", "raw", "-N", "-f", "U8", "-c", "1"])
             .args(&["-r", &*format!("{}", SAMPLE_RATE)])
             .args(&["-D", &*self.device])
-            .spawn()
-            .expect("Failed to start aplay");
+            .spawn();
 
-        child
-            .stdin
-            .as_mut()
-            .expect("Failed to get aplay stdin")
-            .write_all(buffer.as_slice())
-            .expect("Failed to write to aplay stdin");
+        if let Ok(mut child) = child {
+            let result = child
+                .stdin
+                .as_mut()
+                .and_then(|stdin| {
+                    stdin.write_all(buffer.as_slice()).ok()
+                });
 
-        child.wait().expect("Failed to wait for aplay");
+            if result.is_none() {
+                error!("Failed to write to aplay stdin")
+            }
+
+            child.wait().ok();
+        }
+        else {
+            error!("Failed to start aplay");
+        }
 
         self.ptt.set(false);
     }

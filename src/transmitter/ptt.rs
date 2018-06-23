@@ -3,7 +3,7 @@ use raspi::{Direction, Gpio, Model, Pin};
 use serial;
 
 pub enum Ptt {
-    Gpio { pin: Pin, inverted: bool },
+    Gpio { pin: Box<Pin>, inverted: bool },
     SerialDtr {
         port: Box<serial::SerialPort>,
         inverted: bool
