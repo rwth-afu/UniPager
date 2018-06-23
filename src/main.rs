@@ -13,6 +13,7 @@ extern crate serde_json;
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
+extern crate amqp;
 
 #[macro_use]
 mod status;
