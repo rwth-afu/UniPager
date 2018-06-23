@@ -58,13 +58,13 @@ impl Gpio {
 
     pub fn pin(&self, number: usize, direction: Direction) -> Box<Pin> {
         match self {
-            Gpio::MemGpio { base, pin_mapping } => {
+            &Gpio::MemGpio { ref base, ref pin_mapping } => {
                 let number = pin_mapping.as_ref().and_then(|mapping| {
                     mapping.get(number).map(|num| *num)
                 }).unwrap_or(number);
                 Box::new(MemGpioPin::new(base.clone(), number, direction))
             },
-            Gpio::SysFsGpio { pin_mapping } => {
+            &Gpio::SysFsGpio { ref pin_mapping } => {
                 let number = pin_mapping.as_ref().and_then(|mapping| {
                     mapping.get(number).map(|num| *num)
                 }).unwrap_or(number);
