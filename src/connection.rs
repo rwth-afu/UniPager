@@ -3,7 +3,9 @@ use std::str::FromStr;
 use std::sync::mpsc::{Sender, channel};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration};
-use amqp::{Basic, Session, Channel, Table, protocol};
+use amqp::{self, Basic, Session, Channel, Table, protocol};
+use amqp::TableEntry::LongString;
+use amqp::protocol::basic;
 
 use config::Config;
 use pocsag::{Message, MessageFunc, MessageSpeed, MessageType};
@@ -137,7 +139,23 @@ impl Connection {
     }
 
     pub fn run(&mut self) -> Result<()> {
+        let queue_name = format!("{}-calls", self.call);
+        self.channel.queue_declare(queue_name.to_owned(), false, true, false, false, false, Table::new());
+        self.channel.queue_bind(queue_name.to_owned(), "dapnet.calls".to_owned(), "".to_owned(), false, Table::new());
 
+        let closure_consumer = move |chan: &mut Channel, deliver: basic::Deliver, headers: basic::BasicProperties, data: Vec<u8>|
+        {
+            println!("[closure] Deliver info: {:?}", deliver);
+            println!("[closure] Content headers: {:?}", headers);
+            println!("[closure] Content body: {:?}", data);
+            chan.basic_ack(deliver.delivery_tag, false).unwrap();
+        };
+        let consumer_name = self.channel.basic_consume(closure_consumer, queue_name.to_owned(), "".to_owned(), false, false, false, false, Table::new());
+        println!("Starting consumer {:?}", consumer_name);
+
+        self.channel.start_consuming();
+        self.channel.close(200, "Bye").ok();
+        self.session.close(200, "Good Bye");
         Ok(())
     }
 }
