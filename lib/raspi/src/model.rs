@@ -58,6 +58,7 @@ impl Model {
             0xA020D3 => Model::V3Bplus,
             _ => match hardware {
                 Some("Allwinner sun8i Family") => Model::OrangePi,
+                Some("sun8i") => Model::OrangePi,
                 _ => Model::Unknown
             }
         }
@@ -114,7 +115,7 @@ impl fmt::Display for Model {
             &Model::Zero => write!(f, "Raspberry Pi Zero"),
             &Model::ZeroW => write!(f, "Raspberry Pi Zero W"),
             &Model::OrangePi => write!(f, "Orange Pi"),
-            &Model::Unknown => write!(f, "Unknown Raspberry Pi")
+            &Model::Unknown => write!(f, "Unknown Device")
         }
     }
 }
