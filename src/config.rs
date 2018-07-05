@@ -7,14 +7,12 @@ const CONFIG_FILE: &'static str = "config.json";
 
 fn default_fallback_servers() -> Vec<(String, u16)> {
     [
-        ("dapnet.db0sda.ampr.org", 43434),
+        ("funkruf.db0del.db0sda.ampr.org", 43434),
         ("dapnet.db0fa.ampr.org", 43434),
-        ("debian2.dl4ste.ampr.org", 43434),
-        ("dl5ml.db0sda.ampr.org", 43434),
-        ("db0rta.ampr.org", 43434),
+        ("pocsag2.db0nms.ampr.org", 43434),
+        ("dapnet.db0sda.ampr.org", 43434),
         ("dapnet.db0vvs.ampr.org", 43434),
-        ("db0wa.ampr.org", 43434),
-        ("dapnet.ampr.org", 43434),
+        ("dapnet.di0han.ampr.org", 43434),
         ("on3dhc.db0sda.ampr.org", 43434),
         ("dapnet.afu.rwth-aachen.de", 43434),
         ("db0dbn.ig-funk-siebengebirge.de", 43434)
