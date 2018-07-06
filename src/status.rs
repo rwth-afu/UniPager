@@ -1,10 +1,9 @@
-use frontend::Responder;
 use pocsag::{TimeSlot, TimeSlots};
 use std::sync::{Mutex, RwLock};
 
 lazy_static! {
     pub static ref STATUS: RwLock<Status> = RwLock::new(Status::new());
-    pub static ref RESPONDER: Mutex<Option<Responder>> = Mutex::new(None);
+//    pub static ref RESPONDER: Mutex<Option<Responder>> = Mutex::new(None);
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -36,9 +35,9 @@ impl Status {
     }
 }
 
-pub fn subscribe(responder: Responder) {
+/*pub fn subscribe(responder: Responder) {
     *RESPONDER.lock().unwrap() = Some(responder);
-}
+}*/
 
 pub fn get() -> Status {
     STATUS.read().unwrap().clone()
@@ -51,7 +50,7 @@ macro_rules! status {
             // Update only if the value has changed
             if status.$key != $value {
                 status.$key = $value;
-
+                /*
                 // Send an update to connected frontent clients
                 let res = $crate::status::RESPONDER.lock().unwrap();
                 if let Some(ref res) = *res {
@@ -62,6 +61,7 @@ macro_rules! status {
                         )
                     );
                 }
+                 */
             }
         )*
     });

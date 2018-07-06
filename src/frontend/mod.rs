@@ -1,10 +1,6 @@
 pub mod http;
 pub mod websocket;
 
-pub use self::websocket::Responder;
-
-use std::sync::mpsc::{Receiver, channel};
-use std::thread;
 use serde_json;
 
 use config::Config;
@@ -34,13 +30,4 @@ pub enum Response {
     Message(Message),
     Log(u8, String),
     Authenticated(bool)
-}
-
-pub fn run(pass: Option<&str>) -> (Responder, Receiver<Request>) {
-    thread::spawn(http::run);
-
-    let (tx, rx) = channel();
-    let responder = websocket::create(tx, pass);
-
-    (responder, rx)
 }

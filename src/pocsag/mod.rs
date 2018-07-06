@@ -7,7 +7,7 @@ pub mod encoding;
 
 pub use self::encoding::Encoding;
 pub use self::generator::Generator;
-pub use self::message::{Message, MessageFunc, MessageSpeed, MessageType};
+pub use self::message::{Message, MessageType};
 pub use self::scheduler::Scheduler;
 pub use self::testgenerator::TestGenerator;
 pub use self::timeslots::{TimeSlot, TimeSlots};

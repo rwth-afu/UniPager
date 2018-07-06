@@ -2,8 +2,6 @@
 extern crate alloc_system;
 extern crate serial;
 extern crate raspi;
-extern crate ws;
-extern crate tiny_http;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -13,13 +11,19 @@ extern crate serde_json;
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
-extern crate amqp;
+extern crate hyper;
+extern crate tokio;
+extern crate futures;
+extern crate lapin_futures as lapin;
+extern crate tungstenite;
+extern crate tokio_tungstenite;
 
 #[macro_use]
 mod status;
 mod config;
 mod logging;
 mod connection;
+mod core;
 mod transmitter;
 mod pocsag;
 mod frontend;
@@ -29,14 +33,16 @@ use std::time;
 use std::fs::File;
 use std::io::Read;
 
+use tokio::runtime::Runtime;
+use futures::Future;
+
 use config::Config;
-use connection::Connection;
 use frontend::{Request, Response};
 use pocsag::Scheduler;
 
 fn print_version() {
     println!("UniPager {}", env!("CARGO_PKG_VERSION"));
-    println!("Copyright (c) 2017 RWTH Amateurfunkgruppe\n");
+    println!("Copyright (c) 2017-2018 RWTH Amateurfunkgruppe\n");
     println!("This program comes with ABSOLUTELY NO WARRANTY.");
     println!("This is free software, and you are welcome to redistribute");
     println!("and modify it under the conditions of the GNU GPL v3 or later.");
@@ -53,118 +59,32 @@ fn main() {
             Ok(s)
         })
         .map(|s| s.trim().to_owned())
+        .map_err(|e| eprintln!("Failed to load password file."))
         .ok();
 
-    let (responder, requests) = frontend::run(pass.as_ref().map(|x| &**x));
+//    let (responder, requests) = futures::sync::mpsc::unbounded();
 
-
-    logging::init(responder.clone());
-    status::subscribe(responder.clone());
+    logging::init();
+    //status::subscribe(responder.clone());
 
     let mut config = Config::load();
     let scheduler = Scheduler::new(&config);
+    let scheduler_thread = Scheduler::start(config.clone(), scheduler.clone());
 
-    thread::spawn(timeslot_updater);
+    Runtime::new().unwrap().block_on(
+        core::bootstrap(&config)
+    ).map(|res| {
+        println!("{:?}", res);
+    });
 
-    let mut restart = true;
-    let mut test = false;
+    let mut rt = Runtime::new().unwrap();
+    rt.spawn(frontend::websocket::server(pass));
+    rt.spawn(frontend::http::server());
+    rt.spawn(connection::consumer(&config, scheduler.clone()));
 
-    while restart {
-        let (stop_conn, conn_thread) =
-            Connection::start(config.clone(), scheduler.clone());
-        let scheduler_thread =
-            Scheduler::start(config.clone(), scheduler.clone());
-        loop {
-            match requests.recv().unwrap() {
-                Request::SetConfig(new_config) => {
-                    config = new_config;
-                    config.save();
-                    responder.send(Response::Config(config.clone()));
-                    info!("Config updated. Initiating restart.");
 
-                    restart = true;
-                    stop_conn.send(()).ok();
-                    scheduler.stop();
-                    break;
-                }
-                Request::DefaultConfig => {
-                    config = Config::default();
-                    config.save();
-                    responder.send(Response::Config(config.clone()));
-                    info!("Config set to default. Initiating restart.");
 
-                    restart = true;
-                    stop_conn.send(()).ok();
-                    scheduler.stop();
-                    break;
-                }
-                Request::SendMessage(msg) => {
-                    let msg_copy = msg.clone();
-                    scheduler.message(msg);
-                    responder.send(Response::Message(msg_copy));
-                }
-                Request::GetConfig => {
-                    responder.send(Response::Config(config.clone()));
-                }
-                Request::GetVersion => {
-                    let version = env!("CARGO_PKG_VERSION").to_string();
-                    responder.send(Response::Version(version));
-                }
-                Request::GetStatus => {
-                    responder.send(Response::Status(status::get()));
-                }
-                Request::Shutdown => {
-                    info!("Initiating shutdown.");
-                    restart = false;
-                    stop_conn.send(()).ok();
-                    scheduler.stop();
-                    break;
-                }
-                Request::Restart => {
-                    info!("Initiating restart.");
-                    restart = true;
-                    stop_conn.send(()).ok();
-                    scheduler.stop();
-                    break;
-                }
-                Request::Test => {
-                    info!("Initiating test procedure...");
-                    restart = true;
-                    test = true;
-                    stop_conn.send(()).ok();
-                    scheduler.stop();
-                    break;
-                }
-                Request::Authenticate(_) => {
-                    break;
-                }
-            }
-        }
-
-        info!("Waiting for the connection to terminate...");
-        conn_thread.join().ok();
-
-        info!("Waiting for the scheduler to terminate...");
-        scheduler_thread.join().ok();
-        info!("Scheduler stopped.");
-
-        if test {
-            info!("Starting test transmission.");
-            let thread = Scheduler::test(config.clone(), scheduler.clone());
-            thread.join().ok();
-            info!("Test transmission completed. Restarting...");
-            test = false;
-        }
-    }
+    rt.shutdown_on_idle().wait().unwrap();
 
     info!("Terminating... 73!");
-    thread::sleep(time::Duration::from_millis(1000));
-}
-
-pub fn timeslot_updater() {
-    loop {
-        let timeslot = pocsag::TimeSlot::current();
-        status!(timeslot: timeslot);
-        thread::sleep(timeslot.next().duration_until());
-    }
 }

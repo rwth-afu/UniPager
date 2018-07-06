@@ -1,161 +1,85 @@
-use std::io::{self, BufRead, BufReader, BufWriter, Result, Write};
-use std::str::FromStr;
-use std::sync::mpsc::{Sender, channel};
-use std::thread::{self, JoinHandle};
-use std::time::{Duration};
-use amqp::{self, Basic, Session, Channel, Table, protocol};
-use amqp::TableEntry::LongString;
-use amqp::protocol::basic;
+use std::io::{self, Result};
+use std::net::ToSocketAddrs;
+
+use tokio;
+use tokio::net::TcpStream;
+use tokio::io::{AsyncRead, AsyncWrite};
+use futures::future::Future;
+use futures::{self, IntoFuture, Stream};
+use lapin::types::FieldTable;
+use lapin::client::{Client, ConnectionOptions};
+use lapin::channel::{BasicConsumeOptions, BasicProperties, BasicPublishOptions, ConfirmSelectOptions, QueueBindOptions, QueueDeclareOptions};
 
 use config::Config;
-use pocsag::{Message, MessageFunc, MessageSpeed, MessageType};
+use pocsag::{Message, MessageType};
 use pocsag::{Scheduler, TimeSlots};
 
-pub struct Connection {
-    session: Session,
-    channel: Channel,
-    call: String,
-    auth: String,
-    id: String,
-    scheduler: Scheduler
-}
+pub fn consumer(config: &Config, scheduler: Scheduler)
+                -> impl Future<Item = (), Error = ()> {
+    let call = config.master.call.to_owned().to_ascii_lowercase();
+    let user = format!("tx-{}", &call).to_owned();
+    let routing_key = format!("{}.*", &call).to_owned();
+    let auth_key = config.master.auth.to_owned();
+    let host = &config.master.server;
+    let port = 5672;
 
-#[allow(dead_code)]
-enum AckStatus {
-    Success,
-    Error,
-    Retry,
-    Nothing
-}
+    info!("Connecting to {}:{}...", host, port);
 
-impl Connection {
-    pub fn new(host: &String, port: u16, config: &Config, scheduler: Scheduler)
-               -> Result<Connection> {
-        if config.master.call.len() == 0 {
-            error!("No callsign configured.");
-            Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "No callsign configured"
-            ))
-        } else if config.master.auth.len() == 0 {
-            error!("No auth key configured.");
-            Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "No auth key configured"
-            ))
-        } else {
-            info!("Connecting to {}:{}...", host, port);
+    let addr = (&**host, port).to_socket_addrs().unwrap()
+        .next().expect("Cannot resolve hostname");
 
-            let addr = format!("amqp://guest:guest@{}:{}", host, port);
+    TcpStream::connect(&addr).and_then(|stream| {
+       Client::connect(stream, ConnectionOptions {
+            username: user,
+            password: auth_key,
+            vhost: "/".to_owned(),
+            frame_max: 0,
+            heartbeat: 30
+        })
+    }).and_then(|(client, heartbeat)| {
+       tokio::spawn(heartbeat.map_err(|_| ()));
+       client.create_channel()
+    }).and_then(move |channel| {
+        // Declare queue
+        channel.queue_declare(&call, QueueDeclareOptions::default(), FieldTable::new())
+            .map(|queue| (channel, queue))
+    }).and_then(move |(channel, queue)| {
+        // Bind queue to exchange
+        channel.queue_bind(&queue.name(), "dapnet.transmitters", &*routing_key,
+                           QueueBindOptions::default(), FieldTable::new())
+            .map(|_| (channel, queue))
+    }).and_then(|(channel, queue)| {
+        // Create a consumer
+        channel.basic_consume(&queue, "consumer", BasicConsumeOptions::default(), FieldTable::new())
+            .map(move |stream| (channel, stream))
+    }).and_then(|(channel, stream)| {
+        info!("Listening for incoming calls.");
+        // Consume the messages
+        stream.for_each(move |message| {
+            use std::str::from_utf8;
+            use serde_json;
+            match message.routing_key.split(".").nth(1) {
+                Some("call") => {
+                    let message: Option<Message> = from_utf8(&message.data).ok()
+                        .and_then(|str| serde_json::from_str(&str).ok());
 
-            let mut session = Session::open_url(&addr).map_err(|err|
-                                                                  io::Error::new(
-                                                                      io::ErrorKind::InvalidInput,
-                                                                      "No auth key configured"
-                                                                  ))?;
-            let mut channel = session.open_channel(1).map_err(|err|
-                                                              io::Error::new(
-                                                                  io::ErrorKind::InvalidInput,
-                                                                  "No auth key configured"
-                                                              ))?;
-
-            Ok(Connection {
-                session: session,
-                channel: channel,
-                scheduler: scheduler,
-                call: config.master.call.to_owned(),
-                auth: config.master.auth.to_owned(),
-                id: config.transmitter.to_string()
-            })
-        }
-    }
-
-    pub fn start(config: Config, scheduler: Scheduler)
-        -> (Sender<()>, JoinHandle<()>) {
-        let (stop_tx, stop_rx) = channel();
-
-        let handle = thread::spawn(move || {
-            let mut reconnect = true;
-            let mut try_fallback = false;
-            let mut fallback = config.master.fallback.iter().cycle();
-
-            while reconnect {
-                let (ref host, port) = if try_fallback {
-                    warn!("Connecting to next fallback server...");
-                    if let Some(&(ref host, port)) = fallback.next() {
-                        (host, port)
+                    if let Some(msg) = message {
+                        scheduler.message(msg);
                     }
                     else {
-                        error!("No fallback servers defined.");
-                        (&config.master.server, config.master.port)
+                        warn!("Could not decode incoming message")
                     }
+                },
+                Some(mtype) => {
+                    warn!("Received unknown message type {}", mtype);
                 }
-                else {
-                    (&config.master.server, config.master.port)
-                };
-
-                let connection = Connection::new(&host, port, &config, scheduler.clone());
-
-                let delay = if let Ok(mut connection) = connection {
-                    info!("Connection established.");
-                    status!(connected: true, master: Some(host.to_string()));
-                    try_fallback = false;
-
-                    let (stopped_tx, stopped_rx) = channel();
-                    let handle = thread::spawn(move || {
-                        connection.run().ok();
-                        stopped_tx.send(()).unwrap();
-                    });
-
-                    select! {
-                        _ = stopped_rx.recv() => reconnect = true,
-                        _ = stop_rx.recv() => reconnect = false
-                    }
-
-                    handle.join().unwrap();
-
-                    status!(connected: false, master: None::<String>);
-                    warn!("Disconnected from master.");
-
-                    Duration::from_millis(2500)
-                } else {
-                    status!(connected: false, master: None::<String>);
-                    error!("Connection failed.");
-
-                    try_fallback = !try_fallback;
-
-                    Duration::from_millis(5000)
-                };
-
-                if reconnect {
-                    if let Ok(()) = stop_rx.recv_timeout(delay) {
-                        reconnect = false;
-                    }
+                None => {
+                    warn!("Received unknown message");
                 }
             }
-        });
-
-        (stop_tx, handle)
-    }
-
-    pub fn run(&mut self) -> Result<()> {
-        let queue_name = format!("{}-calls", self.call);
-        self.channel.queue_declare(queue_name.to_owned(), false, true, false, false, false, Table::new());
-        self.channel.queue_bind(queue_name.to_owned(), "dapnet.calls".to_owned(), "".to_owned(), false, Table::new());
-
-        let closure_consumer = move |chan: &mut Channel, deliver: basic::Deliver, headers: basic::BasicProperties, data: Vec<u8>|
-        {
-            println!("[closure] Deliver info: {:?}", deliver);
-            println!("[closure] Content headers: {:?}", headers);
-            println!("[closure] Content body: {:?}", data);
-            chan.basic_ack(deliver.delivery_tag, false).unwrap();
-        };
-        let consumer_name = self.channel.basic_consume(closure_consumer, queue_name.to_owned(), "".to_owned(), false, false, false, false, Table::new());
-        println!("Starting consumer {:?}", consumer_name);
-
-        self.channel.start_consuming();
-        self.channel.close(200, "Bye").ok();
-        self.session.close(200, "Good Bye");
-        Ok(())
-    }
+            channel.basic_ack(message.delivery_tag)
+        })
+    }).map_err(|e| (
+        warn!("RabbitMQ connection lost. {:?}", e)
+    ))
 }
