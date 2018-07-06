@@ -35,7 +35,7 @@ use pocsag::Scheduler;
 
 fn print_version() {
     println!("UniPager {}", env!("CARGO_PKG_VERSION"));
-    println!("Copyright (c) 2017 RWTH Amateurfunkgruppe\n");
+    println!("Copyright (c) 2018 RWTH Amateurfunkgruppe\n");
     println!("This program comes with ABSOLUTELY NO WARRANTY.");
     println!("This is free software, and you are welcome to redistribute");
     println!("and modify it under the conditions of the GNU GPL v3 or later.");
