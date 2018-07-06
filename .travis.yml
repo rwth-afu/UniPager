@@ -1,4 +1,6 @@
-language: generic
+language: rust
+rust:
+  - nightly
 matrix:
   include:
     - env:
@@ -41,7 +43,6 @@ matrix:
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
-  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain=nightly
   - rustup target add $TARGET || true
   - |
     if [ -n "$LINKER" ]; then
@@ -53,6 +54,8 @@ install:
 
 script:
   - cargo build --target $TARGET --verbose --release
+
+cache: cargo
 
 before_deploy:
   - tar -czf $PACKAGE -C target/$TARGET/release/ unipager
