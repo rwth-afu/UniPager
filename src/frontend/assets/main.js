@@ -13,7 +13,8 @@ var vm = new Vue({
             master: {},
             audio: {},
             c9000: {},
-            raspager: {}
+            raspager: {},
+            mmdvm: {}
         },
         status: {},
         message: {

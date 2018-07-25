@@ -4,6 +4,7 @@ pub mod audio;
 pub mod c9000;
 pub mod rfm69;
 pub mod raspager;
+pub mod mmdvm;
 
 pub use self::audio::AudioTransmitter;
 pub use self::c9000::C9000Transmitter;
@@ -11,6 +12,7 @@ pub use self::dummy::DummyTransmitter;
 pub use self::ptt::Ptt;
 pub use self::raspager::RaspagerTransmitter;
 pub use self::rfm69::RFM69Transmitter;
+pub use self::mmdvm::MMDVMTransmitter;
 
 use config::{self, Config};
 
@@ -41,6 +43,9 @@ pub fn from_config(config: &Config) -> Box<Transmitter> {
         }
         config::Transmitter::RFM69 => {
             Box::new(RFM69Transmitter::new(config)) as Box<Transmitter>
+        }
+        config::Transmitter::MMDVM => {
+            Box::new(MMDVMTransmitter::new(config)) as Box<Transmitter>
         }
     }
 }
