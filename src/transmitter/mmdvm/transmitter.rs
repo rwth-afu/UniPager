@@ -5,6 +5,7 @@ use serial::{self, SerialPort};
 
 use config::Config;
 use transmitter::Transmitter;
+use std::io::{Write};
 
 pub struct MMDVMTransmitter {
     serial: Box<serial::SerialPort>
@@ -27,6 +28,15 @@ impl MMDVMTransmitter {
                 flow_control: serial::FlowControl::FlowNone
             })
             .expect("Unable to configure serial port");
+
+        let bytes = [
+            MMDVM_FRAME_START as u8,
+            3 as u8,
+            MMDVM_GET_VERSION as u8,
+        ];
+        if serial.write_all(&bytes).is_err() {
+            error!("Unable to send end of transmission byte");
+        }
 
         MMDVMTransmitter { serial: Box::new(serial) }
     }
