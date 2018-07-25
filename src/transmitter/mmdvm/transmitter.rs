@@ -1,5 +1,7 @@
 const MMDVM_FRAME_START: u8 = 0xE0;
 const MMDVM_GET_VERSION: u8 = 0x00;
+const MMDVM_SET_CONFIG:  u8 = 0x02;
+const MODE_IDLE:         u8 = 0x00;
 
 use serial::{self, SerialPort};
 
@@ -35,7 +37,53 @@ impl MMDVMTransmitter {
             MMDVM_GET_VERSION as u8,
         ];
         if serial.write_all(&bytes).is_err() {
-            error!("Unable to send end of transmission byte");
+            error!("Unable to intialize MMDVM!");
+        }
+
+        let bytes = [
+            MMDVM_FRAME_START as u8,
+            // Length is 21 bytes
+            21 as u8,
+            MMDVM_SET_CONFIG as u8,
+            // Invert, deviation and duplex settings
+            0 as u8,
+            // Enable POCSAG and disable all other modes
+            0x20 as u8,
+            // TXdelay in 10ms units
+            10 as u8,
+            // Idle mode
+            MODE_IDLE as u8,
+            // RXLevel (not needed)
+            0 as u8,
+            // CW ID TX level (not needed)
+            0 as u8,
+            // DMR color code (not needed)
+            0 as u8,
+            // DMR delay (not needed)
+            0 as u8,
+            // Was OscOffset (not needed)
+            128 as u8,
+            // DStar TX Level (not needed)
+            0 as u8,
+            // DMR TX Level (not needed)
+            0 as u8,
+            // YSF TX Level (not needed)
+            0 as u8,
+            // P25 TX Level (not needed)
+            0 as u8,
+            // TX DC offset (not needed)
+            0 as u8,
+            // RX DC offset (not needed)
+            0 as u8,
+            // NXDN TX Level (not needed)
+            0 as u8,
+            // YSF TX hang time (not needed)
+            0 as u8,
+            // POCSAG TX level
+            20 as u8
+        ];
+        if serial.write_all(&bytes).is_err() {
+            error!("Unable to set MMDVM config!");
         }
 
         MMDVMTransmitter { serial: Box::new(serial) }
