@@ -165,7 +165,7 @@ button.red:active { background-color: ##B71C1C; }
     padding: 15px;
 }
 
-.status {
+.telemetry {
     border: 2px solid rgba(0,0,0,.12);
     color: #aaa;
     border-radius: 5px;
@@ -174,25 +174,25 @@ button.red:active { background-color: ##B71C1C; }
     padding: 3px 5px;
 }
 
-.status.on-air {
+.telemetry.onair {
     border-color: #F44336;
     background-color: #F44336;
     color: #fff;
 }
 
-.status.connected {
+.telemetry.connected {
     border-color: #4CAF50;
     background-color: #4CAF50;
     color: #fff;
 }
 
-.status.active {
+.telemetry.active {
     border-color: #2196F3;
     background-color: #2196F3;
     color: #fff;
 }
 
-.status.critical {
+.telemetry.critical {
     border-color: #FFC107;
     background-color: #FFC107;
     color: #fff;

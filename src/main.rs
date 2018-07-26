@@ -17,9 +17,10 @@ extern crate futures;
 extern crate lapin_futures as lapin;
 extern crate tungstenite;
 extern crate tokio_tungstenite;
+extern crate chrono;
 
 #[macro_use]
-mod status;
+mod telemetry;
 mod config;
 mod logging;
 mod connection;
@@ -27,18 +28,19 @@ mod core;
 mod transmitter;
 mod pocsag;
 mod frontend;
+mod message;
+mod scheduler;
+mod timeslots;
+mod queue;
+mod event;
 
-use std::thread;
-use std::time;
 use std::fs::File;
 use std::io::Read;
 
-use tokio::runtime::Runtime;
 use futures::Future;
+use tokio::runtime::Runtime;
 
-use config::Config;
-use frontend::{Request, Response};
-use pocsag::Scheduler;
+use scheduler::Scheduler;
 
 fn print_version() {
     println!("UniPager {}", env!("CARGO_PKG_VERSION"));
@@ -59,30 +61,35 @@ fn main() {
             Ok(s)
         })
         .map(|s| s.trim().to_owned())
-        .map_err(|e| eprintln!("Failed to load password file."))
+        .map_err(|_| eprintln!("Failed to load password file."))
         .ok();
 
-//    let (responder, requests) = futures::sync::mpsc::unbounded();
+    let config = config::get();
 
-    logging::init();
-    //status::subscribe(responder.clone());
-
-    let mut config = Config::load();
-    let scheduler = Scheduler::new(&config);
-    let scheduler_thread = Scheduler::start(config.clone(), scheduler.clone());
-
-    Runtime::new().unwrap().block_on(
-        core::bootstrap(&config)
-    ).map(|res| {
-        println!("{:?}", res);
-    });
+    Runtime::new()
+        .unwrap()
+        .block_on(core::bootstrap(&config))
+        .map(|res| {
+            println!("{:?}", res);
+        }).ok();
 
     let mut rt = Runtime::new().unwrap();
-    rt.spawn(frontend::websocket::server(pass));
-    rt.spawn(frontend::http::server());
-    rt.spawn(connection::consumer(&config, scheduler.clone()));
+    let event_handler = event::start(&mut rt);
 
+    logging::init(event_handler.clone());
 
+    let scheduler = Scheduler::new(&config);
+    Scheduler::start(config.clone(), scheduler.clone());
+
+    telemetry::start(&mut rt, event_handler.clone());
+    connection::start(
+        &mut rt,
+        &config,
+        scheduler.clone(),
+        event_handler.clone()
+    );
+    frontend::websocket::start(&mut rt, pass, event_handler.clone());
+    frontend::http::start(&mut rt, event_handler.clone());
 
     rt.shutdown_on_idle().wait().unwrap();
 

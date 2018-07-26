@@ -1,14 +1,11 @@
-use std::io::{self, Result};
-use std::net::ToSocketAddrs;
 use std::collections::HashMap;
+use std::io;
 
-use hyper;
-use tokio::net::TcpStream;
-use tokio::io::{AsyncRead, AsyncWrite};
+use futures::{Stream, done};
+use futures::future::err;
 use futures::future::Future;
-use futures::{self, done, IntoFuture, Stream};
-use futures::future::{err, ok};
-use serde_json::{self, Value};
+use hyper;
+use serde_json;
 
 use config::Config;
 
@@ -25,8 +22,8 @@ pub struct BootstrapResponse {
     pub nodes: HashMap<String, Node>
 }
 
-pub fn bootstrap(config: &Config) -> impl Future<Item=BootstrapResponse,
-                                                 Error=io::Error> {
+pub fn bootstrap(config: &Config)
+    -> impl Future<Item = BootstrapResponse, Error = io::Error> {
     /*
     if config.master.call.len() == 0 {
         error!("No callsign configured.");
@@ -42,46 +39,53 @@ pub fn bootstrap(config: &Config) -> impl Future<Item=BootstrapResponse,
         ))
     } else {
     */
-        info!("Connecting to {}:{}...", config.master.server, config.master.port);
+    info!(
+        "Connecting to {}:{}...",
+        config.master.server,
+        config.master.port
+    );
 
-        let client = hyper::Client::new();
+    let client = hyper::Client::new();
 
-        let url = format!("http://{}:{}/api/transmitters/bootstrap",
-                          config.master.server,
-                          config.master.port);
+    let url = format!(
+        "http://{}:{}/api/transmitters/bootstrap",
+        config.master.server,
+        config.master.port
+    );
 
-        let request = hyper::Request::builder()
-            .method("POST")
-            .uri(url)
-            .header("Content-Type", "application/json")
-            .body(serde_json::to_string(&json!({
+    let request = hyper::Request::builder()
+        .method("POST")
+        .uri(url)
+        .header("Content-Type", "application/json")
+        .body(
+            serde_json::to_string(&json!({
                 "callsign": config.master.call,
                 "auth_key": config.master.auth,
                 "software": {
                     "name": "UniPager",
                     "version": env!("CARGO_PKG_VERSION")
                 }
-            })).unwrap().into()).unwrap();
+            })).unwrap()
+                .into()
+        )
+        .unwrap();
 
-    client.request(request)
-        .and_then(|res| {
-            res.into_body().concat2()
-        })
+    client
+        .request(request)
+        .and_then(|res| res.into_body().concat2())
         .or_else(|_| {
-            err(
+            err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "No callsign configured"
+            ))
+        })
+        .and_then(|body| {
+            done(serde_json::from_slice(&body).map_err(|_| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
                     "No callsign configured"
-                ))
-        })
-        .and_then(|body| {
-            done(serde_json::from_slice(&body)
-                .map_err(|_| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        "No callsign configured"
-                    )
-                }))
+                )
+            }))
         })
 
 }

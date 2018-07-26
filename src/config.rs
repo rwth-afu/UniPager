@@ -2,8 +2,13 @@ use serde_json;
 use std::fmt;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::sync::RwLock;
 
 const CONFIG_FILE: &'static str = "config.json";
+
+lazy_static! {
+    pub static ref CONFIG: RwLock<Config> = RwLock::new(Config::load());
+}
 
 fn default_fallback_servers() -> Vec<(String, u16)> {
     [
@@ -181,6 +186,16 @@ pub struct Config {
     pub c9000: C9000Config,
     pub audio: AudioConfig,
     pub rfm69: RFM69Config
+}
+
+pub fn get() -> Config {
+    CONFIG.read().unwrap().clone()
+}
+
+pub fn set(new_config: &Config) {
+    let mut config = CONFIG.write().unwrap();
+    *config = new_config.clone();
+    config.save();
 }
 
 impl Config {

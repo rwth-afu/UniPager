@@ -1,12 +1,15 @@
-use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::mpsc::{RecvTimeoutError, TryRecvError};
 use std::thread::{self, JoinHandle};
 
 use config::Config;
-use pocsag::{Generator, Message, MessageProvider, TestGenerator, TimeSlots};
+use message::{Message, MessageProvider};
+use pocsag;
 use transmitter::{self, Transmitter};
+use timeslots::TimeSlots;
+use queue::Queue;
+use telemetry;
 
 enum Command {
     Message(Message),
@@ -23,7 +26,7 @@ pub struct Scheduler {
 struct SchedulerCore {
     rx: Receiver<Command>,
     slots: TimeSlots,
-    queue: VecDeque<Message>,
+    queue: Queue,
     stop: bool,
     budget: usize
 }
@@ -35,7 +38,7 @@ impl Scheduler {
         let core = SchedulerCore {
             rx: rx,
             slots: TimeSlots::new(),
-            queue: VecDeque::new(),
+            queue: Queue::new(),
             stop: false,
             budget: 0
         };
@@ -62,13 +65,15 @@ impl Scheduler {
 
     pub fn set_time_slots(&self, slots: TimeSlots) -> bool {
         info!("Set {:?}", slots);
-        status!(timeslots: slots);
+        telemetry_update!(config: |config: &mut telemetry::Config| {
+            config.timeslots = slots.raw();
+        });
+
         self.tx.send(Command::SetTimeSlots(slots)).is_ok()
     }
 
     pub fn message(&self, msg: Message) -> bool {
         info!("Received {:?}", msg);
-        status_inc!(calls_rx: 1);
         self.tx.send(Command::Message(msg)).is_ok()
     }
 
@@ -81,7 +86,7 @@ impl SchedulerCore {
     pub fn run(&mut self, mut transmitter: Box<Transmitter>) {
         info!("Scheduler started.");
         while !self.stop {
-            let mut message = self.queue.pop_front();
+            let mut message = self.queue.dequeue();
 
             while message.is_none() {
                 match self.rx.recv() {
@@ -97,8 +102,6 @@ impl SchedulerCore {
                     }
                 }
             }
-
-            status!(queue: self.queue.len() + 1);
 
             // Calculate remaining time budget
             self.budget = self.slots.calculate_budget();
@@ -119,16 +122,16 @@ impl SchedulerCore {
                     duration = next_slot.duration_until();
 
                     match self.rx.recv_timeout(duration) {
-                        Ok(Command::Message(msg)) => {
-                            self.queue.push_back(msg);
-                            status!(queue: self.queue.len() + 1);
+                        Ok(Command::Message(_msg)) => {
+                            //self.queue.push_back(msg);
+                            //status!(queue: self.queue.len() + 1);
                         }
                         Ok(Command::SetTimeSlots(slots)) => {
                             self.slots = slots;
                         }
                         Ok(Command::Stop) |
                         Err(RecvTimeoutError::Disconnected) => {
-                            self.queue.push_front(message.unwrap());
+                            //self.queue.push_front(message.unwrap());
                             return;
                         }
                         Err(RecvTimeoutError::Timeout) => {
@@ -143,27 +146,24 @@ impl SchedulerCore {
                 self.budget = usize::max_value();
             }
 
-            status!(queue: self.queue.len(), transmitting: true);
-            status_inc!(calls_tx: 1);
-
             debug!("Available time budget: {}", self.budget);
+            telemetry!(onair: true);
             transmitter.send(
-                &mut Generator::new(self, message.unwrap())
+                &mut *message.unwrap().generator(self)
             );
-
-            status!(transmitting: false);
+            telemetry!(onair: false);
         }
     }
 
     pub fn test(&mut self, mut transmitter: Box<Transmitter>) {
-        status!(transmitting: true);
-        transmitter.send(&mut TestGenerator::new(1125));
-        status!(transmitting: false);
+        telemetry!(onair: true);
+        transmitter.send(&mut pocsag::TestGenerator::new(1125));
+        telemetry!(onair: false);
     }
 }
 
 impl MessageProvider for SchedulerCore {
-    fn next(&mut self, count: usize) -> Option<Message> {
+    fn next(&mut self, count: usize) -> Option<pocsag::Message> {
         debug!(
             "Remaining time budget: {}",
             self.budget as i32 - count as i32
@@ -176,7 +176,7 @@ impl MessageProvider for SchedulerCore {
         loop {
             match (*self).rx.try_recv() {
                 Ok(Command::Message(msg)) => {
-                    self.queue.push_back(msg);
+                    self.queue.enqueue(msg);
                 }
                 Ok(Command::SetTimeSlots(slots)) => {
                     self.slots = slots;
@@ -192,13 +192,13 @@ impl MessageProvider for SchedulerCore {
             };
         }
 
-        let message = self.queue.pop_front();
-        status!(queue: self.queue.len());
+        //let message = self.queue.dequeue();
 
-        if message.is_some() {
-            status_inc!(calls_tx: 1);
-        }
+        //if message.is_some() {
+            //status_inc!(calls_tx: 1);
+        //}
 
-        message
+        //message
+        None
     }
 }

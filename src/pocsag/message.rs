@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum MessageType {
     Numeric,
     AlphaNum
@@ -9,7 +10,7 @@ pub enum MessageType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Message {
-    pub id: String,
+    #[serde(rename = "type")]
     pub mtype: MessageType,
     pub speed: u32,
     pub addr: u32,
@@ -27,7 +28,6 @@ impl Message {
 impl Default for Message {
     fn default() -> Message {
         Message {
-            id: "".to_owned(),
             mtype: MessageType::AlphaNum,
             speed: 1200,
             addr: 0,

@@ -290,28 +290,24 @@
               <div style="padding-bottom: 10px;">
                 <button class="green" @click="save_config">Save Config</button>
                 <button class="orange" @click="default_config">Default Config</button>
-              </div>
-              <div>
-                <button class="orange" @click="test_submission">Test</button>
-                <button class="orange" @click="restart">Restart</button>
-                <button class="red" @click="shutdown">Shutdown</button>
+                <button class="red" @click="test_submission">Test</button>
               </div>
             </div>
           </div>
 
           <div class="box">
             <div class="box-header">
-              <h3>Status</h3>
+              <h3>Telemetry</h3>
             </div>
             <div class="box-content">
-              <div class="status" v-bind:class="{ 'on-air': status.transmitting }">
+              <div class="telemetry" v-bind:class="{ 'onair': telemetry.onair }">
                 On Air
               </div>
-              <div class="status" v-bind:class="{ 'connected': status.connected }">
-                {{status.master ? status.master : "No master connection"}}
+              <div class="telemetry" v-bind:class="{ 'connected': telemetry.node.connected }">
+                {{telemetry.node.name ? telemetry.node.name : "No master connection"}}
               </div>
-              <div class="status" v-bind:class="{ 'active': status.queue > 0, 'critical': status.queue > 30 }">
-                Queue: {{status.queue}}
+              <div class="status" v-bind:class="{ 'active': telemetry.queue > 0, 'critical': telemetry.queue > 30 }">
+                Queue: {{telemetry.queue}}
               </div>
               <div class="timeslots">
                 <span v-for="(timeslot, index) in status.timeslots">

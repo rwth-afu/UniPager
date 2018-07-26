@@ -19,3 +19,7 @@ tokio-tungstenite = "^0.5.1"
 
 [dependencies.raspi]
 path = "lib/raspi"
+
+[dependencies.chrono]
+version = "0.4"
+features = ["serde"]

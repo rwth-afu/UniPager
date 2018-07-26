@@ -4,8 +4,8 @@ pub mod websocket;
 use serde_json;
 
 use config::Config;
-use status::Status;
-use pocsag::Message;
+use message::Message;
+use telemetry::Telemetry;
 
 #[derive(Debug, Deserialize)]
 pub enum Request {
@@ -14,18 +14,16 @@ pub enum Request {
     SendMessage(Message),
     Authenticate(String),
     GetConfig,
+    GetTelemetry,
     GetVersion,
-    GetStatus,
-    Shutdown,
-    Restart,
     Test
 }
 
 #[derive(Debug, Serialize)]
 pub enum Response {
-    Status(Status),
-    StatusUpdate(String, serde_json::value::Value),
     Config(Config),
+    Telemetry(Telemetry),
+    TelemetryUpdate(serde_json::Value),
     Version(String),
     Message(Message),
     Log(u8, String),

@@ -1,4 +1,5 @@
-use pocsag::{Encoding, Message, MessageType, MessageProvider, encoding};
+use pocsag::{Encoding, Message, MessageType, encoding};
+use message::MessageProvider;
 
 /// Preamble length in number of 32-bit codewords
 pub const PREAMBLE_LENGTH: u8 = 18;

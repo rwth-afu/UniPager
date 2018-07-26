@@ -15,7 +15,9 @@ var vm = new Vue({
             c9000: {},
             raspager: {}
         },
-        status: {},
+        telemetry: {
+            node: {},
+        },
         message: {
             addr: localStorage ? (parseInt(localStorage.pager_addr) || 0) : 0,
             data: "",
@@ -60,8 +62,8 @@ var vm = new Vue({
                     case "Log": this.log_add(value); break;
                     case "Version": this.version = value; break;
                     case "Config": this.config = value; break;
-                    case "Status": this.status = value; break;
-                    case "StatusUpdate": this.status[value[0]] = value[1]; break;
+                    case "Telemetry": this.telemetry = value; break;
+                    case "TelemetryUpdate": this.telemetry[value[0]] = value[1]; break;
                     case "Authenticated": this.authenticated(value); break;
                     default: console.log("Unknown Key: ", key);
                 }
@@ -72,7 +74,9 @@ var vm = new Vue({
                 this.log.unshift({msg: "Disconnected from UniPager.", time: new Date()});
             }
             this.connected = false;
-            this.status = {};
+            this.telemetry = {
+                node: {},
+            };
             setTimeout(function() { this.connect(); }.bind(this), 1000);
         },
         send: function(data) {
@@ -91,12 +95,6 @@ var vm = new Vue({
             }
             this.log.unshift({level: level, msg: msg, time: new Date()});
             this.log = this.log.slice(0, 50);
-        },
-        restart: function(event) {
-            this.send("Restart");
-        },
-        shutdown: function(event) {
-            this.send("Shutdown");
         },
         save_config: function(event) {
             if (this.config) {
@@ -120,7 +118,7 @@ var vm = new Vue({
             if (auth) {
                 this.send("GetVersion");
                 this.send("GetConfig");
-                this.send("GetStatus");
+                this.send("GetTelemetry");
             }
             else {
                 this.password = "";
