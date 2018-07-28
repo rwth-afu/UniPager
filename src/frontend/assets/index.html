@@ -306,11 +306,13 @@
               <div class="telemetry" v-bind:class="{ 'connected': telemetry.node.connected }">
                 {{telemetry.node.name ? telemetry.node.name : "No master connection"}}
               </div>
-              <div class="status" v-bind:class="{ 'active': telemetry.queue > 0, 'critical': telemetry.queue > 30 }">
-                Queue: {{telemetry.queue}}
+              <div class="telemetry">
+                <span v-for="(queue, index) in telemetry.messages.queued">
+                  {{queue}}
+                </span>
               </div>
               <div class="timeslots">
-                <span v-for="(timeslot, index) in status.timeslots">
+                <span v-for="(timeslot, index) in telemetry.config.timeslots">
                   <div class="timeslot" v-bind:class="{ 'enabled': timeslot, 'active': index == status.timeslot}">
                     {{index.toString(16).toUpperCase()}}
                   </div>

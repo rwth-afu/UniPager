@@ -67,6 +67,11 @@ impl SchedulerCore {
             debug!("Available time budget: {}", self.budget);
 
             let message = self.queue.dequeue().unwrap();
+
+            telemetry_update!(messages: |m| {
+                self.queue.telemetry_update(m);
+            });
+
             telemetry!(onair: true);
             transmitter.send(&mut *message.generator(self));
             telemetry!(onair: false);
@@ -106,6 +111,9 @@ impl SchedulerCore {
         {
             Event::MessageReceived(msg) => {
                 self.queue.enqueue(msg);
+                telemetry_update!(messages: |m| {
+                    self.queue.telemetry_update(m);
+                });
             }
             Event::TimeslotsUpdate(slots) => {
                 self.slots = slots;
@@ -162,6 +170,12 @@ impl MessageProvider for SchedulerCore {
             };
         }
 
-        self.queue.dequeue()
+        let message = self.queue.dequeue();
+
+        telemetry_update!(messages: |m| {
+            self.queue.telemetry_update(m);
+        });
+
+        message
     }
 }

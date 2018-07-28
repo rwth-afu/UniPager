@@ -17,6 +17,8 @@ var vm = new Vue({
         },
         telemetry: {
             node: {},
+            config: {},
+            messages: {}
         },
         message: {
             id: "test",
@@ -31,7 +33,7 @@ var vm = new Vue({
             }
         },
         auth: false,
-        password: null
+        password: localStorage ? (localStorage.password || null) : null
     },
     watch: {
         config: {
@@ -68,7 +70,12 @@ var vm = new Vue({
                     case "Version": this.version = value; break;
                     case "Config": this.config = value; break;
                     case "Telemetry": this.telemetry = value; break;
-                    case "TelemetryUpdate": this.telemetry[value[0]] = value[1]; break;
+                    case "TelemetryUpdate": {
+                        for (key in value) {
+                            this.telemetry[key] = value[key];
+                        };
+                        break;
+                    }
                     case "Authenticated": this.authenticated(value); break;
                     default: console.log("Unknown Key: ", key);
                 }
@@ -81,6 +88,8 @@ var vm = new Vue({
             this.connected = false;
             this.telemetry = {
                 node: {},
+                config: {},
+                messages: {}
             };
             setTimeout(function() { this.connect(); }.bind(this), 1000);
         },
@@ -110,7 +119,7 @@ var vm = new Vue({
             this.send("DefaultConfig");
         },
         send_message: function(event) {
-            localStorage && (localStorage.pager_addr = this.message.addr);
+            localStorage && (localStorage.pager_addr = this.message.message.addr);
             this.send({"SendMessage": this.message});
         },
         test_submission: function(event) {
@@ -118,6 +127,9 @@ var vm = new Vue({
         },
         authenticate: function(event) {
             this.send({"Authenticate": this.password});
+            if (localStorage) {
+                localStorage.password = this.password;
+            }
         },
         authenticated: function(auth) {
             if (auth) {

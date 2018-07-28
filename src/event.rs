@@ -16,6 +16,7 @@ pub enum Event {
     ConfigUpdate(Config),
     MessageReceived(Message),
     RegisterConnection(EventSender),
+    RegisterWebsocket(EventSender),
     RegisterScheduler(EventSender),
     Log(u8, String)
 }
@@ -56,28 +57,29 @@ pub fn start(rt: &mut Runtime) -> EventHandler {
             Event::RegisterConnection(tx) => {
                 dispatcher.connection = Some(tx);
             },
+            Event::RegisterWebsocket(tx) => {
+                dispatcher.websocket = Some(tx);
+            },
             Event::RegisterScheduler(tx) => {
                 dispatcher.scheduler = Some(tx);
             }
-            Event::TelemetryUpdate(_) => {
-                dispatcher.connection.as_ref().map(|tx| {
-                    tx.unbounded_send(event).ok();
-                });
-            },
+            Event::TelemetryUpdate(_) |
             Event::TelemetryPartialUpdate(_) => {
-                dispatcher.connection.as_ref().map(|tx| {
-                    tx.unbounded_send(event).ok();
-                });
-            },
-            Event::MessageReceived(_) => {
                 dispatcher.websocket.as_ref().map(|tx| {
                     tx.unbounded_send(event.clone()).ok();
                 });
-                dispatcher.scheduler.as_ref().map(|tx| {
+                dispatcher.connection.as_ref().map(|tx| {
                     tx.unbounded_send(event).ok();
                 });
             }
-
+            Event::MessageReceived(_) => {
+                dispatcher.scheduler.as_ref().map(|tx| {
+                    tx.unbounded_send(event.clone()).ok();
+                });
+                dispatcher.websocket.as_ref().map(|tx| {
+                    tx.unbounded_send(event).ok();
+                });
+            }
             _ => {}
         };
         Ok(dispatcher)

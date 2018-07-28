@@ -8,6 +8,7 @@ use tokio::runtime::Runtime;
 use tokio::timer::Interval;
 
 use event::{Event, EventHandler};
+use queue::NUM_PRIORITIES;
 
 lazy_static! {
     pub static ref TELEMETRY: RwLock<Telemetry> = RwLock::new(Telemetry::default());
@@ -32,8 +33,8 @@ pub struct Ntp {
 
 #[derive(Default, Debug, Serialize, Clone, PartialEq)]
 pub struct Messages {
-    pub queued: [usize; 10],
-    pub sent: [usize; 10]
+    pub queued: [usize; NUM_PRIORITIES],
+    pub sent: [usize; NUM_PRIORITIES]
 }
 
 #[derive(Serialize, Debug, Clone, PartialEq)]

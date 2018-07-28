@@ -15,7 +15,7 @@ use tokio_tungstenite::accept_async;
 use tungstenite::protocol::Message;
 
 use config;
-use event::{Event, EventHandler};
+use event::{self, Event, EventHandler};
 use telemetry;
 
 struct Connection {
@@ -32,14 +32,14 @@ impl Connection {
                 self.password.as_ref().map(|p| pass == p).unwrap_or(true);
 
             let res = Response::Authenticated(self.auth);
-            self.tx.unbounded_send(res).unwrap();
+            self.tx.unbounded_send(res).ok();
         }
         else if self.auth {
             self.handle_request(req);
         }
         else {
             let res = Response::Authenticated(false);
-            self.tx.unbounded_send(res).unwrap();
+            self.tx.unbounded_send(res).ok();
         }
     }
 
@@ -87,10 +87,15 @@ impl Connection {
 }
 
 pub fn start(rt: &mut Runtime, pass: Option<String>, event_handler: EventHandler) {
+    let (tx, rx) = event::channel();
+
+    event_handler.publish(Event::RegisterWebsocket(tx));
+
     let addr = SocketAddr::from(([0, 0, 0, 0], 8055));
 
     let socket = TcpListener::bind(&addr).unwrap();
     let connections = Arc::new(Mutex::new(HashMap::new()));
+    let connections_rx = connections.clone();
 
     let server = socket
         .incoming()
@@ -155,4 +160,26 @@ pub fn start(rt: &mut Runtime, pass: Option<String>, event_handler: EventHandler
         .map_err(|_e| ());
 
     rt.spawn(server);
+
+    rt.spawn(rx.for_each(move |event| {
+        for (_, connection) in connections_rx.lock().unwrap().iter() {
+            let response = match event.clone() {
+                Event::TelemetryUpdate(telemetry) => {
+                    Some(Response::Telemetry(telemetry))
+                }
+                Event::TelemetryPartialUpdate(value) => {
+                    Some(Response::TelemetryUpdate(value))
+                }
+                Event::MessageReceived(msg) => {
+                    Some(Response::Message(msg))
+                }
+                _ => None
+            };
+
+            if let Some(response) = response {
+                connection.unbounded_send(response).ok();
+            }
+        }
+        Ok(())
+    }));
 }
