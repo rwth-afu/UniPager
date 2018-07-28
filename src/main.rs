@@ -40,8 +40,6 @@ use std::io::Read;
 use futures::Future;
 use tokio::runtime::Runtime;
 
-use scheduler::Scheduler;
-
 fn print_version() {
     println!("UniPager {}", env!("CARGO_PKG_VERSION"));
     println!("Copyright (c) 2017-2018 RWTH Amateurfunkgruppe\n");
@@ -78,10 +76,7 @@ fn main() {
     let event_handler = event::start(&mut rt);
 
     logging::init(event_handler.clone());
-
-    let scheduler = Scheduler::new(event_handler.clone());
-    Scheduler::start(config.clone(), scheduler.clone());
-
+    scheduler::start(config.clone(), event_handler.clone());
     telemetry::start(&mut rt, event_handler.clone());
     connection::start(&mut rt, &config, event_handler.clone());
     frontend::websocket::start(&mut rt, pass, event_handler.clone());

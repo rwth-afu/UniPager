@@ -9,51 +9,38 @@ use tokio::timer::Deadline;
 use config::Config;
 use event::{self, Event, EventHandler, EventReceiver};
 use message::{Message, MessageProvider};
-use pocsag;
 use queue::Queue;
-use telemetry;
-use timeslots::{TimeSlot, TimeSlots};
+use timeslots::TimeSlots;
 use transmitter::{self, Transmitter};
 
-#[derive(Clone)]
-pub struct Scheduler {
-    scheduler: Arc<Mutex<SchedulerCore>>
-}
-
-struct SchedulerCore {
+struct Scheduler {
     rx: EventReceiver,
     slots: TimeSlots,
     queue: Queue,
     budget: usize
 }
 
-impl Scheduler {
-    pub fn new(event_handler: EventHandler) -> Scheduler {
-        use std::str::FromStr;
+pub fn start(config: Config, event_handler: EventHandler) {
+    use std::str::FromStr;
 
-        let (tx, rx) = event::channel();
+    let (tx, rx) = event::channel();
 
-        event_handler.publish(Event::RegisterScheduler(tx));
+    event_handler.publish(Event::RegisterScheduler(tx));
 
-        let core = SchedulerCore {
-            rx: rx,
-            slots: TimeSlots::from_str("0123456789ABCDEF").unwrap(),
-            queue: Queue::new(),
-            budget: 0
-        };
+    let mut scheduler = Scheduler {
+        rx: rx,
+        slots: TimeSlots::from_str("0123456789ABCDEF").unwrap(),
+        queue: Queue::new(),
+        budget: 0
+    };
 
-        Scheduler { scheduler: Arc::new(Mutex::new(core)) }
-    }
-
-    pub fn start(config: Config, scheduler: Scheduler) -> JoinHandle<()> {
-        thread::spawn(move || {
-            let transmitter = transmitter::from_config(&config);
-            scheduler.scheduler.lock().unwrap().run(transmitter);
-        })
-    }
+    thread::spawn(move || {
+        let transmitter = transmitter::from_config(&config);
+        scheduler.run(transmitter);
+    });
 }
 
-impl SchedulerCore {
+impl Scheduler {
     pub fn run(&mut self, mut transmitter: Box<Transmitter>) {
         info!("Scheduler started.");
 
@@ -145,7 +132,7 @@ impl SchedulerCore {
     }
 }
 
-impl MessageProvider for SchedulerCore {
+impl MessageProvider for Scheduler {
     fn next(&mut self, count: usize) -> Option<Message> {
         debug!(
             "Remaining time budget: {}",
