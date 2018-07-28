@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum MessageType {
@@ -33,18 +31,6 @@ impl Default for Message {
             addr: 0,
             func: 3,
             data: "".to_owned()
-        }
-    }
-}
-
-impl FromStr for MessageType {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<MessageType, Self::Err> {
-        match u8::from_str(s) {
-            Ok(5) => Ok(MessageType::Numeric),
-            Ok(6) => Ok(MessageType::AlphaNum),
-            _ => Err(()),
         }
     }
 }

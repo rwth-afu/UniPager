@@ -19,11 +19,16 @@ var vm = new Vue({
             node: {},
         },
         message: {
-            addr: localStorage ? (parseInt(localStorage.pager_addr) || 0) : 0,
-            data: "",
-            speed: {"Baud": 1200},
-            mtype: "AlphaNum",
-            func: "Func3"
+            id: "test",
+            protocol: "pocsag",
+            priority: 5,
+            message: {
+                addr: localStorage ? (parseInt(localStorage.pager_addr) || 0) : 0,
+                speed: 1200,
+                type: "alphanum",
+                func: 3,
+                data: ""
+            }
         },
         auth: false,
         password: null

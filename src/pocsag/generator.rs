@@ -1,5 +1,5 @@
+use message::{MessageProvider, ProtocolMessage};
 use pocsag::{Encoding, Message, MessageType, encoding};
-use message::MessageProvider;
 
 /// Preamble length in number of 32-bit codewords
 pub const PREAMBLE_LENGTH: u8 = 18;
@@ -46,8 +46,14 @@ impl<'a> Generator<'a> {
 
     // Get the next message and return the matching state.
     fn next_message(&mut self) -> State {
-        self.message = self.messages.next(self.count - 1);
-        match self.message {
+        let message = self.messages.next(self.count - 1).map(|msg| msg.message);
+        self.message = match message {
+            Some(ProtocolMessage::Pocsag(pocsag_message)) => Some(pocsag_message),
+            _ => None
+        };
+
+        match self.message
+        {
             Some(_) => State::AddressWord,
             None => State::Completed,
         }
@@ -83,7 +89,8 @@ impl<'a> Iterator for Generator<'a> {
         debug!("({}, {:?})", self.codewords, self.state);
         self.count += 1;
 
-        match (self.codewords, self.state) {
+        match (self.codewords, self.state)
+        {
             // Stop if no codewords are left and everything is completed.
             (0, State::Completed) => None,
 
@@ -110,8 +117,8 @@ impl<'a> Iterator for Generator<'a> {
 
             // Send the address word for the current message
             (codeword, State::AddressWord) => {
-                let length = self.message.as_ref()
-                    .map(|m| m.data.len()).unwrap_or(0);
+                let length =
+                    self.message.as_ref().map(|m| m.data.len()).unwrap_or(0);
 
                 let &Message { addr, func, mtype, .. } =
                     self.message.as_ref().unwrap();
@@ -126,7 +133,8 @@ impl<'a> Iterator for Generator<'a> {
                         self.next_message()
                     }
                     else {
-                        match mtype {
+                        match mtype
+                        {
                             MessageType::Numeric => {
                                 State::MessageWord(0, encoding::NUMERIC)
                             }
@@ -140,7 +148,8 @@ impl<'a> Iterator for Generator<'a> {
                     let addr = (addr & 0x001ffff8) << 10;
                     let func = (func as u32 & 0b11) << 11;
                     Some(parity(crc(addr | func)))
-                } else {
+                }
+                else {
                     Some(IDLE_WORD)
                 }
             }
@@ -174,7 +183,8 @@ impl<'a> Iterator for Generator<'a> {
                             sym = bytes.next().map(encoding.encode).unwrap_or(
                                 encoding.trailing
                             );
-                        } else {
+                        }
+                        else {
                             sym >>= 1;
                         }
                     }
@@ -187,7 +197,8 @@ impl<'a> Iterator for Generator<'a> {
                 // completed.
                 self.state = if completed {
                     self.next_message()
-                } else {
+                }
+                else {
                     State::MessageWord(pos, encoding)
                 };
 

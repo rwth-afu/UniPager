@@ -3,7 +3,7 @@ use chrono::prelude::*;
 use pocsag;
 
 pub trait MessageProvider {
-    fn next(&mut self, count: usize) -> Option<pocsag::Message>;
+    fn next(&mut self, count: usize) -> Option<Message>;
 }
 
 

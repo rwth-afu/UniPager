@@ -18,13 +18,9 @@ use lapin::types::FieldTable;
 use config::Config;
 use event::{self, Event, EventHandler};
 use message::Message;
-use scheduler::Scheduler;
 use telemetry;
 
-pub fn start(
-    rt: &mut Runtime, config: &Config, scheduler: Scheduler,
-    event_handler: EventHandler
-) {
+pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
     let call = config.master.call.to_owned().to_ascii_lowercase();
     let user = format!("tx-{}", &call).to_owned();
     let routing_key = call.to_owned();
@@ -147,7 +143,7 @@ pub fn start(
                     });
 
                 if let Some(msg) = msg {
-                    scheduler.message(msg);
+                    event_handler.publish(Event::MessageReceived(msg));
                 }
                 else {
                     warn!("Could not decode incoming message")

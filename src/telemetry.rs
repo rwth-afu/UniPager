@@ -4,8 +4,8 @@ use std::time::{Duration, Instant};
 use chrono::prelude::*;
 use futures::Stream;
 use futures::future::Future;
-use tokio;
 use tokio::runtime::Runtime;
+use tokio::timer::Interval;
 
 use event::{Event, EventHandler};
 
@@ -79,8 +79,7 @@ pub fn get() -> Telemetry {
 pub fn start(rt: &mut Runtime, event_handler: EventHandler) {
     *EVENT_HANDLER.lock().unwrap() = Some(event_handler.clone());
 
-    let timer =
-        tokio::timer::Interval::new(Instant::now(), Duration::from_secs(5));
+    let timer = Interval::new(Instant::now(), Duration::from_secs(5));
 
     let updater = timer
         .for_each(move |_| {

@@ -244,37 +244,37 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="message-addr">Address</label>
-                  <input type="number" id="message-addr" v-model.number="message.addr"
+                  <input type="number" id="message-addr" v-model.number="message.message.addr"
                     class="u16-number">
                 </div>
                 <div class="form-group">
                   <label for="message-data">Data</label>
-                  <input type="text" id="message-data" v-model="message.data">
+                  <input type="text" id="message-data" v-model="message.message.data">
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
                   <label for="message-speed">Baudrate</label>
-                  <select id="message-speed" v-model="message.speed">
-                    <option v-bind:value="{'Baud': 512}">512</option>
-                    <option v-bind:value="{'Baud': 1200}">1200</option>
-                    <option v-bind:value="{'Baud': 2400}">2400</option>
+                  <select id="message-speed" v-model.number="message.message.speed">
+                    <option512</option>
+                    <option>1200</option>
+                    <option>2400</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label for="message-mtype">Type</label>
-                  <select id="message-mtype" v-model="message.mtype">
-                    <option>AlphaNum</option>
-                    <option>Numeric</option>
+                  <select id="message-mtype" v-model="message.message.type">
+                    <option value="alphanum">AlphaNum</option>
+                    <option value="numeric">Numeric</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label for="message-func">Function</label>
-                  <select id="message-func" v-model="message.func">
-                    <option value="Func0">0</option>
-                    <option value="Func1">1</option>
-                    <option value="Func2">2</option>
-                    <option value="Func3">3</option>
+                  <select id="message-func" v-model.number="message.message.func">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
                   </select>
                 </div>
                 <button @click="send_message">Send</button>

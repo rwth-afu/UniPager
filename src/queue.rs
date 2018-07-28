@@ -37,4 +37,13 @@ impl Queue {
         }
         None
     }
+
+    pub fn is_empty(&self) -> bool {
+        for queue in self.queues.iter().rev() {
+            if !queue.is_empty() {
+                return false;
+            }
+        }
+        return true;
+    }
 }

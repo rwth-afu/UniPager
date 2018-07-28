@@ -71,23 +71,19 @@ fn main() {
         .block_on(core::bootstrap(&config))
         .map(|res| {
             println!("{:?}", res);
-        }).ok();
+        })
+        .ok();
 
     let mut rt = Runtime::new().unwrap();
     let event_handler = event::start(&mut rt);
 
     logging::init(event_handler.clone());
 
-    let scheduler = Scheduler::new(&config);
+    let scheduler = Scheduler::new(event_handler.clone());
     Scheduler::start(config.clone(), scheduler.clone());
 
     telemetry::start(&mut rt, event_handler.clone());
-    connection::start(
-        &mut rt,
-        &config,
-        scheduler.clone(),
-        event_handler.clone()
-    );
+    connection::start(&mut rt, &config, event_handler.clone());
     frontend::websocket::start(&mut rt, pass, event_handler.clone());
     frontend::http::start(&mut rt, event_handler.clone());
 
