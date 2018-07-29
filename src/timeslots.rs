@@ -1,6 +1,13 @@
 use std::fmt;
 use std::str::FromStr;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+use futures::Future;
+use futures::future::{Loop, loop_fn};
+use tokio::runtime::Runtime;
+use tokio::timer::Delay;
+
+use event::{Event, EventHandler};
 
 // Returns the time in deciseconds since the unix epoch
 fn deciseconds(duration: Duration) -> u64 {
@@ -50,7 +57,8 @@ impl TimeSlot {
         // if the slot is already over use the next block
         if this_slot == current_slot {
             return Duration::new(0, 0);
-        } else if this_slot < current_slot {
+        }
+        else if this_slot < current_slot {
             block_start += 1 << 10;
         }
 
@@ -62,7 +70,8 @@ impl TimeSlot {
 
         let start = Duration::new(seconds, nanoseconds);
 
-        match start.checked_sub(now) {
+        match start.checked_sub(now)
+        {
             Some(duration) => duration,
             None => {
                 error!("TimeSlot calculation broken");
@@ -75,7 +84,8 @@ impl TimeSlot {
                 error!("Start: {:?}", start);
                 if !self.active() {
                     Duration::new(1, 0)
-                } else {
+                }
+                else {
                     Duration::new(0, 0)
                 }
             }
@@ -170,6 +180,22 @@ impl fmt::Debug for TimeSlots {
         }
         write!(f, " }}")
     }
+}
+
+pub fn start(rt: &mut Runtime, event_handler: EventHandler) {
+    let init = (TimeSlot::current(), event_handler);
+
+    let updater = loop_fn(init, |(timeslot, event_handler)| {
+        let next = Instant::now() + timeslot.next().duration_until();
+
+        Delay::new(next).and_then(move |_| {
+            let timeslot = TimeSlot::current();
+            event_handler.publish(Event::Timeslot(timeslot));
+            Ok(Loop::Continue((timeslot, event_handler)))
+        })
+    }).map_err(|_| ());
+
+    rt.spawn(updater);
 }
 
 #[test]

@@ -1,4 +1,5 @@
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::{self, Receiver};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
@@ -7,14 +8,14 @@ use futures::prelude::Async;
 use tokio::timer::Deadline;
 
 use config::Config;
-use event::{self, Event, EventHandler, EventReceiver};
+use event::{Event, EventHandler};
 use message::{Message, MessageProvider};
 use queue::Queue;
 use timeslots::TimeSlots;
 use transmitter::{self, Transmitter};
 
 struct Scheduler {
-    rx: EventReceiver,
+    rx: Receiver<Event>,
     slots: TimeSlots,
     queue: Queue,
     budget: usize
@@ -23,13 +24,13 @@ struct Scheduler {
 pub fn start(config: Config, event_handler: EventHandler) {
     use std::str::FromStr;
 
-    let (tx, rx) = event::channel();
+    let (tx, rx) = mpsc::channel();
 
     event_handler.publish(Event::RegisterScheduler(tx));
 
     let mut scheduler = Scheduler {
         rx: rx,
-        slots: TimeSlots::from_str("0123456789ABCDEF").unwrap(),
+        slots: TimeSlots::from_str("ACF").unwrap(),
         queue: Queue::new(),
         budget: 0
     };
@@ -46,13 +47,14 @@ impl Scheduler {
 
         loop {
             while self.queue.is_empty() {
+                info!("Queue Empty, waiting for events.");
                 self.process_next_event();
             }
 
+            info!("Queue not empty, waiting for next Timeslot.");
             self.wait_for_next_timeslot();
 
-            debug!("Available time budget: {}", self.budget);
-
+            info!("Available time budget: {}", self.budget);
             let message = self.queue.dequeue().unwrap();
 
             telemetry_update!(messages: |m| {
@@ -67,10 +69,11 @@ impl Scheduler {
 
     fn wait_for_next_timeslot(&mut self) {
         loop {
-            if self.slots.is_current_allowed() &&
-                self.slots.calculate_budget() > 30
-            {
-                return;
+            if self.slots.is_current_allowed() {
+                self.budget = self.slots.calculate_budget();
+                if self.budget > 30 {
+                    return;
+                }
             }
 
             let event = self.slots
@@ -111,24 +114,11 @@ impl Scheduler {
     }
 
     fn recv_event(&mut self) -> Option<Event> {
-        let rx_next = self.rx.by_ref().into_future();
-
-        match rx_next.wait()
-        {
-            Ok((event, _)) => event,
-            _ => None,
-        }
+        self.rx.recv().ok()
     }
 
     fn recv_event_timeout(&mut self, duration: Duration) -> Option<Event> {
-        let deadline = Instant::now() + duration;
-        let rx_next = Deadline::new(self.rx.by_ref().into_future(), deadline);
-
-        match rx_next.wait()
-        {
-            Ok((event, _)) => event,
-            _ => None,
-        }
+        self.rx.recv_timeout(duration).ok()
     }
 }
 
@@ -144,13 +134,11 @@ impl MessageProvider for Scheduler {
         }
 
         loop {
-            match self.rx.poll()
+            match self.rx.try_recv()
             {
-                Ok(Async::Ready(Some(event))) => {
+                Ok(event) => {
                     self.process_event(event);
                 }
-                Ok(Async::Ready(None)) |
-                Ok(Async::NotReady) |
                 Err(_) => {
                     break;
                 }

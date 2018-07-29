@@ -17,6 +17,7 @@ use tungstenite::protocol::Message;
 use config;
 use event::{self, Event, EventHandler};
 use telemetry;
+use timeslots::TimeSlot;
 
 struct Connection {
     tx: UnboundedSender<Response>,
@@ -70,6 +71,11 @@ impl Connection {
             Request::GetTelemetry => {
                 self.tx
                     .unbounded_send(Response::Telemetry(telemetry::get()))
+                    .ok();
+            }
+            Request::GetTimeslot => {
+                self.tx
+                    .unbounded_send(Response::Timeslot(TimeSlot::current()))
                     .ok();
             }
             Request::Test => {
@@ -172,6 +178,12 @@ pub fn start(rt: &mut Runtime, pass: Option<String>, event_handler: EventHandler
                 }
                 Event::MessageReceived(msg) => {
                     Some(Response::Message(msg))
+                }
+                Event::Timeslot(timeslot) => {
+                    Some(Response::Timeslot(timeslot))
+                }
+                Event::Log(level, message) => {
+                    Some(Response::Log(level, message))
                 }
                 _ => None
             };

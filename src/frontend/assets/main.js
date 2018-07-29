@@ -20,6 +20,7 @@ var vm = new Vue({
             config: {},
             messages: {}
         },
+        timeslot: 0,
         message: {
             id: "test",
             protocol: "pocsag",
@@ -76,6 +77,7 @@ var vm = new Vue({
                         };
                         break;
                     }
+                    case "Timeslot": this.timeslot = value;
                     case "Authenticated": this.authenticated(value); break;
                     default: console.log("Unknown Key: ", key);
                 }
@@ -136,6 +138,7 @@ var vm = new Vue({
                 this.send("GetVersion");
                 this.send("GetConfig");
                 this.send("GetTelemetry");
+                this.send("GetTimeslot");
             }
             else {
                 this.password = "";

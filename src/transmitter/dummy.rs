@@ -21,6 +21,6 @@ impl Transmitter for DummyTransmitter {
             count += 1;
         }
 
-        sleep(Duration::from_millis(count * 3));
+        sleep(Duration::from_millis(count * 3 + 50));
     }
 }

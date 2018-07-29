@@ -78,6 +78,7 @@ fn main() {
     logging::init(event_handler.clone());
     scheduler::start(config.clone(), event_handler.clone());
     telemetry::start(&mut rt, event_handler.clone());
+    timeslots::start(&mut rt, event_handler.clone());
     connection::start(&mut rt, &config, event_handler.clone());
     frontend::websocket::start(&mut rt, pass, event_handler.clone());
     frontend::http::start(&mut rt, event_handler.clone());
