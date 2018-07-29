@@ -4,22 +4,32 @@ version = "2.0.0-alpha"
 authors = ["Thomas Gatzweiler <mail@thomasgatzweiler.com>"]
 
 [dependencies]
-log = "^0.4"
 serial = "^0.4"
 serde = "^1.0"
 serde_derive = "^1.0"
 serde_json = "^1.0"
 lazy_static = "^1.0"
-lapin-futures = "^0.12"
+lapin-futures = "^0.13"
 futures = "^0.1.21"
 tokio = "^0.1.7"
 hyper = "^0.12.5"
-tungstenite = "^0.5.3"
-tokio-tungstenite = "^0.5.1"
 
 [dependencies.raspi]
 path = "lib/raspi"
 
 [dependencies.chrono]
-version = "0.4"
+version = "^0.4"
 features = ["serde"]
+
+[dependencies.log]
+version = "^0.4"
+features = ["std"]
+
+[dependencies.tungstenite]
+version = "^0.5.3"
+default-features = false
+
+[dependencies.tokio-tungstenite]
+version = "^0.5.1"
+default-features = false
+features = ["connect"]

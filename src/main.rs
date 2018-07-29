@@ -64,14 +64,6 @@ fn main() {
 
     let config = config::get();
 
-    Runtime::new()
-        .unwrap()
-        .block_on(core::bootstrap(&config))
-        .map(|res| {
-            println!("{:?}", res);
-        })
-        .ok();
-
     let mut rt = Runtime::new().unwrap();
     let event_handler = event::start(&mut rt);
 
@@ -79,9 +71,10 @@ fn main() {
     scheduler::start(config.clone(), event_handler.clone());
     telemetry::start(&mut rt, event_handler.clone());
     timeslots::start(&mut rt, event_handler.clone());
-    connection::start(&mut rt, &config, event_handler.clone());
     frontend::websocket::start(&mut rt, pass, event_handler.clone());
     frontend::http::start(&mut rt, event_handler.clone());
+    core::start(&mut rt, &config, event_handler.clone());
+    connection::start(&mut rt, &config, event_handler.clone());
 
     rt.shutdown_on_idle().wait().unwrap();
 

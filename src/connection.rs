@@ -112,19 +112,19 @@ pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
                 let data = match event
                 {
                     Event::TelemetryUpdate(telemetry) => {
-                        serde_json::to_string(&telemetry).unwrap()
+                        serde_json::to_vec(&telemetry).unwrap()
                     }
                     Event::TelemetryPartialUpdate(telemetry) => {
-                        serde_json::to_string(&telemetry).unwrap()
+                        serde_json::to_vec(&telemetry).unwrap()
                     }
-                    _ => String::from("{}"),
+                    _ => Vec::new(),
                 };
 
                 channel2
                     .basic_publish(
                         "dapnet.telemetry",
                         &*telemetry_routing_key,
-                        data.as_bytes(),
+                        data,
                         BasicPublishOptions::default(),
                         BasicProperties::default()
                     )
@@ -148,14 +148,14 @@ pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
                 else {
                     warn!("Could not decode incoming message")
                 }
-                channel.basic_ack(message.delivery_tag)
+                channel.basic_ack(message.delivery_tag, false)
             })
         })
         .map_err(|e| {
             telemetry_update!(node: &|node: &mut telemetry::Node| {
-            node.connected = false;
-            node.connected_since = None;
-        });
+                node.connected = false;
+                node.connected_since = None;
+            });
 
             warn!("RabbitMQ connection lost. {:?}", e)
         });

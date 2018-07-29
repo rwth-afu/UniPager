@@ -101,10 +101,6 @@ impl TimeSlots {
         TimeSlots([false; 16])
     }
 
-    pub fn raw(&self) -> [bool; 16] {
-        self.0
-    }
-
     pub fn is_allowed(&self, slot: TimeSlot) -> bool {
         self.0.get(slot.index()).cloned().unwrap_or(false)
     }

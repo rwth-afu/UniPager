@@ -1,28 +1,33 @@
 use std::collections::HashMap;
 use std::io;
+use std::time::{Duration, Instant};
 
 use futures::{Stream, done};
-use futures::future::err;
 use futures::future::Future;
+use futures::future::err;
+use tokio::runtime::Runtime;
+use tokio::timer::Interval;
+
 use hyper;
 use serde_json;
 
 use config::Config;
+use event::EventHandler;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Node {
+struct Node {
     pub port: u16,
     pub reachable: bool,
     pub last_seen: Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct BootstrapResponse {
+struct BootstrapResponse {
     pub timeslots: Vec<bool>,
     pub nodes: HashMap<String, Node>
 }
 
-pub fn bootstrap(config: &Config)
+fn bootstrap(config: &Config)
     -> impl Future<Item = BootstrapResponse, Error = io::Error> {
     /*
     if config.master.call.len() == 0 {
@@ -88,4 +93,25 @@ pub fn bootstrap(config: &Config)
             }))
         })
 
+}
+
+pub fn start(rt: &mut Runtime, config: &Config, _event_handler: EventHandler) {
+    let timer = Interval::new(Instant::now(), Duration::from_secs(60));
+    let config = config.clone();
+
+    let updater = timer
+        .map_err(|_| ())
+        .for_each(move |_| {
+            bootstrap(&config)
+                .map_err(|_| {
+                    warn!("Could not reach master via HTTP.");
+                    ()
+                })
+                .and_then(|res| {
+                    println!("{:?}", res);
+                    Ok(())
+                })
+        });
+
+    rt.spawn(updater);
 }

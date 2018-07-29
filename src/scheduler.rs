@@ -1,11 +1,6 @@
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{self, Receiver};
-use std::thread::{self, JoinHandle};
-use std::time::{Duration, Instant};
-
-use futures::{Future, Stream};
-use futures::prelude::Async;
-use tokio::timer::Deadline;
+use std::thread;
+use std::time::Duration;
 
 use config::Config;
 use event::{Event, EventHandler};
