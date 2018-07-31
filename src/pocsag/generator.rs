@@ -120,14 +120,14 @@ impl<'a> Iterator for Generator<'a> {
                 let length =
                     self.message.as_ref().map(|m| m.data.len()).unwrap_or(0);
 
-                let &Message { addr, func, mtype, .. } =
+                let &Message { ric, subric, func, mtype, .. } =
                     self.message.as_ref().unwrap();
 
                 self.codewords -= 1;
 
                 // Send idle words until the current batch position
-                // matches the position required by the address.
-                if ((addr & 0b111) << 1) as u8 == 16 - codeword {
+                // matches the position required by the subric.
+                if ((subric & 0b111) << 1) as u8 == 16 - codeword {
                     // Set the next state according to the message type
                     self.state = if length == 0 {
                         self.next_message()
@@ -145,7 +145,7 @@ impl<'a> Iterator for Generator<'a> {
                     };
 
                     // Encode the address word.
-                    let addr = (addr & 0x001ffff8) << 10;
+                    let addr = (ric & 0x001ffff8) << 10;
                     let func = (func as u32 & 0b11) << 11;
                     Some(parity(crc(addr | func)))
                 }

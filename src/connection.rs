@@ -143,6 +143,7 @@ pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
                     });
 
                 if let Some(msg) = msg {
+                    info!("Message received: {:?}", msg);
                     event_handler.publish(Event::MessageReceived(msg));
                 }
                 else {

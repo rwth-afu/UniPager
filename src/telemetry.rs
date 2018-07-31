@@ -80,7 +80,7 @@ pub fn get() -> Telemetry {
 pub fn start(rt: &mut Runtime, event_handler: EventHandler) {
     *EVENT_HANDLER.lock().unwrap() = Some(event_handler.clone());
 
-    let timer = Interval::new(Instant::now(), Duration::from_secs(5));
+    let timer = Interval::new(Instant::now(), Duration::from_secs(30));
 
     let updater = timer
         .for_each(move |_| {
