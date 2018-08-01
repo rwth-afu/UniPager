@@ -120,14 +120,14 @@ impl<'a> Iterator for Generator<'a> {
                 let length =
                     self.message.as_ref().map(|m| m.data.len()).unwrap_or(0);
 
-                let &Message { ric, subric, func, mtype, .. } =
+                let &Message { ric, func, mtype, .. } =
                     self.message.as_ref().unwrap();
 
                 self.codewords -= 1;
 
                 // Send idle words until the current batch position
                 // matches the position required by the subric.
-                if ((subric & 0b111) << 1) as u8 == 16 - codeword {
+                if ((ric & 0b111) << 1) as u8 == 16 - codeword {
                     // Set the next state according to the message type
                     self.state = if length == 0 {
                         self.next_message()

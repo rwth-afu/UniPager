@@ -12,7 +12,6 @@ pub struct Message {
     pub mtype: MessageType,
     pub speed: u32,
     pub ric: u32,
-    pub subric: u8,
     pub func: u8,
     pub data: String
 }
@@ -30,7 +29,6 @@ impl Default for Message {
             mtype: MessageType::AlphaNum,
             speed: 1200,
             ric: 0,
-            subric: 0,
             func: 3,
             data: "".to_owned()
         }
