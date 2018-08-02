@@ -78,7 +78,7 @@ var vm = new Vue({
                         };
                         break;
                     }
-                    case "Timeslot": this.timeslot = value;
+                    case "Timeslot": this.timeslot = value; break;
                     case "Authenticated": this.authenticated(value); break;
                     case "Message": this.message_add(value); break;
                     default: console.log("Unknown Key: ", key);
@@ -140,6 +140,7 @@ var vm = new Vue({
             }
         },
         authenticated: function(auth) {
+            this.auth = auth;
             if (auth) {
                 this.send("GetVersion");
                 this.send("GetConfig");
@@ -149,7 +150,6 @@ var vm = new Vue({
             else {
                 this.password = "";
             }
-            this.auth = auth;
         }
     }
 });
