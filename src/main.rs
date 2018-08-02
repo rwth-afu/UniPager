@@ -17,6 +17,7 @@ extern crate futures;
 extern crate lapin_futures as lapin;
 extern crate tungstenite;
 extern crate tokio_tungstenite;
+extern crate tokio_retry;
 extern crate chrono;
 
 #[macro_use]

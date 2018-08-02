@@ -8,6 +8,8 @@ use futures::future::Future;
 use tokio;
 use tokio::net::TcpStream;
 use tokio::runtime::Runtime;
+use tokio_retry::Retry;
+use tokio_retry::strategy::FixedInterval;
 
 use lapin::channel::{BasicConsumeOptions, BasicProperties,
                      BasicPublishOptions, QueueBindOptions,
@@ -20,7 +22,8 @@ use event::{self, Event, EventHandler};
 use message::Message;
 use telemetry;
 
-pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
+fn connection(config: &Config, event_handler: EventHandler)
+    -> impl Future<Item = (), Error = ()> {
     let call = config.master.call.to_owned().to_ascii_lowercase();
     let user = format!("tx-{}", &call).to_owned();
     let routing_key = call.to_owned();
@@ -48,7 +51,7 @@ pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
 
     info!("Connecting to {}:{}...", host, port);
 
-    let connection = TcpStream::connect(&addr)
+    TcpStream::connect(&addr)
         .and_then(|stream| {
             Client::connect(
                 stream,
@@ -62,7 +65,11 @@ pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
             )
         })
         .and_then(|(client, heartbeat)| {
-            tokio::spawn(heartbeat.map_err(|_| ()));
+            tokio::spawn(heartbeat.map(|_| {
+                warn!("Heartbeat process finished.")
+            }).map_err(|err| {
+                warn!("Heartbeat process failed: {:?}", err)
+            }));
             client.create_channel()
         })
         .and_then(move |channel| {
@@ -129,7 +136,9 @@ pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
                         BasicProperties::default()
                     )
                     .map(|_| ())
-                    .map_err(|_| ())
+                    .map_err(|err|
+                        warn!("Failed to publish telemetry: {:?}", err)
+                    )
             }));
 
             // Consume the messages
@@ -159,7 +168,16 @@ pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
             });
 
             warn!("RabbitMQ connection lost. {:?}", e)
-        });
+        })
+}
 
-    rt.spawn(connection);
+pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
+    let config = config.clone();
+
+    let retry =
+        Retry::spawn(FixedInterval::from_millis(5000), move || connection(&config.clone(), event_handler.clone()));
+
+    rt.spawn(retry.map_err(|err| {
+        panic!("{:?}", err);
+    }));
 }
