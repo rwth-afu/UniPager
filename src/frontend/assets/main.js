@@ -34,7 +34,8 @@ var vm = new Vue({
             }
         },
         auth: false,
-        password: localStorage ? (localStorage.password || null) : null
+        password: localStorage ? (localStorage.password || null) : null,
+        messages: []
     },
     watch: {
         config: {
@@ -79,6 +80,7 @@ var vm = new Vue({
                     }
                     case "Timeslot": this.timeslot = value;
                     case "Authenticated": this.authenticated(value); break;
+                    case "Message": this.message_add(value); break;
                     default: console.log("Unknown Key: ", key);
                 }
             }
@@ -111,6 +113,10 @@ var vm = new Vue({
             }
             this.log.unshift({level: level, msg: msg, time: new Date()});
             this.log = this.log.slice(0, 50);
+        },
+        message_add: function(message) {
+            this.messages.unshift(message);
+            this.messages = this.messages.slice(0, 50);
         },
         save_config: function(event) {
             if (this.config) {

@@ -256,7 +256,7 @@
                 <div class="form-group">
                   <label for="message-speed">Baudrate</label>
                   <select id="message-speed" v-model.number="message.message.speed">
-                    <option512</option>
+                    <option>512</option>
                     <option>1200</option>
                     <option>2400</option>
                   </select>
@@ -320,6 +320,27 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div id="messages">
+          <table>
+            <tr>
+              <th>ID</th>
+              <th>Protocol</th>
+              <th>Priority</th>
+              <th>RIC</th>
+              <th>Type</th>
+              <th width="100%">Data</th>
+            </tr>
+            <tr v-for="message in messages">
+              <td>{{message.id}}</td>
+              <td>{{message.protocol}}</td>
+              <td>{{message.priority}}</td>
+              <td>{{message.message.ric}}</td>
+              <td>{{message.message.type}}</td>
+              <td>{{message.message.data}}</td>
+            </tr>
+          </table>
         </div>
 
         <div id="log">
