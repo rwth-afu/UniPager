@@ -31,6 +31,18 @@ impl MMDVMTransmitter {
             })
             .expect("Unable to configure serial port");
 
+        let inverted = config.mmdvm.inverted;
+        let mut level = config.mmdvm.level;
+        if level > 100.0 {
+            level = 100.0;
+        }
+        level = level * 2.55 + 0.5;
+
+        let mut buffer3 = 0;
+        if inverted {
+            buffer3 |= 0x01;
+        }
+
         let bytes = [
             MMDVM_FRAME_START as u8,
             3 as u8,
@@ -46,7 +58,7 @@ impl MMDVMTransmitter {
             21 as u8,
             MMDVM_SET_CONFIG as u8,
             // Invert, deviation and duplex settings
-            0 as u8,
+            buffer3,
             // Enable POCSAG and disable all other modes
             0x20 as u8,
             // TXdelay in 10ms units
@@ -80,7 +92,7 @@ impl MMDVMTransmitter {
             // YSF TX hang time (not needed)
             0 as u8,
             // POCSAG TX level
-            20 as u8
+            level as u8
         ];
         if serial.write_all(&bytes).is_err() {
             error!("Unable to set MMDVM config!");

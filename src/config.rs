@@ -91,12 +91,16 @@ pub struct AudioConfig {
 #[serde(default)]
 pub struct MMDVMConfig {
     pub port: String,
+    pub inverted: bool,
+    pub level: f32
 }
 
 impl Default for MMDVMConfig {
     fn default() -> MMDVMConfig {
         MMDVMConfig {
             port: String::from("/dev/ttyUSB0"),
+            inverted: false,
+            level: 50.0
         }
     }
 }
