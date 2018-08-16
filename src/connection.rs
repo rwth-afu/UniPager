@@ -65,11 +65,11 @@ fn connection(config: &Config, event_handler: EventHandler)
             )
         })
         .and_then(|(client, heartbeat)| {
-            tokio::spawn(heartbeat.map(|_| {
-                warn!("Heartbeat process finished.")
-            }).map_err(|err| {
-                warn!("Heartbeat process failed: {:?}", err)
-            }));
+            tokio::spawn(
+                heartbeat
+                    .map(|_| warn!("Heartbeat process finished."))
+                    .map_err(|err| warn!("Heartbeat process failed: {:?}", err))
+            );
             client.create_channel()
         })
         .and_then(move |channel| {
@@ -109,9 +109,9 @@ fn connection(config: &Config, event_handler: EventHandler)
             info!("Listening for incoming calls.");
 
             telemetry_update!(node: &|node: &mut telemetry::Node| {
-            node.connected = true;
-            node.connected_since = Some(::chrono::Utc::now());
-        });
+                node.connected = true;
+                node.connected_since = Some(::chrono::Utc::now());
+            });
 
             let channel2 = channel.clone();
 
@@ -136,8 +136,8 @@ fn connection(config: &Config, event_handler: EventHandler)
                         BasicProperties::default()
                     )
                     .map(|_| ())
-                    .map_err(|err|
-                        warn!("Failed to publish telemetry: {:?}", err)
+                    .map_err(
+                        |err| warn!("Failed to publish telemetry: {:?}", err)
                     )
             }));
 
@@ -174,8 +174,9 @@ fn connection(config: &Config, event_handler: EventHandler)
 pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
     let config = config.clone();
 
-    let retry =
-        Retry::spawn(FixedInterval::from_millis(5000), move || connection(&config.clone(), event_handler.clone()));
+    let retry = Retry::spawn(FixedInterval::from_millis(5000), move || {
+        connection(&config.clone(), event_handler.clone())
+    });
 
     rt.spawn(retry.map_err(|err| {
         panic!("{:?}", err);
