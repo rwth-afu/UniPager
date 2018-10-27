@@ -6,7 +6,6 @@ pub trait MessageProvider {
     fn next(&mut self, count: usize) -> Option<Message>;
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "protocol", content = "message")]
 #[serde(rename_all = "lowercase")]
@@ -18,15 +17,16 @@ pub enum ProtocolMessage {
 pub struct Message {
     pub id: String,
     pub priority: usize,
+    pub origin: String,
     #[serde(default)]
-    pub expires: Option<DateTime<Utc>>,
+    pub expires_on: Option<DateTime<Utc>>,
     #[serde(flatten)]
     pub message: ProtocolMessage
 }
 
 impl Message {
     pub fn is_expired(&self) -> bool {
-        match self.expires
+        match self.expires_on
         {
             Some(time) => Utc::now() >= time,
             _ => false,

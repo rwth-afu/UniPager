@@ -16,7 +16,7 @@ use event::EventHandler;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Node {
-    pub port: u16,
+    pub host: String,
     pub reachable: bool,
     pub last_seen: Option<String>
 }
@@ -53,7 +53,7 @@ fn bootstrap(config: &Config)
     let client = hyper::Client::new();
 
     let url = format!(
-        "http://{}:{}/api/transmitters/bootstrap",
+        "http://{}:{}/transmitters/_bootstrap",
         config.master.server,
         config.master.port
     );

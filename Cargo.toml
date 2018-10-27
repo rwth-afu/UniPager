@@ -27,10 +27,10 @@ version = "^0.4"
 features = ["std"]
 
 [dependencies.tungstenite]
-version = "^0.5.3"
+version = "^0.6"
 default-features = false
 
 [dependencies.tokio-tungstenite]
-version = "^0.5.1"
+version = "^0.6"
 default-features = false
 features = ["connect"]

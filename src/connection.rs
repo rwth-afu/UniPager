@@ -87,7 +87,7 @@ fn connection(config: &Config, event_handler: EventHandler)
             channel
                 .queue_bind(
                     &queue.name(),
-                    "dapnet.calls",
+                    "dapnet.local_calls",
                     &*routing_key,
                     QueueBindOptions::default(),
                     FieldTable::new()
