@@ -67,6 +67,7 @@ Install rust:
 
 ```bash
 curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
+sudo apt-get install -y cargo
 ```
 
 Now reboot OR log out to make the rust toolchain available.
