@@ -1,4 +1,4 @@
-#![feature(mpsc_select, tcpstream_connect_timeout)]
+#![feature(mpsc_select)]
 extern crate serial;
 extern crate raspi;
 extern crate ws;
