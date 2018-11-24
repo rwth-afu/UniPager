@@ -11,6 +11,8 @@ pub enum Ptt {
     SerialRts {
         port: Box<serial::SerialPort>,
         inverted: bool
+    },
+    HidRaw {
     }
 }
 
@@ -47,6 +49,11 @@ impl Ptt {
                     inverted: config.inverted
                 }
             }
+
+            PttMethod::HidRaw => {
+                Ptt::HidRaw {
+                }
+            }
         }
     }
 
@@ -70,6 +77,9 @@ impl Ptt {
                 port.set_rts(status != inverted).expect(
                     "Error setting RTS pin"
                 );
+            }
+            Ptt::HidRaw {
+            } => {
             }
         }
     }

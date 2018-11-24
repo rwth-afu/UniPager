@@ -207,6 +207,7 @@
                     <option value="Gpio">GPIO</option>
                     <option value="SerialDtr">Serial (DTR)</option>
                     <option value="SerialRts">Serial (RTS)</option>
+                    <option value="HidRaw">HIDraw</option>
                   </select>
                 </div>
               </div>
@@ -227,7 +228,12 @@
                   <input type="text" id="ptt-serial-port"
                     v-model="config.ptt.serial_port">
                 </div>
-                <div class="form-group">
+                <div class="form-group" v-if="config.ptt.method == 'HidRaw'">
+                  <label for="ptt-hidraw-device">Hidraw Device</label>
+                  <input type="text" id="ptt-hidraw-device"
+                    v-model="config.ptt.hidraw_device">
+                </div>
+                <div class="form-group" v-if="config.ptt.method != 'HidRaw'">
                   <label for="ptt-inverted">Inverted</label>
                   <input type="checkbox" id="ptt-inverted"
                     v-model="config.ptt.inverted">

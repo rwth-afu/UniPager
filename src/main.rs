@@ -4,6 +4,7 @@ extern crate raspi;
 extern crate ws;
 extern crate tiny_http;
 extern crate serde;
+extern crate hidapi;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -31,6 +32,8 @@ use config::Config;
 use connection::Connection;
 use frontend::{Request, Response};
 use pocsag::Scheduler;
+
+use hidapi::HidApi;
 
 fn print_version() {
     println!("UniPager {}", env!("CARGO_PKG_VERSION"));
