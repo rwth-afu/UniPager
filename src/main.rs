@@ -33,8 +33,6 @@ use connection::Connection;
 use frontend::{Request, Response};
 use pocsag::Scheduler;
 
-use hidapi::HidApi;
-
 fn print_version() {
     println!("UniPager {}", env!("CARGO_PKG_VERSION"));
     println!("Copyright (c) 2017 RWTH Amateurfunkgruppe\n");

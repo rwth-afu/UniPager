@@ -13,6 +13,8 @@ pub enum Ptt {
         inverted: bool
     },
     HidRaw {
+        device: Box<hidapi::HidDevice>,
+        inverted: bool
     }
 }
 
@@ -51,7 +53,31 @@ impl Ptt {
             }
 
             PttMethod::HidRaw => {
+                let api = hidapi::HidApi::new().expect(
+                    "Unable to initialize HID API"
+                );
+                let (vid, pid) = (0x0d8c, 0x013c);
+                 let device = api.open(vid, pid).expect(
+                    "Unable to open HIDraw device"
+                );
+
+                let mut string = "Found HIDraw device, manufacturer \"".to_string();
+                let manufacturer = device.get_manufacturer_string().unwrap();
+                match manufacturer {
+                    Some(x) => string.push_str(&x.trim()),
+                    None    => string.push_str("n/a"),
+                }
+                string.push_str("\", product \"");
+                let product = device.get_product_string().unwrap();
+                match product {
+                    Some(x) => string.push_str(&x.trim()),
+                    None    => string.push_str("n/a"),
+                }
+                info!("{}\"", string);
+
                 Ptt::HidRaw {
+                    device: Box::new(device),
+                    inverted: config.inverted
                 }
             }
         }
@@ -79,7 +105,21 @@ impl Ptt {
                 );
             }
             Ptt::HidRaw {
+                ref mut device,
+                inverted
             } => {
+                if status != inverted {
+                    // Write data to device
+                    let buf = [0x00, 0x00, 0x04, 0x04, 0x00];
+                    device.write(&buf).expect(
+                        "Error writing hidraw interface"
+                    );
+                } else {
+                    let buf = [0x00, 0x00, 0x00, 0x04, 0x00];
+                    device.write(&buf).expect(
+                        "Error writing hidraw interface"
+                    );
+                }
             }
         }
     }
