@@ -71,6 +71,19 @@ impl Ptt {
                 let cm108device = api.open_path(&path).expect(
                     "Unable to open HIDraw device"
                 );
+                let mut string = "Device data: manufacturer \"".to_string();
+                let manufacturer = cm108device.get_manufacturer_string().unwrap();
+                match manufacturer {
+                    Some(x) => string.push_str(&x.trim()),
+                    None    => string.push_str("n/a"),
+                }
+                string.push_str("\", product \"");
+                let product = cm108device.get_product_string().unwrap();
+                match product {
+                    Some(x) => string.push_str(&x.trim()),
+                    None    => string.push_str("n/a"),
+                }
+                info!("{}\"", string);
 
                 Ptt::HidRaw {
                     device: Box::new(cm108device),
