@@ -59,26 +59,21 @@ impl Ptt {
                 );
                 info!("Using device {}", &*config.hidraw_device);
                 let path = CString::new(&*config.hidraw_device).unwrap();
-                let device = api.open_path(&path).expect(
+                for device in api.devices() {
+                    if device.path == path {
+                        if device.vendor_id == 0x0d8c && (device.product_id == 0x013c || device.product_id == 0x000c) {
+                            info!("Found CM108 device {:#06x}/{:#06x}", device.vendor_id, device.product_id);
+                        } else {
+                            error!("Unsupported device {:#06x}/{:#06x}!", device.vendor_id, device.product_id);
+                        }
+                    }
+                }
+                let cm108device = api.open_path(&path).expect(
                     "Unable to open HIDraw device"
                 );
 
-                let mut string = "Found HIDraw device, manufacturer \"".to_string();
-                let manufacturer = device.get_manufacturer_string().unwrap();
-                match manufacturer {
-                    Some(x) => string.push_str(&x.trim()),
-                    None    => string.push_str("n/a"),
-                }
-                string.push_str("\", product \"");
-                let product = device.get_product_string().unwrap();
-                match product {
-                    Some(x) => string.push_str(&x.trim()),
-                    None    => string.push_str("n/a"),
-                }
-                info!("{}\"", string);
-
                 Ptt::HidRaw {
-                    device: Box::new(device),
+                    device: Box::new(cm108device),
                     inverted: config.inverted
                 }
             }
