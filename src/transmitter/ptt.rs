@@ -57,6 +57,7 @@ impl Ptt {
                 let api = hidapi::HidApi::new().expect(
                     "Unable to initialize HID API"
                 );
+                info!("Using device {}", &*config.hidraw_device);
                 let path = CString::new(&*config.hidraw_device).unwrap();
                 let device = api.open_path(&path).expect(
                     "Unable to open HIDraw device"
