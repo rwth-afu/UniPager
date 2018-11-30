@@ -1,6 +1,7 @@
 use config::{PttConfig, PttMethod};
 use raspi::{Direction, Gpio, Model, Pin};
 use serial;
+use std::ffi::CString;
 
 pub enum Ptt {
     Gpio { pin: Box<Pin>, inverted: bool },
@@ -56,8 +57,8 @@ impl Ptt {
                 let api = hidapi::HidApi::new().expect(
                     "Unable to initialize HID API"
                 );
-                let (vid, pid) = (0x0d8c, 0x013c);
-                 let device = api.open(vid, pid).expect(
+                let path = CString::new(&*config.hidraw_device).unwrap();
+                let device = api.open_path(&path).expect(
                     "Unable to open HIDraw device"
                 );
 
