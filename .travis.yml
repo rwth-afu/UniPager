@@ -4,6 +4,7 @@ matrix:
     - env:
         - TARGET=arm-unknown-linux-gnueabi
         - LINKER=arm-linux-gnueabi-gcc
+        - PKG_CONFIG_ALLOW_CROSS=1
         - PACKAGE=unipager-arm.tar.gz
       addons:
         apt:
@@ -15,6 +16,7 @@ matrix:
     - env:
         - TARGET=arm-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
+        - PKG_CONFIG_ALLOW_CROSS=1
         - PACKAGE=unipager-rpi2.tar.gz
       addons:
         apt:
@@ -26,12 +28,14 @@ matrix:
     - env:
         - TARGET=armv7-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
+        - PKG_CONFIG_ALLOW_CROSS=1
         - PACKAGE=unipager-rpi3.tar.gz
       addons:
         apt:
           packages: *armhf
     - env:
         - TARGET=i686-unknown-linux-gnu
+        - PKG_CONFIG_ALLOW_CROSS=1
         - PACKAGE=unipager-i686.tar.gz
       addons:
         apt:
@@ -40,6 +44,7 @@ matrix:
             - libudev-dev
     - env:
         - TARGET=x86_64-unknown-linux-gnu
+        - PKG_CONFIG_ALLOW_CROSS=1
         - PACKAGE=unipager-x86_64.tar.gz
 
 before_install:
