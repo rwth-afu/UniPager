@@ -44,6 +44,7 @@ matrix:
 
 before_install:
   - sudo dpkg --add-architecture armhf
+  - sed -i 's/^deb http/deb [arch=i386,amd64] http/' /etc/apt/sources.list
   - echo "deb [arch=armel,armhf] http://ports.ubuntu.com/ubuntu-ports trusty main universe restricted multiverse" >> /etc/apt/sources.list
   - echo "deb [arch=armel,armhf] http://ports.ubuntu.com/ubuntu-ports trusty-updates main universe restricted multiverse" >> /etc/apt/sources.list
   - sudo apt-get update
