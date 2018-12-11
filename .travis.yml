@@ -1,4 +1,5 @@
 language: generic
+
 matrix:
   include:
     - env:
@@ -53,6 +54,7 @@ before_install:
   - sudo echo "deb [arch=armel,armhf] http://ports.ubuntu.com/ubuntu-ports trusty main universe restricted multiverse" >> /etc/apt/sources.list
   - sudo echo "deb [arch=armel,armhf] http://ports.ubuntu.com/ubuntu-ports trusty-updates main universe restricted multiverse" >> /etc/apt/sources.list
   - sudo apt-get update
+  - sudo apt-get -y install libudev-dev:armhf
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
