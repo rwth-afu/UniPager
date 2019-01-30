@@ -91,7 +91,7 @@ cargo build --release
 ```
 The compiled binary will be created at `./target/release/unipager`.
 
-Be aware: Must be run with root privileges for GPIO access.
+Be aware: Must be run with root privileges for GPIO access. Secondly it may be required to disable Bluetooth on newer Raspberry Pi models to make the GPIO UART usable.
 
 ## Cross Compilation
 

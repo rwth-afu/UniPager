@@ -193,6 +193,7 @@ impl Connection {
             "2" => self.handle_ident(data),
             "3" => Ok(AckStatus::Success),
             "4" => self.handle_timeslots(data),
+            "7" => self.handle_failedlogin(data),
             other => {
                 error!(
                     "Unknown message received from server (type: {})",
@@ -260,5 +261,10 @@ impl Connection {
         } else {
             Ok(AckStatus::Error)
         }
+    }
+
+    fn handle_failedlogin(&mut self, data: &str) -> Result<AckStatus> {
+        error!("Transmitter login failed. Reason: {}", &data[2..]);
+        Ok(AckStatus::Error)
     }
 }
