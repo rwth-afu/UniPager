@@ -25,8 +25,9 @@ var vm = new Vue({
             id: "test",
             protocol: "pocsag",
             priority: 5,
+            origin: "unipager.local",
             message: {
-                addr: localStorage ? (parseInt(localStorage.pager_addr) || 0) : 0,
+                ric: localStorage ? (parseInt(localStorage.ric) || 0) : 0,
                 speed: 1200,
                 type: "alphanum",
                 func: 3,
@@ -127,7 +128,7 @@ var vm = new Vue({
             this.send("DefaultConfig");
         },
         send_message: function(event) {
-            localStorage && (localStorage.pager_addr = this.message.message.addr);
+            localStorage && (localStorage.ric = this.message.message.ric);
             this.send({"SendMessage": this.message});
         },
         test_submission: function(event) {
