@@ -85,7 +85,6 @@ pub fn start(rt: &mut Runtime, event_handler: EventHandler) {
     let updater = timer
         .for_each(move |_| {
             let telemetry = get();
-            println!("Sending telemtry!");
             event_handler.publish(Event::TelemetryUpdate(telemetry));
             Ok(())
         })

@@ -2,6 +2,8 @@ use std::net::ToSocketAddrs;
 
 use serde_json;
 
+use failure::Error;
+
 use futures::Stream;
 use futures::future::Future;
 
@@ -18,6 +20,7 @@ use lapin::client::{Client, ConnectionOptions};
 use lapin::types::FieldTable;
 
 use config::Config;
+use core;
 use event::{self, Event, EventHandler};
 use message::Message;
 use telemetry;
@@ -49,9 +52,12 @@ fn connection(config: &Config, event_handler: EventHandler)
         };
     });
 
+    core::bootstrap(config).wait().ok();
+
     info!("Connecting to {}:{}...", host, port);
 
     TcpStream::connect(&addr)
+        .map_err(Error::from)
         .and_then(|stream| {
             Client::connect(
                 stream,
@@ -62,15 +68,15 @@ fn connection(config: &Config, event_handler: EventHandler)
                     frame_max: 0,
                     heartbeat: 30
                 }
-            )
+            ).map_err(Error::from)
         })
-        .and_then(|(client, heartbeat)| {
+       .and_then(|(client, heartbeat)| {
             tokio::spawn(
                 heartbeat
                     .map(|_| warn!("Heartbeat process finished."))
                     .map_err(|err| warn!("Heartbeat process failed: {:?}", err))
             );
-            client.create_channel()
+            client.create_channel().map_err(Error::from)
         })
         .and_then(move |channel| {
             // Declare queue
@@ -81,6 +87,7 @@ fn connection(config: &Config, event_handler: EventHandler)
                     FieldTable::new()
                 )
                 .map(|queue| (channel, queue))
+                .map_err(Error::from)
         })
         .and_then(move |(channel, queue)| {
             // Bind queue to exchange
@@ -93,6 +100,7 @@ fn connection(config: &Config, event_handler: EventHandler)
                     FieldTable::new()
                 )
                 .map(|_| (channel, queue))
+                .map_err(Error::from)
         })
         .and_then(|(channel, queue)| {
             // Create a consumer
@@ -104,6 +112,7 @@ fn connection(config: &Config, event_handler: EventHandler)
                     FieldTable::new()
                 )
                 .map(move |stream| (channel, stream))
+                .map_err(Error::from)
         })
         .and_then(move |(channel, stream)| {
             info!("Listening for incoming calls.");
@@ -159,7 +168,7 @@ fn connection(config: &Config, event_handler: EventHandler)
                     warn!("Could not decode incoming message")
                 }
                 channel.basic_ack(message.delivery_tag, false)
-            })
+            }).map_err(Error::from)
         })
         .map_err(|e| {
             telemetry_update!(node: &|node: &mut telemetry::Node| {

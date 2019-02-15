@@ -11,6 +11,7 @@ extern crate log;
 extern crate lazy_static;
 extern crate hyper;
 extern crate tokio;
+extern crate failure;
 extern crate futures;
 extern crate lapin_futures as lapin;
 extern crate tungstenite;

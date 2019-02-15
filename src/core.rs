@@ -15,19 +15,24 @@ use config::Config;
 use event::EventHandler;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Node {
+pub struct Node {
     pub host: String,
     pub reachable: bool,
     pub last_seen: Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct BootstrapResponse {
+pub struct BootstrapResponse {
     pub timeslots: Vec<bool>,
     pub nodes: HashMap<String, Node>
 }
 
-fn bootstrap(config: &Config)
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HeartbeatResponse {
+    pub status: String
+}
+
+pub fn bootstrap(config: &Config)
     -> impl Future<Item = BootstrapResponse, Error = io::Error> {
     /*
     if config.master.call.len() == 0 {
@@ -95,6 +100,50 @@ fn bootstrap(config: &Config)
 
 }
 
+pub fn heartbeat(config: &Config)
+             -> impl Future<Item = HeartbeatResponse, Error = io::Error> {
+    debug!("Sending Heartbeat");
+
+    let client = hyper::Client::new();
+
+    let url = format!(
+        "http://{}:{}/transmitters/_heartbeat",
+        config.master.server,
+        config.master.port
+    );
+
+    let request = hyper::Request::builder()
+        .method("POST")
+        .uri(url)
+        .header("Content-Type", "application/json")
+        .body(
+            serde_json::to_string(&json!({
+                "callsign": config.master.call,
+                "auth_key": config.master.auth
+            })).unwrap()
+                .into()
+        )
+        .unwrap();
+
+    client
+        .request(request)
+        .and_then(|res| res.into_body().concat2())
+        .or_else(|_| {
+            err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "No callsign configured"
+            ))
+        })
+        .and_then(|body| {
+            done(serde_json::from_slice(&body).map_err(|_| {
+                io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "No callsign configured"
+                )
+            }))
+        })
+}
+
 pub fn start(rt: &mut Runtime, config: &Config, _event_handler: EventHandler) {
     let timer = Interval::new(Instant::now(), Duration::from_secs(60));
     let config = config.clone();
@@ -102,13 +151,13 @@ pub fn start(rt: &mut Runtime, config: &Config, _event_handler: EventHandler) {
     let updater = timer
         .map_err(|_| ())
         .for_each(move |_| {
-            bootstrap(&config)
+            heartbeat(&config)
                 .map_err(|_| {
-                    warn!("Could not reach master via HTTP.");
+                    warn!("Heartbeat failed.");
                     ()
                 })
                 .and_then(|res| {
-                    println!("{:?}", res);
+                    debug!("Heartbeat Response: {:?}", res);
                     Ok(())
                 })
         });
