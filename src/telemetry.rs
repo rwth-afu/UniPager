@@ -9,6 +9,7 @@ use tokio::timer::Interval;
 
 use event::{Event, EventHandler};
 use queue::NUM_PRIORITIES;
+use timeslots::TimeSlots;
 
 lazy_static! {
     pub static ref TELEMETRY: RwLock<Telemetry> = RwLock::new(Telemetry::default());
@@ -66,6 +67,7 @@ pub struct Hardware {
 #[derive(Default, Debug, Serialize, Clone)]
 pub struct Telemetry {
     pub onair: bool,
+    pub timeslots: TimeSlots,
     pub node: Node,
     pub ntp: Ntp,
     pub messages: Messages,

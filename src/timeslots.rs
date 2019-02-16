@@ -101,6 +101,12 @@ impl TimeSlots {
         TimeSlots([false; 16])
     }
 
+    pub fn from_vec(slots: Vec<bool>) -> TimeSlots {
+        let mut timeslots = [false; 16];
+        timeslots.copy_from_slice(&slots[0..16]);
+        TimeSlots(timeslots)
+    }
+
     pub fn is_allowed(&self, slot: TimeSlot) -> bool {
         self.0.get(slot.index()).cloned().unwrap_or(false)
     }
@@ -143,6 +149,12 @@ impl TimeSlots {
             (1000.0 / (baudrate as f32)) / 32.0;
 
         words_remaining as usize
+    }
+}
+
+impl Default for TimeSlots {
+    fn default() -> TimeSlots {
+        TimeSlots([false; 16])
     }
 }
 

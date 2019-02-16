@@ -102,6 +102,7 @@ impl Scheduler {
             }
             Event::TimeslotsUpdate(slots) => {
                 self.slots = slots;
+                telemetry!(timeslots: slots);
             }
             _ => {}
         }

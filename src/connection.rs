@@ -52,8 +52,6 @@ fn connection(config: &Config, event_handler: EventHandler)
         };
     });
 
-    core::bootstrap(config).wait().ok();
-
     info!("Connecting to {}:{}...", host, port);
 
     TcpStream::connect(&addr)
@@ -67,8 +65,7 @@ fn connection(config: &Config, event_handler: EventHandler)
                     vhost: "/".to_owned(),
                     frame_max: 0,
                     heartbeat: 30
-                }
-            ).map_err(Error::from)
+                }).map_err(Error::from)
         })
        .and_then(|(client, heartbeat)| {
             tokio::spawn(
@@ -182,9 +179,17 @@ fn connection(config: &Config, event_handler: EventHandler)
 
 pub fn start(rt: &mut Runtime, config: &Config, event_handler: EventHandler) {
     let config = config.clone();
+    let event_handler = event_handler.clone();
 
     let retry = Retry::spawn(FixedInterval::from_millis(5000), move || {
-        connection(&config.clone(), event_handler.clone())
+        let config = config.clone();
+        let event_handler = event_handler.clone();
+        core::bootstrap(&config).map_err(|_| warn!("Bootstrap failed")).and_then(move |response| {
+            use ::timeslots::TimeSlots;
+            let timeslots = TimeSlots::from_vec(response.timeslots);
+            event_handler.publish(Event::TimeslotsUpdate(timeslots));
+            connection(&config.clone(), event_handler.clone())
+        })
     });
 
     rt.spawn(retry.map_err(|err| {

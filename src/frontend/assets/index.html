@@ -312,7 +312,7 @@
                 </span>
               </div>
               <div class="timeslots">
-                <span v-for="(slot, index) in telemetry.config.timeslots">
+                <span v-for="(slot, index) in telemetry.timeslots">
                   <div class="timeslot" v-bind:class="{ 'enabled': slot, 'active': index == timeslot}">
                     {{index.toString(16).toUpperCase()}}
                   </div>

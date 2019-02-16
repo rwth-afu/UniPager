@@ -24,7 +24,6 @@ pub enum Event {
     Log(u8, String)
 }
 
-
 pub type EventReceiver = UnboundedReceiver<Event>;
 pub type EventSender = UnboundedSender<Event>;
 
@@ -87,6 +86,11 @@ pub fn start(rt: &mut Runtime) -> EventHandler {
                 });
                 dispatcher.websocket.as_ref().map(|tx| {
                     tx.unbounded_send(event).ok();
+                });
+            }
+            Event::TimeslotsUpdate(_) => {
+                dispatcher.scheduler.as_ref().map(|tx| {
+                    tx.send(event.clone()).ok();
                 });
             }
             _ => {}

@@ -86,18 +86,18 @@ pub fn bootstrap(config: &Config)
         .or_else(|_| {
             err(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "No callsign configured"
+                "Bootstrap http request failed"
             ))
         })
         .and_then(|body| {
             done(serde_json::from_slice(&body).map_err(|_| {
+                println!("{:?}", body);
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    "No callsign configured"
+                    "Bootstrap data parsing failed"
                 )
             }))
         })
-
 }
 
 pub fn heartbeat(config: &Config)

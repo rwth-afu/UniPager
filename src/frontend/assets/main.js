@@ -18,7 +18,8 @@ var vm = new Vue({
         telemetry: {
             node: {},
             config: {},
-            messages: {}
+            messages: {},
+            timeslots: []
         },
         timeslot: 0,
         message: {
