@@ -106,10 +106,7 @@ impl Connection {
                         stopped_tx.send(()).unwrap();
                     });
 
-                    select! {
-                        _ = stopped_rx.recv() => reconnect = true,
-                        _ = stop_rx.recv() => reconnect = false
-                    }
+                    stopped_rx.recv();
 
                     stream.shutdown(Shutdown::Both).ok();
                     handle.join().unwrap();
