@@ -42,7 +42,7 @@ matrix:
       addons:
         apt:
           packages: *armhf
-    - env:
+    - env: ARCH=x86
         - TARGET=i686-unknown-linux-gnu
         - PACKAGE=unipager-i686.tar.gz
         - PKG_CONFIG_DIR=
