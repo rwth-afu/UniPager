@@ -38,6 +38,10 @@ matrix:
     - env:
         - TARGET=x86_64-unknown-linux-gnu
         - PACKAGE=unipager-x86_64.tar.gz
+      addons:
+        apt:
+          packages:
+            - libudev-dev
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
