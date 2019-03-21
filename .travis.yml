@@ -30,7 +30,6 @@ matrix:
             - gcc-arm-linux-gnueabihf
             - libc6-armhf-cross
             - libc6-dev-armhf-cross
-            - libudev-dev
     - env:
         - PKG_CONFIG_DIR=
         - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
@@ -42,7 +41,6 @@ matrix:
       addons:
         apt:
           packages: *armhf
-            - libudev-dev
     - env:
         - PKG_CONFIG_DIR=
         - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
