@@ -2,13 +2,13 @@ language: generic
 matrix:
   include:
     - env:
-        - PKG_CONFIG_DIR=
-        - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
-        - PKG_CONFIG_SYSROOT_DIR=
-        - PKG_ALLOW_CROSS=1
         - TARGET=arm-unknown-linux-gnueabi
         - LINKER=arm-linux-gnueabi-gcc
         - PACKAGE=unipager-arm.tar.gz
+        - PKG_CONFIG_DIR=
+        - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabi/pkgconfig
+        - PKG_CONFIG_SYSROOT_DIR=
+        - PKG_ALLOW_CROSS=1
       addons:
         apt:
           packages:
@@ -31,44 +31,44 @@ matrix:
             - libc6-armhf-cross
             - libc6-dev-armhf-cross
     - env:
-        - PKG_CONFIG_DIR=
-        - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
-        - PKG_CONFIG_SYSROOT_DIR=
-        - PKG_ALLOW_CROSS=1
         - TARGET=armv7-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
         - PACKAGE=unipager-rpi3.tar.gz
+        - PKG_CONFIG_DIR=
+        - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
+        - PKG_CONFIG_SYSROOT_DIR=
+        - PKG_ALLOW_CROSS=1
       addons:
         apt:
           packages: *armhf
     - env:
-        - PKG_CONFIG_DIR=
-        - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
-        - PKG_CONFIG_SYSROOT_DIR=
-        - PKG_ALLOW_CROSS=1
         - TARGET=i686-unknown-linux-gnu
         - PACKAGE=unipager-i686.tar.gz
+        - PKG_CONFIG_DIR=
+        - PKG_CONFIG_LIBDIR=/usr/lib/i386-linux-gnu/pkgconfig
+        - PKG_CONFIG_SYSROOT_DIR=
+        - PKG_ALLOW_CROSS=1
       addons:
         apt:
           packages:
             - gcc-multilib
-            - libudev-dev
     - env:
         - TARGET=x86_64-unknown-linux-gnu
         - PACKAGE=unipager-x86_64.tar.gz
       addons:
         apt:
           packages:
-            - libudev-dev
 
 before_install:
+  - sudo dpkg --add-architecture i386
   - sudo dpkg --add-architecture armhf
+  - sudo dpkg --add-architecture armel
   - sudo sed -i 's/^deb http/deb [arch=i386,amd64] http/' /etc/apt/sources.list
   - sudo echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports trusty main universe restricted multiverse" >> /etc/apt/sources.list
   - sudo echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports trusty-updates main universe restricted multiverse" >> /etc/apt/sources.list
   - sudo cat /etc/apt/sources.list
   - sudo apt-get update
-  - sudo apt-get -y install libudev-dev:armhf
+  - sudo apt-get -y install libudev-dev
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
