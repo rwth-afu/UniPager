@@ -1,3 +1,4 @@
+dist: xenial
 language: generic
 matrix:
   include:
@@ -64,11 +65,11 @@ before_install:
   - sudo dpkg --add-architecture armhf
   - sudo dpkg --add-architecture armel
   - sudo sed -i 's/^deb http/deb [arch=i386,amd64] http/' /etc/apt/sources.list
-  - sudo echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports trusty main universe restricted multiverse" >> /etc/apt/sources.list
-  - sudo echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports trusty-updates main universe restricted multiverse" >> /etc/apt/sources.list
+  - sudo echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports xenial main universe restricted multiverse" >> /etc/apt/sources.list
+  - sudo echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports xenial-updates main universe restricted multiverse" >> /etc/apt/sources.list
   - sudo cat /etc/apt/sources.list
   - sudo apt-get update
-  - sudo apt-get -y install libudev-dev:i386
+  - sudo apt-get -y install libudev-dev
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
