@@ -17,19 +17,20 @@ matrix:
             - libc6-dev-armel-cross
             - libudev-dev
     - env:
-        - PKG_CONFIG_DIR=
-        - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
-        - PKG_CONFIG_SYSROOT_DIR=
-        - PKG_ALLOW_CROSS=1
         - TARGET=arm-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
         - PACKAGE=unipager-rpi2.tar.gz
+        - PKG_CONFIG_DIR=
+        - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
+        - PKG_CONFIG_SYSROOT_DIR=
+        - PKG_ALLOW_CROSS=1
       addons:
         apt:
           packages: &armhf
             - gcc-arm-linux-gnueabihf
             - libc6-armhf-cross
             - libc6-dev-armhf-cross
+            - libudev-dev:armhf
     - env:
         - PKG_CONFIG_DIR=
         - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
@@ -60,6 +61,12 @@ matrix:
         apt:
           packages:
             - libudev-dev
+
+before_install:
+  - sudo dpkg --add-architecture armhf
+  - sudo echo "deb [arch=armel,armhf] http://ports.ubuntu.com/ubuntu-ports trustys main universe restricted multiverse" >> /etc/apt/sources.list
+  - sudo echo "deb [arch=armel,armhf] http://ports.ubuntu.com/ubuntu-ports trusty-updates main universe restricted multiverse" >> /etc/apt/sources.list
+  - sudo apt-get update
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
