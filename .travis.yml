@@ -73,7 +73,9 @@ before_install:
   - sudo cat /etc/apt/sources.list
   - sudo apt-get update
   - sudo apt-get -y install libudev-dev:armhf libudev-dev:i386
-  - ls -al /usr/lib
+  - ls -al /usr/lib/x86_64-linux-gnu/pkgconfig
+  - ls -al /usr/lib/i386-linux-gnu/pkgconfig
+  - ls -al /usr/lib/arm-linux-gnueabi*/pkgconfig
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
