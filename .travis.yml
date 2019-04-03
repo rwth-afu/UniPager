@@ -48,6 +48,7 @@ matrix:
         - PKG_CONFIG_LIBDIR=/usr/lib/i386-linux-gnu/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_ALLOW_CROSS=1
+        - RUST_BACKTRACE=1
       addons:
         apt:
           packages:
