@@ -6,7 +6,6 @@ matrix:
         - TARGET=arm-unknown-linux-gnueabi
         - LINKER=arm-linux-gnueabi-gcc
         - PACKAGE=unipager-arm.tar.gz
-        - PKG_CONFIG_DIR=
         - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabi/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_ALLOW_CROSS=1
@@ -20,7 +19,6 @@ matrix:
         - TARGET=arm-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
         - PACKAGE=unipager-rpi2.tar.gz
-        - PKG_CONFIG_DIR=
         - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_ALLOW_CROSS=1
@@ -34,7 +32,6 @@ matrix:
         - TARGET=armv7-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
         - PACKAGE=unipager-rpi3.tar.gz
-        - PKG_CONFIG_DIR=
         - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_ALLOW_CROSS=1
@@ -44,7 +41,6 @@ matrix:
     - env:
         - TARGET=i686-unknown-linux-gnu
         - PACKAGE=unipager-i686.tar.gz
-        - PKG_CONFIG_DIR=
         - PKG_CONFIG_LIBDIR=/usr/lib/i386-linux-gnu/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_ALLOW_CROSS=1
@@ -55,7 +51,6 @@ matrix:
     - env:
         - TARGET=x86_64-unknown-linux-gnu
         - PACKAGE=unipager-x86_64.tar.gz
-        - PKG_CONFIG_DIR=
         - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_ALLOW_CROSS=1
