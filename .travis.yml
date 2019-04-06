@@ -10,7 +10,6 @@ matrix:
         - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabi/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_CONFIG_ALLOW_CROSS=1
-        - PKG_ALLOW_CROSS=1
       addons:
         apt:
           packages:
@@ -25,7 +24,6 @@ matrix:
         - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_CONFIG_ALLOW_CROSS=1
-        - PKG_ALLOW_CROSS=1
       addons:
         apt:
           packages: &armhf
@@ -40,7 +38,6 @@ matrix:
         - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_CONFIG_ALLOW_CROSS=1
-        - PKG_ALLOW_CROSS=1
       addons:
         apt:
           packages: *armhf
@@ -51,7 +48,6 @@ matrix:
         - PKG_CONFIG_LIBDIR=/usr/lib/i386-linux-gnu/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_CONFIG_ALLOW_CROSS=1
-        - PKG_ALLOW_CROSS=1
         - RUST_BACKTRACE=1
       addons:
         apt:
@@ -64,7 +60,6 @@ matrix:
         - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
         - PKG_CONFIG_SYSROOT_DIR=
         - PKG_CONFIG_ALLOW_CROSS=1
-        - PKG_ALLOW_CROSS=1
       addons:
         apt:
           packages:
