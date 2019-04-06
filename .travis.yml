@@ -1,3 +1,4 @@
+dist: xenial
 language: generic
 matrix:
   include:
@@ -5,6 +6,8 @@ matrix:
         - TARGET=arm-unknown-linux-gnueabi
         - LINKER=arm-linux-gnueabi-gcc
         - PACKAGE=unipager-arm.tar.gz
+        - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
+        - PKG_CONFIG_ALLOW_CROSS=1
       addons:
         apt:
           packages:
@@ -15,6 +18,8 @@ matrix:
         - TARGET=arm-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
         - PACKAGE=unipager-rpi2.tar.gz
+        - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
+        - PKG_CONFIG_ALLOW_CROSS=1
       addons:
         apt:
           packages: &armhf
@@ -25,12 +30,16 @@ matrix:
         - TARGET=armv7-unknown-linux-gnueabihf
         - LINKER=arm-linux-gnueabihf-gcc
         - PACKAGE=unipager-rpi3.tar.gz
+        - PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig
+        - PKG_CONFIG_ALLOW_CROSS=1
       addons:
         apt:
           packages: *armhf
     - env:
         - TARGET=i686-unknown-linux-gnu
         - PACKAGE=unipager-i686.tar.gz
+        - PKG_CONFIG_LIBDIR=/usr/lib/i386-linux-gnu/pkgconfig
+        - PKG_CONFIG_ALLOW_CROSS=1
       addons:
         apt:
           packages:
@@ -38,6 +47,17 @@ matrix:
     - env:
         - TARGET=x86_64-unknown-linux-gnu
         - PACKAGE=unipager-x86_64.tar.gz
+        - PKG_CONFIG_LIBDIR=/usr/lib/x86_64-linux-gnu/pkgconfig
+        - PKG_CONFIG_ALLOW_CROSS=1
+
+before_install:
+  - sudo dpkg --add-architecture i386
+  - sudo dpkg --add-architecture armhf
+  - sudo sed -i 's/^deb http/deb [arch=i386,amd64] http/' /etc/apt/sources.list
+  - sudo echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports xenial main universe restricted multiverse" >> /etc/apt/sources.list
+  - sudo echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports xenial-updates main universe restricted multiverse" >> /etc/apt/sources.list
+  - sudo apt-get update
+  - sudo apt-get -y install libudev-dev libudev-dev:armhf libudev-dev:i386 libusb-1.0-0-dev libusb-1.0-0-dev:armhf libusb-1.0-0-dev:i386
 
 install:
   - export PATH="$PATH:$HOME/.cargo/bin"
