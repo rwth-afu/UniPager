@@ -15,6 +15,7 @@ pub enum Ptt {
     },
     HidRaw {
         device: Box<hidapi::HidDevice>,
+        gpio: u8,
         inverted: bool
     }
 }
@@ -85,8 +86,33 @@ impl Ptt {
                 }
                 info!("{}\"", string);
 
+                let gpio = config.hidraw_gpio_pin;
+                let mut pin = 0x00;
+                let mut string = "PTT GPIO pin: ".to_string();
+                match gpio {
+                    1 =>  {
+                        pin = 0x01;
+                        string.push_str("1");
+                    }
+                    2 => {
+                        pin = 0x02;
+                        string.push_str("2");
+                    }
+                    3 => {
+                        pin = 0x04;
+                        string.push_str("3");
+                    }
+                    4 => {
+                        pin = 0x08;
+                        string.push_str("4");
+                    }
+                    _ => error!("Invalid GPIO pin!")
+                }
+                info!("{}", string);
+
                 Ptt::HidRaw {
                     device: Box::new(cm108device),
+                    gpio: pin,
                     inverted: config.inverted
                 }
             }
@@ -116,16 +142,16 @@ impl Ptt {
             }
             Ptt::HidRaw {
                 ref mut device,
+                gpio,
                 inverted
             } => {
                 if status != inverted {
-                    // Write data to device
-                    let buf = [0x00, 0x00, 0x04, 0x04, 0x00];
+                    let buf = [0x00, 0x00, gpio, gpio, 0x00];
                     device.write(&buf).expect(
                         "Error writing hidraw interface"
                     );
                 } else {
-                    let buf = [0x00, 0x00, 0x00, 0x04, 0x00];
+                    let buf = [0x00, 0x00, 0x00, gpio, 0x00];
                     device.write(&buf).expect(
                         "Error writing hidraw interface"
                     );
