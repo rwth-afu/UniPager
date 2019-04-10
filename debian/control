@@ -3,7 +3,7 @@ Section: hamradio
 Priority: standard
 Maintainer: RWTH Amateurfunkgruppe <rwth-afu@online.de>
 Build-Depends:
-  debhelper (>= 9), dh-systemd, curl, ca-certificates, libudev-dev
+  debhelper (>= 9), dh-systemd, curl, ca-certificates, libudev-dev, pkg-config
 Standards-Version: 3.9.6
 Homepage: http://www.afu.rwth-aachen.de
 Vcs-Browser: https://github.com/rwth-afu/UniPager

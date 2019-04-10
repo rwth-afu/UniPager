@@ -1,4 +1,4 @@
-#![feature(mpsc_select)]
+#![feature(mpsc_select,i128_type)]
 extern crate serial;
 extern crate raspi;
 extern crate ws;
