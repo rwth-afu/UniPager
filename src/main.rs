@@ -4,6 +4,7 @@ extern crate raspi;
 extern crate ws;
 extern crate tiny_http;
 extern crate serde;
+extern crate hidapi;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]

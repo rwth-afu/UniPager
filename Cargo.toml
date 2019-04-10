@@ -15,3 +15,8 @@ lazy_static = "^1.0"
 
 [dependencies.raspi]
 path = "lib/raspi"
+
+[dependencies.hidapi]
+version = "0.5.0"
+default-features = false
+features = ["linux-static-hidraw"] # linux-shared-hidraw will not build
