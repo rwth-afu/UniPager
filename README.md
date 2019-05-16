@@ -6,9 +6,7 @@
 
 Universal POCSAG transmitter controller written in Rust.
 
-## Installation
-
-### Automatic Installation
+## Automatic Installation
 
 This script installs UniPager fully automatically on Debian/Raspbian systems.
 It also uninstalls RustPager and migrates the old configuration file.
@@ -21,7 +19,27 @@ curl http://db0sda.ampr.org/debian/install.sh -sSf | sh -s -- hamnet
 curl http://www.afu.rwth-aachen.de/debian/install.sh -sSf | sh -s -- internet
 ```
 
-### Via HAMNET
+## Configuration
+
+The web interface for configuration is available on port `8073`. Port `8055`
+must also be open to allow websocket communication between the browser and
+UniPager.
+
+### Raspberry Pi
+Make sure that the serial port is activated. To do this add `enable_uart=1` to
+`/boot/config.txt`, remove `console=ttyAMA0,115200` from `/boot/cmdline.txt` and
+reboot.
+
+This is not needed for the RASPAGERV1 and Audio transmitter type.
+
+## Update
+Once the package is installed, you can install updates as for every other debian package with the following commands:
+```bash
+sudo apt-get update
+sudo apt-get upgrade
+```
+
+## Manual Installation from HAMNET
 
 Create the file `/etc/apt/sources.list.d/unipager.list` with the following content:
 
@@ -38,7 +56,7 @@ sudo apt-get update
 sudo apt-get install unipager
 ```
 
-### Via Internet
+## Manual Installation from Internet
 
 Create the file `/etc/apt/sources.list.d/unipager.list` with the following content:
 
@@ -55,14 +73,8 @@ sudo apt-get update
 sudo apt-get install unipager
 ```
 
-## Update
-Once the package is installed, you can install updates as for every other debian package with the following commands:
-```bash
-sudo apt-get update
-sudo apt-get upgrade
-```
+## Local Compilation from source
 
-## Compilation
 Install rust:
 
 ```bash
@@ -93,7 +105,7 @@ The compiled binary will be created at `./target/release/unipager`.
 
 Be aware: Must be run with root privileges for GPIO access. Secondly it may be required to disable Bluetooth on newer Raspberry Pi models to make the GPIO UART usable.
 
-## Cross Compilation
+## Local Cross Compilation from source
 
 Install rust:
 
@@ -155,7 +167,7 @@ cargo build --target $TARGET --release
 
 The cross-compiled binary will be created at `./target/$TARGET/release/unipager`.
 
-## Manual Installation
+## Manual Installation after compilation
 
 Move the UniPager binary to `/usr/local/bin/unipager`. Create the directory
 `/var/lib/unipager`. Create the file `/etc/systemd/system/unipager.service` with
@@ -176,19 +188,6 @@ WantedBy=multi-user.target
 Reload systemctl configuration with `sudo systemctl daemon-reload`.
 To start UniPager enter `sudo systemctl start unipager`. To start UniPager
 automatically after booting enter `sudo systemctl enable unipager`.
-
-## Configuration
-
-The web interface for configuration is available on port `8073`. Port `8055`
-must also be open to allow websocket communication between the browser and
-UniPager.
-
-### Raspberry Pi
-Make sure that the serial port is activated. To do this add `enable_uart=1` to
-`/boot/config.txt`, remove `console=ttyAMA0,115200` from `/boot/cmdline.txt` and
-reboot.
-
-This is not needed for the RASPAGERV1 and Audio transmitter type.
 
 ## Authors
 
