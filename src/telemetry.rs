@@ -1,15 +1,14 @@
 use std::sync::{Mutex, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use chrono::prelude::*;
-use futures::Stream;
-use futures::future::Future;
+use async_std::prelude::*;
+use async_std::stream::interval;
 use tokio::runtime::Runtime;
-use tokio::timer::Interval;
 
-use event::{Event, EventHandler};
-use queue::NUM_PRIORITIES;
-use timeslots::TimeSlots;
+use crate::event::{Event, EventHandler};
+use crate::queue::NUM_PRIORITIES;
+use crate::timeslots::TimeSlots;
 
 lazy_static! {
     pub static ref TELEMETRY: RwLock<Telemetry> = RwLock::new(Telemetry::default());
@@ -19,7 +18,6 @@ lazy_static! {
 #[derive(Default, Debug, Serialize, Clone, PartialEq)]
 pub struct Node {
     pub name: String,
-    pub ip: String,
     pub port: u16,
     pub connected: bool,
     pub connected_since: Option<DateTime<Utc>>
@@ -79,20 +77,17 @@ pub fn get() -> Telemetry {
     TELEMETRY.read().unwrap().clone()
 }
 
-pub fn start(rt: &mut Runtime, event_handler: EventHandler) {
+pub fn start(runtime: &Runtime, event_handler: EventHandler) {
     *EVENT_HANDLER.lock().unwrap() = Some(event_handler.clone());
 
-    let timer = Interval::new(Instant::now(), Duration::from_secs(30));
+    runtime.spawn(async move {
+        let mut interval = interval(Duration::from_secs(30));
 
-    let updater = timer
-        .for_each(move |_| {
+        while let Some(_) = interval.next().await {
             let telemetry = get();
             event_handler.publish(Event::TelemetryUpdate(telemetry));
-            Ok(())
-        })
-        .map_err(|_| ());
-
-    rt.spawn(updater);
+        }
+    });
 }
 
 macro_rules! telemetry_update {

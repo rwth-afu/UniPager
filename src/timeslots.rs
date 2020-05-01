@@ -1,13 +1,12 @@
 use std::fmt;
 use std::str::FromStr;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use futures::Future;
-use futures::future::{Loop, loop_fn};
+use async_std::future;
+use async_std::prelude::*;
 use tokio::runtime::Runtime;
-use tokio::timer::Delay;
 
-use event::{Event, EventHandler};
+use crate::event::{Event, EventHandler};
 
 // Returns the time in deciseconds since the unix epoch
 fn deciseconds(duration: Duration) -> u64 {
@@ -190,20 +189,16 @@ impl fmt::Debug for TimeSlots {
     }
 }
 
-pub fn start(rt: &mut Runtime, event_handler: EventHandler) {
-    let init = (TimeSlot::current(), event_handler);
+pub fn start(runtime: &Runtime, event_handler: EventHandler) {
+    runtime.spawn(async move {
+        let mut timeslot = TimeSlot::current();
 
-    let updater = loop_fn(init, |(timeslot, event_handler)| {
-        let next = Instant::now() + timeslot.next().duration_until();
-
-        Delay::new(next).and_then(move |_| {
-            let timeslot = TimeSlot::current();
+        loop {
+            timeslot = timeslot.next();
+            future::ready(1).delay(timeslot.duration_until()).await;
             event_handler.publish(Event::Timeslot(timeslot));
-            Ok(Loop::Continue((timeslot, event_handler)))
-        })
-    }).map_err(|_| ());
-
-    rt.spawn(updater);
+        }
+    });
 }
 
 #[test]

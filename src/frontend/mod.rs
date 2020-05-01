@@ -3,10 +3,10 @@ pub mod websocket;
 
 use serde_json;
 
-use config::Config;
-use message::Message;
-use telemetry::Telemetry;
-use timeslots::TimeSlot;
+use crate::config::Config;
+use crate::message::Message;
+use crate::telemetry::Telemetry;
+use crate::timeslots::TimeSlot;
 
 #[derive(Debug, Deserialize)]
 pub enum Request {

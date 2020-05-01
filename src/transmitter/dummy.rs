@@ -1,8 +1,8 @@
 use std::thread::sleep;
 use std::time::Duration;
 
-use config::Config;
-use transmitter::Transmitter;
+use crate::config::Config;
+use crate::transmitter::Transmitter;
 
 pub struct DummyTransmitter;
 
@@ -14,7 +14,7 @@ impl DummyTransmitter {
 }
 
 impl Transmitter for DummyTransmitter {
-    fn send(&mut self, gen: &mut Iterator<Item = u32>) {
+    fn send(&mut self, gen: &mut dyn Iterator<Item = u32>) {
         let mut count = 0;
         for word in gen {
             info!("{:032b}", word);

@@ -1,6 +1,7 @@
 var vm = new Vue({
     el: "#app",
     mounted() {
+        console.log("Mounted.");
         this.connect();
     },
     data: {
@@ -55,10 +56,12 @@ var vm = new Vue({
     },
     methods: {
         connect: function(event) {
+            console.log("Connecting to the websocket.");
             this.socket = new WebSocket("ws://" + location.hostname + ":8055");
             this.socket.onopen = this.onopen;
             this.socket.onmessage = this.onmessage;
             this.socket.onclose = this.onclose;
+            this.socket.onerror = this.onerror;
         },
         onopen: function(event) {
             this.connected = true;
@@ -98,6 +101,9 @@ var vm = new Vue({
                 messages: {}
             };
             setTimeout(function() { this.connect(); }.bind(this), 1000);
+        },
+        onerror: function(event) {
+            console.log("Failed to connect to the websocket.");
         },
         send: function(data) {
             this.socket.send(JSON.stringify(data));

@@ -1,6 +1,6 @@
 use chrono::prelude::*;
 
-use pocsag;
+use crate::pocsag;
 
 pub trait MessageProvider {
     fn next(&mut self, count: usize) -> Option<Message>;
@@ -33,8 +33,8 @@ impl Message {
         }
     }
 
-    pub fn generator<'a>(self, provider: &'a mut MessageProvider)
-        -> Box<Iterator<Item = u32> + 'a> {
+    pub fn generator<'a>(self, provider: &'a mut dyn MessageProvider)
+        -> Box<dyn Iterator<Item = u32> + 'a> {
         match self.message
         {
             ProtocolMessage::Pocsag(msg) => {

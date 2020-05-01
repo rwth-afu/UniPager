@@ -1,6 +1,6 @@
 //use frontend::{Responder, Response};
 use log::{self, Log, Level, LevelFilter, Metadata, Record};
-use event::{Event, EventHandler};
+use crate::event::{Event, EventHandler};
 
 struct Logger {
     event_handler: EventHandler

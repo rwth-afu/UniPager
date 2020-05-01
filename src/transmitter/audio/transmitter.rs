@@ -3,9 +3,9 @@ use std::process::{Command, Stdio};
 use std::thread::sleep;
 use std::time::Duration;
 
-use config::Config;
-use transmitter::Ptt;
-use transmitter::Transmitter;
+use crate::config::Config;
+use crate::transmitter::Ptt;
+use crate::transmitter::Transmitter;
 
 const BAUD_RATE: usize = 1200;
 const SAMPLE_RATE: usize = 48000;
@@ -47,7 +47,7 @@ impl AudioTransmitter {
 }
 
 impl Transmitter for AudioTransmitter {
-    fn send(&mut self, gen: &mut Iterator<Item = u32>) {
+    fn send(&mut self, gen: &mut dyn Iterator<Item = u32>) {
         self.ptt.set(true);
 
         sleep(Duration::from_millis(self.tx_delay as u64));

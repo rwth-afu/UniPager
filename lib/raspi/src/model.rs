@@ -38,9 +38,9 @@ impl Model {
             .bitand(0x00ffffff);
 
         match revision {
-            0x2...0x3 => Model::V1B { rev: 1 },
-            0x4...0x6 | 0xd...0x0f => Model::V1B { rev: 2 },
-            0x7...0x9 => Model::V1A,
+            0x2..=0x3 => Model::V1B { rev: 1 },
+            0x4..=0x6 | 0xd..=0x0f => Model::V1B { rev: 2 },
+            0x7..=0x9 => Model::V1A,
             0x12 | 0x15 | 0x900021 => Model::V1Aplus,
             0x10 | 0x13 | 0x900032 => Model::V1Bplus,
             0xA01040 | 0xA01041 => Model::V2B,

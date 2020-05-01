@@ -1,10 +1,10 @@
 use serial::{self, SerialPort};
 
-use config::Config;
-use transmitter::Transmitter;
+use crate::config::Config;
+use crate::transmitter::Transmitter;
 
 pub struct RFM69Transmitter {
-    serial: Box<serial::SerialPort>
+    serial: Box<dyn serial::SerialPort>
 }
 
 impl RFM69Transmitter {
@@ -30,7 +30,7 @@ impl RFM69Transmitter {
 }
 
 impl Transmitter for RFM69Transmitter {
-    fn send(&mut self, gen: &mut Iterator<Item = u32>) {
+    fn send(&mut self, gen: &mut dyn Iterator<Item = u32>) {
         for word in gen {
             let bytes = [
                 ((word & 0xff000000) >> 24) as u8,

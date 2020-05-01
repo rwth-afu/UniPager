@@ -10,14 +10,13 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 extern crate hyper;
-extern crate tokio;
 extern crate failure;
-extern crate futures;
-extern crate lapin_futures as lapin;
+extern crate futures_core;
+extern crate futures_util;
 extern crate tungstenite;
-extern crate tokio_tungstenite;
-extern crate tokio_retry;
 extern crate chrono;
+extern crate tokio;
+extern crate reqwest;
 
 #[macro_use]
 mod telemetry;
@@ -37,12 +36,11 @@ mod event;
 use std::fs::File;
 use std::io::Read;
 
-use futures::Future;
-use tokio::runtime::Runtime;
+use async_std::prelude::*;
 
 fn print_version() {
     println!("UniPager {}", env!("CARGO_PKG_VERSION"));
-    println!("Copyright (c) 2017-2018 RWTH Amateurfunkgruppe\n");
+    println!("Copyright (c) 2017-2020 RWTH Amateurfunkgruppe\n");
     println!("This program comes with ABSOLUTELY NO WARRANTY.");
     println!("This is free software, and you are welcome to redistribute");
     println!("and modify it under the conditions of the GNU GPL v3 or later.");
@@ -62,21 +60,33 @@ fn main() {
         .map_err(|_| eprintln!("Failed to load password file."))
         .ok();
 
-    let config = config::get();
+    let mut runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let mut rt = Runtime::new().unwrap();
-    let event_handler = event::start(&mut rt);
+    let config = config::get();
+    let event_handler = event::start(&runtime);
 
     logging::init(event_handler.clone());
     scheduler::start(config.clone(), event_handler.clone());
-    telemetry::start(&mut rt, event_handler.clone());
-    timeslots::start(&mut rt, event_handler.clone());
-    frontend::websocket::start(&mut rt, pass, event_handler.clone());
-    frontend::http::start(&mut rt, event_handler.clone());
-    connection::start(&mut rt, &config, event_handler.clone());
-    core::start(&mut rt, &config, event_handler.clone());
+    telemetry::start(&runtime, event_handler.clone());
+    timeslots::start(&runtime, event_handler.clone());
+    frontend::websocket::start(&runtime, pass, event_handler.clone());
+    frontend::http::start(&runtime, event_handler.clone());
+    connection::start(&runtime, &config, event_handler.clone());
+    core::start(&runtime, &config, event_handler.clone());
 
-    rt.shutdown_on_idle().wait().unwrap();
+    runtime.block_on(async move {
+        let (tx, mut rx) = event::channel();
+        event_handler.publish(event::Event::RegisterMain(tx));
+
+        while let Some(event) = rx.next().await {
+            match event {
+                event::Event::Shutdown => {
+                    return;
+                }
+                _ => {}
+            }
+        }
+    });
 
     info!("Terminating... 73!");
 }

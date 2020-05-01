@@ -2,12 +2,12 @@ use std::sync::mpsc::{self, Receiver};
 use std::thread;
 use std::time::Duration;
 
-use config::Config;
-use event::{Event, EventHandler};
-use message::{Message, MessageProvider};
-use queue::Queue;
-use timeslots::TimeSlots;
-use transmitter::{self, Transmitter};
+use crate::config::Config;
+use crate::event::{Event, EventHandler};
+use crate::message::{Message, MessageProvider};
+use crate::queue::Queue;
+use crate::timeslots::TimeSlots;
+use crate::transmitter::{self, Transmitter};
 
 struct Scheduler {
     rx: Receiver<Event>,
@@ -37,7 +37,7 @@ pub fn start(config: Config, event_handler: EventHandler) {
 }
 
 impl Scheduler {
-    pub fn run(&mut self, mut transmitter: Box<Transmitter>) {
+    pub fn run(&mut self, mut transmitter: Box<dyn Transmitter>) {
         info!("Scheduler started.");
 
         loop {

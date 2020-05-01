@@ -1,5 +1,5 @@
-use message::{MessageProvider, ProtocolMessage};
-use pocsag::{Encoding, Message, MessageType, encoding};
+use crate::message::{MessageProvider, ProtocolMessage};
+use crate::pocsag::{Encoding, Message, MessageType, encoding};
 
 /// Preamble length in number of 32-bit codewords
 pub const PREAMBLE_LENGTH: u8 = 18;
@@ -22,7 +22,7 @@ pub struct Generator<'a> {
     // Current state of the state machine
     state: State,
     // Message source
-    messages: &'a mut (MessageProvider + 'a),
+    messages: &'a mut (dyn MessageProvider + 'a),
     // Current message being sent
     message: Option<Message>,
     // Number of codewords left in current batch
@@ -33,7 +33,7 @@ pub struct Generator<'a> {
 
 impl<'a> Generator<'a> {
     /// Create a new Generator
-    pub fn new(messages: &'a mut MessageProvider, first_msg: Message)
+    pub fn new(messages: &'a mut dyn MessageProvider, first_msg: Message)
         -> Generator<'a> {
         Generator {
             state: State::Preamble,
@@ -63,7 +63,7 @@ impl<'a> Generator<'a> {
 // Calculate the CRC for a codeword and return the updated codeword.
 fn crc(codeword: u32) -> u32 {
     let mut crc = codeword;
-    for i in 0..21 {
+    for i in 0..=21 {
         if (crc & (0x80000000 >> i)) != 0 {
             crc ^= 0xED200000 >> i;
         }

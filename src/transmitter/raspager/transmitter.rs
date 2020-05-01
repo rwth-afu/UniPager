@@ -1,10 +1,10 @@
 use std::{thread, time};
 
-use config::Config;
+use crate::config::Config;
 use raspi::{Direction, Gpio, Model, Pin};
-use transmitter::Transmitter;
-use transmitter::raspager::adf7012::{Adf7012Config, MuxOut};
-use transmitter::raspager::pins::RaspagerPins;
+use crate::transmitter::Transmitter;
+use crate::transmitter::raspager::adf7012::{Adf7012Config, MuxOut};
+use crate::transmitter::raspager::pins::RaspagerPins;
 
 #[inline]
 fn delay_us(micros: u32) {
@@ -180,7 +180,7 @@ impl RaspagerTransmitter {
 }
 
 impl Transmitter for RaspagerTransmitter {
-    fn send(&mut self, gen: &mut Iterator<Item = u32>) {
+    fn send(&mut self, gen: &mut dyn Iterator<Item = u32>) {
         // try multiple times until the PLL is locked
         let mut pll_locked = false;
         for _ in 0..5 {

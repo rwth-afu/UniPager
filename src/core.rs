@@ -1,18 +1,14 @@
 use std::collections::HashMap;
 use std::io;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
-use futures::{Stream, done};
-use futures::future::Future;
-use futures::future::err;
+use futures::stream::StreamExt;
+use async_std::stream::interval;
 use tokio::runtime::Runtime;
-use tokio::timer::Interval;
+use serde::{Deserialize, Serialize};
 
-use hyper;
-use serde_json;
-
-use config::Config;
-use event::EventHandler;
+use crate::config::Config;
+use crate::event::EventHandler;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Node {
@@ -32,79 +28,51 @@ pub struct HeartbeatResponse {
     pub status: String
 }
 
-pub fn bootstrap(config: &Config)
-    -> impl Future<Item = BootstrapResponse, Error = io::Error> {
-    /*
+pub async fn bootstrap(config: &Config) -> Result<BootstrapResponse, io::Error> {
     if config.master.call.len() == 0 {
         error!("No callsign configured.");
-        err(io::Error::new(
+        Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "No callsign configured"
         ))
     } else if config.master.auth.len() == 0 {
         error!("No auth key configured.");
-        err(io::Error::new(
+        return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "No auth key configured"
         ))
     } else {
-    */
-    info!(
-        "Connecting to {}:{}...",
-        config.master.server,
-        config.master.port
-    );
+        info!(
+            "Connecting to {}:{}...",
+            config.master.server,
+            config.master.port
+        );
 
-    let client = hyper::Client::new();
+        let url = format!(
+            "http://{}:{}/transmitters/_bootstrap",
+            config.master.server,
+            config.master.port
+        );
 
-    let url = format!(
-        "http://{}:{}/transmitters/_bootstrap",
-        config.master.server,
-        config.master.port
-    );
-
-    let request = hyper::Request::builder()
-        .method("POST")
-        .uri(url)
-        .header("Content-Type", "application/json")
-        .body(
-            serde_json::to_string(&json!({
+        reqwest::Client::new()
+            .post(&url)
+            .json(&json!({
                 "callsign": config.master.call,
                 "auth_key": config.master.auth,
                 "software": {
                     "name": "UniPager",
                     "version": env!("CARGO_PKG_VERSION")
-                }
-            })).unwrap()
-                .into()
-        )
-        .unwrap();
-
-    client
-        .request(request)
-        .and_then(|res| res.into_body().concat2())
-        .or_else(|_| {
-            err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "Bootstrap http request failed"
-            ))
-        })
-        .and_then(|body| {
-            done(serde_json::from_slice(&body).map_err(|_| {
-                println!("{:?}", body);
+                }})
+            ).send().await.unwrap().json().await.map_err(|_| {
                 io::Error::new(
                     io::ErrorKind::InvalidInput,
                     "Bootstrap data parsing failed"
-                )
-            }))
-        })
+                )})
+    }
 }
 
-pub fn heartbeat(config: &Config)
-             -> impl Future<Item = HeartbeatResponse, Error = io::Error> {
+pub async fn heartbeat(config: &Config) -> Result<HeartbeatResponse, io::Error> {
     debug!("Sending Heartbeat");
-
-    let client = hyper::Client::new();
 
     let url = format!(
         "http://{}:{}/transmitters/_heartbeat",
@@ -112,55 +80,28 @@ pub fn heartbeat(config: &Config)
         config.master.port
     );
 
-    let request = hyper::Request::builder()
-        .method("POST")
-        .uri(url)
-        .header("Content-Type", "application/json")
-        .body(
-            serde_json::to_string(&json!({
-                "callsign": config.master.call,
-                "auth_key": config.master.auth
-            })).unwrap()
-                .into()
-        )
-        .unwrap();
 
-    client
-        .request(request)
-        .and_then(|res| res.into_body().concat2())
-        .or_else(|_| {
-            err(io::Error::new(
+    reqwest::Client::new()
+        .post(&url)
+        .json(&json!({
+            "callsign": config.master.call,
+            "auth_key": config.master.auth,
+        })
+        ).send().await.unwrap().json().await.map_err(|_| {
+            io::Error::new(
                 io::ErrorKind::InvalidInput,
-                "No callsign configured"
-            ))
-        })
-        .and_then(|body| {
-            done(serde_json::from_slice(&body).map_err(|_| {
-                io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "No callsign configured"
-                )
-            }))
-        })
+                "Bootstrap data parsing failed"
+            )})
 }
 
-pub fn start(rt: &mut Runtime, config: &Config, _event_handler: EventHandler) {
-    let timer = Interval::new(Instant::now(), Duration::from_secs(60));
+pub fn start(runtime: &Runtime, config: &Config, _event_handler: EventHandler) {
     let config = config.clone();
 
-    let updater = timer
-        .map_err(|_| ())
-        .for_each(move |_| {
-            heartbeat(&config)
-                .map_err(|_| {
-                    warn!("Heartbeat failed.");
-                    ()
-                })
-                .and_then(|res| {
-                    debug!("Heartbeat Response: {:?}", res);
-                    Ok(())
-                })
-        });
+    runtime.spawn(async move {
+        let mut interval = interval(Duration::from_secs(60));
 
-    rt.spawn(updater);
+        while let Some(_now) = interval.next().await {
+            heartbeat(&config).await;
+        }
+    });
 }

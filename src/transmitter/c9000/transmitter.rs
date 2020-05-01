@@ -3,8 +3,8 @@ use serial::{self, SerialPort};
 use std::{thread, time};
 use std::io::{Write};
 
-use config::Config;
-use transmitter::Transmitter;
+use crate::config::Config;
+use crate::transmitter::Transmitter;
 
 pub struct C9000Transmitter {
     reset_pin: Pin,
@@ -12,7 +12,7 @@ pub struct C9000Transmitter {
     send_pin: Pin,
     status_led_pin: Pin,
     connected_led_pin: Pin,
-    serial: Box<serial::SerialPort>
+    serial: Box<dyn serial::SerialPort>
 }
 
 impl C9000Transmitter {
@@ -80,7 +80,7 @@ impl C9000Transmitter {
 }
 
 impl Transmitter for C9000Transmitter {
-    fn send(&mut self, gen: &mut Iterator<Item = u32>) {
+    fn send(&mut self, gen: &mut dyn Iterator<Item = u32>) {
         self.ptt_pin.set_high();
 
         for (i, word) in gen.enumerate() {

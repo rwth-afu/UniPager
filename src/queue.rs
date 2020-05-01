@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
-use message::Message;
-use telemetry;
+use crate::message::Message;
+use crate::telemetry;
 
 // The number of priorities defines how many seperate queues are beeing used for
 // the different priorities. This should match the number of priorities defined
