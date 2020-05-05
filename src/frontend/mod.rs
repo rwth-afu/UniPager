@@ -18,6 +18,8 @@ pub enum Request {
     GetTelemetry,
     GetTimeslot,
     GetVersion,
+    Restart,
+    Shutdown,
     Test
 }
 

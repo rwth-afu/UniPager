@@ -24,7 +24,9 @@ pub enum Event {
     RegisterScheduler(mpsc::Sender<Event>),
     RegisterMain(EventSender),
     Log(u8, String),
-    Shutdown
+    Test,
+    Shutdown,
+    Restart
 }
 
 pub type EventReceiver = UnboundedReceiver<Event>;
@@ -66,16 +68,24 @@ pub fn start(runtime: &Runtime) -> EventHandler {
             match event {
                 Event::RegisterConnection(tx) => {
                     dispatcher.connection = Some(tx);
-                },
+                }
                 Event::RegisterWebsocket(tx) => {
                     dispatcher.websocket = Some(tx);
-                },
+                }
                 Event::RegisterScheduler(tx) => {
                     dispatcher.scheduler = Some(tx);
-                },
+                }
                 Event::RegisterMain(tx) => {
                     dispatcher.main = Some(tx);
-                },
+                }
+                Event::ConfigUpdate(_) => {
+                    dispatcher.connection.as_ref().map(|tx| {
+                        tx.unbounded_send(event.clone()).ok();
+                    });
+                    dispatcher.scheduler.as_ref().map(|tx| {
+                        tx.send(event).ok();
+                    });
+                }
                 Event::TelemetryUpdate(_) |
                 Event::TelemetryPartialUpdate(_) => {
                     dispatcher.websocket.as_ref().map(|tx| {
@@ -98,17 +108,22 @@ pub fn start(runtime: &Runtime) -> EventHandler {
                         tx.unbounded_send(event).ok();
                     });
                 }
-                Event::TimeslotsUpdate(_) => {
+                Event::TimeslotsUpdate(_) | Event::Test => {
                     dispatcher.scheduler.as_ref().map(|tx| {
                         tx.send(event.clone()).ok();
                     });
                 }
-                Event::Shutdown => {
-                    dispatcher.main.as_ref().map(|tx| {
+                Event::Shutdown | Event::Restart => {
+                    dispatcher.connection.as_ref().map(|tx| {
                         tx.unbounded_send(event.clone()).ok();
                     });
+                    dispatcher.scheduler.as_ref().map(|tx| {
+                        tx.send(event.clone()).ok();
+                    });
+                    dispatcher.main.as_ref().map(|tx| {
+                        tx.unbounded_send(event).ok();
+                    });
                 }
-                _ => {}
             };
         }
     });

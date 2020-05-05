@@ -141,6 +141,12 @@ var vm = new Vue({
         test_submission: function(event) {
             this.send("Test");
         },
+        restart: function(event) {
+            this.send("Restart");
+        },
+        shutdown: function(event) {
+            this.send("Shutdown");
+        },
         authenticate: function(event) {
             this.send({"Authenticate": this.password});
             if (localStorage) {

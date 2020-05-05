@@ -33,5 +33,5 @@ pub fn init(event_handler: EventHandler) {
     log::set_boxed_logger(Box::new(
         Logger { event_handler: event_handler }
     )).expect("Unable to setup logger");
-    log::set_max_level(LevelFilter::Info);
+    log::set_max_level(LevelFilter::Trace);
 }

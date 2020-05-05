@@ -1,42 +1,72 @@
-use std::sync::mpsc::{self, Receiver};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError, TryRecvError};
 use std::thread;
 use std::time::Duration;
 
 use crate::config::Config;
 use crate::event::{Event, EventHandler};
 use crate::message::{Message, MessageProvider};
+use crate::pocsag::TestGenerator;
 use crate::queue::Queue;
 use crate::timeslots::TimeSlots;
 use crate::transmitter::{self, Transmitter};
 
 struct Scheduler {
+    config: Config,
     rx: Receiver<Event>,
     slots: TimeSlots,
     queue: Queue,
-    budget: usize
+    budget: usize,
+    test: bool,
+    stop: bool,
+    restart: bool
 }
 
 pub fn start(config: Config, event_handler: EventHandler) {
-    use std::str::FromStr;
-
     let (tx, rx) = mpsc::channel();
-
     event_handler.publish(Event::RegisterScheduler(tx));
 
-    let mut scheduler = Scheduler {
-        rx: rx,
-        slots: TimeSlots::from_str("ACF").unwrap(),
-        queue: Queue::new(),
-        budget: 0
-    };
-
     thread::spawn(move || {
-        let transmitter = transmitter::from_config(&config);
-        scheduler.run(transmitter);
+        let mut scheduler = Scheduler::new(config, rx);
+        scheduler.start();
     });
 }
 
 impl Scheduler {
+    pub fn new(config: Config, rx: Receiver<Event>) -> Scheduler {
+        Scheduler {
+            config: config,
+            rx: rx,
+            slots: TimeSlots::new(),
+            queue: Queue::new(),
+            budget: 0,
+            test: false,
+            stop: false,
+            restart: true
+        }
+    }
+
+    pub fn start(&mut self) {
+        loop {
+            let transmitter = transmitter::from_config(&self.config);
+            if self.test {
+                self.test(transmitter);
+                self.test = false;
+            }
+            else {
+                self.run(transmitter);
+            }
+
+            if !self.restart {
+                info!("Shutting down the scheduler...");
+                return;
+            }
+            else {
+                info!("Restarting the scheduler...");
+                self.stop = false;
+            }
+        }
+    }
+
     pub fn run(&mut self, mut transmitter: Box<dyn Transmitter>) {
         info!("Scheduler started.");
 
@@ -44,10 +74,12 @@ impl Scheduler {
             while self.queue.is_empty() {
                 info!("Queue Empty, waiting for events.");
                 self.process_next_event();
+                if self.stop { return; }
             }
 
             info!("Queue not empty, waiting for next Timeslot.");
             self.wait_for_next_timeslot();
+            if self.stop { return; }
 
             info!("Available time budget: {}", self.budget);
             let message = self.queue.dequeue().unwrap();
@@ -60,6 +92,12 @@ impl Scheduler {
             transmitter.send(&mut *message.generator(self));
             telemetry!(onair: false);
         }
+    }
+
+    pub fn test(&mut self, mut transmitter: Box<dyn Transmitter>) {
+        telemetry!(onair: true);
+        transmitter.send(&mut TestGenerator::new(1125));
+        telemetry!(onair: false);
     }
 
     fn wait_for_next_timeslot(&mut self) {
@@ -82,6 +120,8 @@ impl Scheduler {
                 Some(event) => self.process_event(event),
                 None => return,
             }
+
+            if self.stop { return; }
         }
     }
 
@@ -103,6 +143,24 @@ impl Scheduler {
             Event::TimeslotsUpdate(slots) => {
                 self.slots = slots;
                 telemetry!(timeslots: slots);
+            }
+            Event::ConfigUpdate(config) => {
+                self.config = config;
+                self.stop = true;
+                self.restart = true;
+            }
+            Event::Test => {
+                self.test = true;
+                self.stop = true;
+                self.restart = true;
+            }
+            Event::Restart => {
+                self.stop = true;
+                self.restart = true;
+            }
+            Event::Shutdown => {
+                self.stop = true;
+                self.restart = false;
             }
             _ => {}
         }
@@ -135,7 +193,11 @@ impl MessageProvider for Scheduler {
                 Ok(event) => {
                     self.process_event(event);
                 }
-                Err(_) => {
+                Err(TryRecvError::Disconnected) => {
+                    self.stop = true;
+                    return None;
+                }
+                Err(TryRecvError::Empty) => {
                     break;
                 }
             };

@@ -3,8 +3,9 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use std::net::SocketAddr;
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, TcpStream};
 use tokio::runtime::Runtime;
+use tokio;
 use serde_json;
 use futures;
 use tungstenite::protocol::Message;
@@ -15,6 +16,8 @@ use crate::config;
 use crate::event::{self, Event, EventHandler};
 use crate::telemetry;
 use crate::timeslots::TimeSlot;
+
+type PeerMap = Arc<Mutex<HashMap<SocketAddr, UnboundedSender<Response>>>>;
 
 struct Connection {
     tx: UnboundedSender<Response>,
@@ -77,16 +80,58 @@ impl Connection {
             }
             Request::Test => {
                 info!("Initiating test procedure...");
-                /*
-                restart = true;
-                test = true;
-                stop_conn.send(()).ok();
-                scheduler.stop();
-                */
-            }
+                self.event_handler.publish(Event::Test);
+            },
+            Request::Restart => {
+                self.event_handler.publish(Event::Restart);
+            },
+            Request::Shutdown => {
+                self.event_handler.publish(Event::Shutdown);
+            },
             Request::Authenticate(_) => {}
         }
     }
+}
+
+async fn handle_connection(connections: PeerMap, pass: Option<String>, event_handler: EventHandler, stream: TcpStream) {
+    let addr = stream.peer_addr().unwrap();
+
+    let ws_stream = tokio_tungstenite::accept_async(stream).await.unwrap();
+
+    let (tx, rx) = futures::channel::mpsc::unbounded();
+    let (sink, stream) = ws_stream.split();
+
+    let mut connection = Connection {
+        tx: tx.clone(),
+        password: pass.to_owned(),
+        auth: false,
+        event_handler: event_handler
+    };
+
+    connections.lock().unwrap().insert(addr, tx);
+
+    let ws_reader = stream.try_for_each(|msg| {
+        msg.to_text()
+            .ok()
+            .and_then(|str| serde_json::from_str(&str).ok())
+            .map(|req| connection.handle(&req))
+            .or_else(|| {
+                warn!(
+                    "Received unreadable websocket request."
+                );
+                None
+            });
+
+        futures::future::ok(())
+    });
+
+    let ws_writer = rx.map(|msg| {
+        let data = serde_json::to_string(&msg).unwrap();
+        Ok(Message::text(data))
+    }).forward(sink);
+
+    futures::future::select(ws_reader, ws_writer).await;
+    connections.lock().unwrap().remove(&addr);
 }
 
 pub fn start(runtime: &Runtime, pass: Option<String>, event_handler: EventHandler) {
@@ -96,7 +141,7 @@ pub fn start(runtime: &Runtime, pass: Option<String>, event_handler: EventHandle
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 8055));
 
-    let connections: Arc<Mutex<HashMap<SocketAddr, UnboundedSender<Response>>>> = Arc::new(Mutex::new(HashMap::new()));
+    let connections: PeerMap = Arc::new(Mutex::new(HashMap::new()));
     let connections_rx = connections.clone();
 
     runtime.spawn(async move {
@@ -133,49 +178,11 @@ pub fn start(runtime: &Runtime, pass: Option<String>, event_handler: EventHandle
     runtime.spawn(async move {
         let mut socket = TcpListener::bind(&addr).await.unwrap();
 
-        while let Ok ((stream, _))  = socket.accept().await {
-            info!("New websocket connection!");
-            let addr = stream.peer_addr().unwrap();
-            let connections_inner = connections.clone();
-            let pass = pass.to_owned();
-            let event_handler = event_handler.clone();
-
-            let ws_stream = tokio_tungstenite::accept_async(stream).await.unwrap();
-
-            let (tx, rx) = futures::channel::mpsc::unbounded();
-            let (sink, stream) = ws_stream.split();
-
-            let mut connection = Connection {
-                tx: tx.clone(),
-                password: pass.to_owned(),
-                auth: false,
-                event_handler: event_handler
-            };
-
-            connections_inner.lock().unwrap().insert(addr, tx);
-
-            let ws_reader = stream.try_for_each(|msg| {
-                msg.to_text()
-                    .ok()
-                    .and_then(|str| serde_json::from_str(&str).ok())
-                    .map(|req| connection.handle(&req))
-                    .or_else(|| {
-                        warn!(
-                            "Received unreadable websocket request."
-                        );
-                        None
-                    });
-
-                futures::future::ok(())
-            });
-
-            let ws_writer = rx.map(|msg| {
-                let data = serde_json::to_string(&msg).unwrap();
-                Ok(Message::text(data))
-            }).forward(sink);
-
-            futures::future::select(ws_reader, ws_writer).await;
-            connections_inner.lock().unwrap().remove(&addr);
+        while let Ok ((stream, _)) = socket.accept().await {
+            tokio::spawn(
+                handle_connection(connections.clone(), pass.to_owned(),
+                                  event_handler.clone(), stream)
+            );
         }
 
         info!("Shutting down websocket server!");
