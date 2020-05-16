@@ -13,6 +13,7 @@ pub enum Ptt {
         port: Box<dyn serial::SerialPort>,
         inverted: bool
     },
+    #[cfg(hid_ptt)]
     HidRaw {
         device: Box<hidapi::HidDevice>,
         gpio: u8,
@@ -54,6 +55,7 @@ impl Ptt {
                 }
             }
 
+            #[cfg(hid_ptt)]
             PttMethod::HidRaw => {
                 let api = hidapi::HidApi::new().expect(
                     "Unable to initialize HID API"
@@ -140,6 +142,7 @@ impl Ptt {
                     "Error setting RTS pin"
                 );
             }
+            #[cfg(hid_ptt)]
             Ptt::HidRaw {
                 ref mut device,
                 gpio,

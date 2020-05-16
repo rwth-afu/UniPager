@@ -1,6 +1,7 @@
 extern crate serial;
 extern crate raspi;
 extern crate serde;
+#[cfg(hid_ptt)]
 extern crate hidapi;
 #[macro_use]
 extern crate serde_derive;

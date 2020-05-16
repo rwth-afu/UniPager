@@ -4,6 +4,10 @@ version = "2.0.0-alpha"
 authors = ["Thomas Gatzweiler <mail@thomasgatzweiler.com>"]
 edition = "2018"
 
+[features]
+default = []
+ptt_hid = ["hidapi"]
+
 [dependencies]
 bytes = "^0.5"
 serial = "^0.4"
@@ -41,9 +45,10 @@ default-features = false
 path = "lib/raspi"
 
 [dependencies.hidapi]
-version = "0.5.0"
+version = "1.2.1"
 default-features = false
-features = ["linux-static-hidraw"] # linux-shared-hidraw will not build
+features = ["linux-shared-hidraw"]
+optional = true
 
 [dependencies.chrono]
 version = "^0.4"

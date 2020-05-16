@@ -102,6 +102,7 @@ pub enum PttMethod {
     Gpio,
     SerialDtr,
     SerialRts,
+    #[cfg(hid_ptt)]
     HidRaw
 }
 
@@ -112,7 +113,9 @@ pub struct PttConfig {
     pub inverted: bool,
     pub gpio_pin: usize,
     pub serial_port: String,
+    #[cfg(hid_ptt)]
     pub hidraw_device: String,
+    #[cfg(hid_ptt)]
     pub hidraw_gpio_pin: usize,
 }
 
@@ -123,7 +126,9 @@ impl Default for PttConfig {
             inverted: false,
             gpio_pin: 0,
             serial_port: String::from("/dev/ttyS0"),
+            #[cfg(hid_ptt)]
             hidraw_device: String::from("/dev/hidraw0"),
+            #[cfg(hid_ptt)]
             hidraw_gpio_pin: 3,
         }
     }
