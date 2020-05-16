@@ -6,7 +6,7 @@ use crate::telemetry;
 // The number of priorities defines how many seperate queues are beeing used for
 // the different priorities. This should match the number of priorities defined
 // for the network UniPager is connecting to.
-pub const NUM_PRIORITIES: usize = 10;
+pub const NUM_PRIORITIES: usize = 5;
 
 // The queue. This is a priority queue. It contains subqueues for each priority.
 // From the outside it looks just like a normal queue.
@@ -25,7 +25,7 @@ impl Queue {
 
     pub fn enqueue(&mut self, message: Message) {
         self.queues
-            .get_mut(message.priority)
+            .get_mut(message.priority - 1)
             .map(|queue| { queue.push_back(message); })
             .or_else(|| {
                 error!("Tried to enqueue message for out of range priority.");
@@ -43,13 +43,12 @@ impl Queue {
         None
     }
 
+    pub fn len(&self) -> usize {
+        self.queues.iter().map(&VecDeque::len).sum()
+    }
+
     pub fn is_empty(&self) -> bool {
-        for queue in self.queues.iter().rev() {
-            if !queue.is_empty() {
-                return false;
-            }
-        }
-        return true;
+        !self.queues.iter().any(|queue| !queue.is_empty())
     }
 
     pub fn telemetry_update(&self, messages: &mut telemetry::Messages) {
