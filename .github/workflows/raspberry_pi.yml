@@ -18,6 +18,7 @@ jobs:
         sudo bash -c 'echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports xenial main universe restricted multiverse" >> /etc/apt/sources.list'
         sudo bash -c 'echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports xenial-updates main universe restricted multiverse" >> /etc/apt/sources.list'
         sudo apt-get update
+        sudo apt-get upgrade
         sudo apt-get -y install libudev-dev libudev-dev:armhf libudev-dev:i386 libusb-1.0-0-dev libusb-1.0-0-dev:armhf libusb-1.0-0-dev:i386
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
