@@ -10,16 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Install dependencies
-      run: |
-        sudo dpkg --add-architecture i386
-        sudo dpkg --add-architecture armhf
-        sudo sed -i 's/^deb http/deb [arch=i386,amd64] http/' /etc/apt/sources.list
-        sudo bash -c 'echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports xenial main universe restricted multiverse" >> /etc/apt/sources.list'
-        sudo bash -c 'echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports xenial-updates main universe restricted multiverse" >> /etc/apt/sources.list'
-        sudo apt-get update
-        sudo apt-get upgrade
-        sudo apt-get -y install libudev-dev libudev-dev:armhf libudev-dev:i386 libusb-1.0-0-dev libusb-1.0-0-dev:armhf libusb-1.0-0-dev:i386
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
       with:
@@ -31,8 +21,3 @@ jobs:
         use-cross: true
         command: build
         args: --release --target armv7-unknown-linux-gnueabihf
-      env:
-        PKG_CONFIG_DIR: ""
-        PKG_CONFIG_LIBDIR: /build/root/usr/lib/pkgconfig:/build/root/usr/share/pkgconfig
-        PKG_CONFIG_SYSROOT_DIR: /build/root
-        PKG_CONFIG_ALLOW_CROSS: 1
