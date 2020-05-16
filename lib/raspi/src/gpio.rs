@@ -56,7 +56,7 @@ impl Gpio {
         })
     }
 
-    pub fn pin(&self, number: usize, direction: Direction) -> Box<Pin> {
+    pub fn pin(&self, number: usize, direction: Direction) -> Box<dyn Pin> {
         match self {
             &Gpio::MemGpio { ref base, ref pin_mapping } => {
                 let number = pin_mapping.as_ref().and_then(|mapping| {

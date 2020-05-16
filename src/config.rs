@@ -2,20 +2,19 @@ use serde_json;
 use std::fmt;
 use std::fs::File;
 use std::io::{Read, Write};
+use std::sync::RwLock;
 
 const CONFIG_FILE: &'static str = "config.json";
 
+lazy_static! {
+    pub static ref CONFIG: RwLock<Config> = RwLock::new(Config::load());
+}
+
 fn default_fallback_servers() -> Vec<(String, u16)> {
     [
-        ("funkruf.db0del.db0sda.ampr.org", 43434),
-        ("dapnet.db0fa.ampr.org", 43434),
-        ("pocsag2.db0nms.ampr.org", 43434),
-        ("dapnet.db0sda.ampr.org", 43434),
-        ("dapnet.db0vvs.ampr.org", 43434),
-        ("dapnet.di0han.ampr.org", 43434),
-        ("on3dhc.db0sda.ampr.org", 43434),
-        ("dapnet.afu.rwth-aachen.de", 43434),
-        ("db0dbn.ig-funk-siebengebirge.de", 43434)
+        ("dapnetdc1.db0sda.ampr.org", 5672),
+        ("dapnetdc2.db0sda.ampr.org", 5672),
+        ("dapnetdc3.db0sda.ampr.org", 5672)
     ]
         .iter()
         .map(|&(ref host, port)| (host.to_string(), port))
@@ -143,8 +142,8 @@ pub struct MasterConfig {
 impl Default for MasterConfig {
     fn default() -> MasterConfig {
         MasterConfig {
-            server: String::from("dapnet.afu.rwth-aachen.de"),
-            port: 43434,
+            server: String::from("dapnetdc2.db0sda.ampr.org"),
+            port: 80,
             call: String::from(""),
             auth: String::from(""),
             fallback: default_fallback_servers()
@@ -192,6 +191,16 @@ pub struct Config {
     pub c9000: C9000Config,
     pub audio: AudioConfig,
     pub rfm69: RFM69Config
+}
+
+pub fn get() -> Config {
+    CONFIG.read().unwrap().clone()
+}
+
+pub fn set(new_config: &Config) {
+    let mut config = CONFIG.write().unwrap();
+    *config = new_config.clone();
+    config.save();
 }
 
 impl Config {

@@ -12,35 +12,35 @@ pub use self::ptt::Ptt;
 pub use self::raspager::RaspagerTransmitter;
 pub use self::rfm69::RFM69Transmitter;
 
-use config::{self, Config};
+use crate::config::{self, Config};
 
 pub trait Transmitter {
-    fn send(&mut self, &mut Iterator<Item = u32>);
+    fn send(&mut self, it: &mut dyn Iterator<Item = u32>);
 }
 
-pub fn from_config(config: &Config) -> Box<Transmitter> {
+pub fn from_config(config: &Config) -> Box<dyn Transmitter> {
     match config.transmitter {
         config::Transmitter::Dummy => {
-            Box::new(DummyTransmitter::new(config)) as Box<Transmitter>
+            Box::new(DummyTransmitter::new(config)) as Box<dyn Transmitter>
         }
         config::Transmitter::Audio => {
-            Box::new(AudioTransmitter::new(config)) as Box<Transmitter>
+            Box::new(AudioTransmitter::new(config)) as Box<dyn Transmitter>
         }
         config::Transmitter::Raspager => {
             Box::new(
                 RaspagerTransmitter::new(config, raspager::pins::RASPAGER1_PINS)
-            ) as Box<Transmitter>
+            ) as Box<dyn Transmitter>
         }
         config::Transmitter::Raspager2 => {
             Box::new(
                 RaspagerTransmitter::new(config, raspager::pins::RASPAGER2_PINS)
-            ) as Box<Transmitter>
+            ) as Box<dyn Transmitter>
         }
         config::Transmitter::C9000 => {
-            Box::new(C9000Transmitter::new(config)) as Box<Transmitter>
+            Box::new(C9000Transmitter::new(config)) as Box<dyn Transmitter>
         }
         config::Transmitter::RFM69 => {
-            Box::new(RFM69Transmitter::new(config)) as Box<Transmitter>
+            Box::new(RFM69Transmitter::new(config)) as Box<dyn Transmitter>
         }
     }
 }

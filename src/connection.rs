@@ -1,270 +1,251 @@
-use std::io::{self, BufRead, BufReader, BufWriter, Result, Write};
-use std::net::{Shutdown, TcpStream, ToSocketAddrs};
-use std::str::FromStr;
-use std::sync::mpsc::{Sender, channel};
-use std::thread::{self, JoinHandle};
-use std::time::{Duration};
+use std::time::Duration;
 
-use config::Config;
-use pocsag::{Message, MessageFunc, MessageSpeed, MessageType};
-use pocsag::{Scheduler, TimeSlots};
+use lapin::{self, message::Delivery, options::*, types::FieldTable,
+            BasicProperties, Connection, ConnectionProperties, Channel};
+use futures::{future::FutureExt, stream::StreamExt, select, pin_mut};
+use futures_timer::Delay;
+use tokio::{self, runtime::Runtime};
+use tokio_amqp::*;
+use serde_json;
 
-pub struct Connection {
-    stream: TcpStream,
-    reader: BufReader<TcpStream>,
-    writer: BufWriter<TcpStream>,
-    call: String,
-    auth: String,
-    id: String,
-    scheduler: Scheduler
+use crate::config::Config;
+use crate::core;
+use crate::event::{self, Event, EventHandler, EventReceiver};
+use crate::message::Message;
+use crate::telemetry;
+use crate::timeslots::TimeSlots;
+
+struct CoreConnection {
+    config: Config,
+    event_handler: EventHandler,
+    event_receiver: EventReceiver,
+    routing_key: String,
+    telemetry_routing_key: String,
+    restart: bool
 }
 
-#[allow(dead_code)]
-enum AckStatus {
-    Success,
-    Error,
-    Retry,
-    Nothing
-}
+impl CoreConnection {
+    pub fn new(config: Config, event_handler: EventHandler) -> CoreConnection {
+        let (tx, rx) = event::channel();
+        event_handler.publish(Event::RegisterConnection(tx));
 
-impl Connection {
-    pub fn new(host: &String, port: u16, config: &Config, scheduler: Scheduler)
-               -> Result<Connection> {
-        if config.master.call.len() == 0 {
-            error!("No callsign configured.");
-            Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "No callsign configured"
-            ))
-        } else if config.master.auth.len() == 0 {
-            error!("No auth key configured.");
-            Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "No auth key configured"
-            ))
-        } else {
-            info!("Connection to {}:{}...", host, port);
-
-            let addr = (&**host, port).to_socket_addrs()?
-                .next().ok_or(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "Cannot resolve hostname"
-                ))?;
-
-            let stream = TcpStream::connect_timeout(&addr, Duration::from_millis(10000))?;
-            stream.set_write_timeout(Some(Duration::from_millis(10000)))?;
-            stream.set_read_timeout(Some(Duration::from_millis(125000)))?;
-
-            Ok(Connection {
-                reader: BufReader::new(stream.try_clone()?),
-                writer: BufWriter::new(stream.try_clone()?),
-                stream: stream,
-                scheduler: scheduler,
-                call: config.master.call.to_owned(),
-                auth: config.master.auth.to_owned(),
-                id: config.transmitter.to_string()
-            })
+        CoreConnection {
+            config: config,
+            event_handler: event_handler,
+            event_receiver: rx,
+            routing_key: "".to_owned(),
+            telemetry_routing_key: "".to_owned(),
+            restart: true
         }
     }
 
-    pub fn start(config: Config, scheduler: Scheduler)
-        -> (Sender<()>, JoinHandle<()>) {
-        let (stop_tx, stop_rx) = channel();
+    pub async fn start(&mut self) {
+        loop {
+            self.handle_events(None, None).await;
 
-        let handle = thread::spawn(move || {
-            let mut reconnect = true;
-            let mut try_fallback = false;
-            let mut fallback = config.master.fallback.iter().cycle();
+            if let Ok(response) = core::bootstrap(&self.config).await {
+                info!("Bootstrap successful. Found {} nodes.", response.nodes.len());
 
-            while reconnect {
-                let (ref host, port) = if try_fallback {
-                    warn!("Connecting to next fallback server...");
-                    if let Some(&(ref host, port)) = fallback.next() {
-                        (host, port)
-                    }
-                    else {
-                        error!("No fallback servers defined.");
-                        (&config.master.server, config.master.port)
-                    }
-                }
-                else {
-                    (&config.master.server, config.master.port)
-                };
+                let timeslots = TimeSlots::from_vec(response.timeslots);
+                self.event_handler.publish(Event::TimeslotsUpdate(timeslots));
 
-                let connection = Connection::new(&host, port, &config, scheduler.clone());
+                info!("Timeslots updated: {:?}", timeslots);
 
-                let delay = if let Ok(mut connection) = connection {
-                    info!("Connection established.");
-                    status!(connected: true, master: Some(host.to_string()));
-                    try_fallback = false;
-
-                    let stream = connection.stream.try_clone().unwrap();
-
-                    let (stopped_tx, stopped_rx) = channel();
-                    let handle = thread::spawn(move || {
-                        connection.run().ok();
-                        stopped_tx.send(()).unwrap();
-                    });
-
-                    select! {
-                        _ = stopped_rx.recv() => reconnect = true,
-                        _ = stop_rx.recv() => reconnect = false
-                    }
-
-                    stream.shutdown(Shutdown::Both).ok();
-                    handle.join().unwrap();
-
-                    status!(connected: false, master: None::<String>);
-                    warn!("Disconnected from master.");
-
-                    Duration::from_millis(2500)
-                } else {
-                    status!(connected: false, master: None::<String>);
-                    error!("Connection failed.");
-
-                    try_fallback = !try_fallback;
-
-                    Duration::from_millis(5000)
-                };
-
-                if reconnect {
-                    if let Ok(()) = stop_rx.recv_timeout(delay) {
-                        reconnect = false;
-                    }
-                }
+                self.run().await;
+                warn!("RabbitMQ Connection lost.");
             }
+            else {
+                error!(
+                    "Bootstrap connection failed. Retrying in 10 Seconds..."
+                );
+                Delay::new(Duration::from_secs(10)).await;
+            }
+        }
+    }
+
+    async fn run(&mut self) -> Result<(), lapin::Error> {
+        info!("Starting RabbitMQ connection.");
+        let call = self.config.master.call.to_owned().to_ascii_lowercase();
+        let user = format!("tx-{}", &call).to_owned();
+
+        self.routing_key = call.to_owned();
+        self.telemetry_routing_key = format!("transmitter.{}", call).to_owned();
+        let auth_key = self.config.master.auth.to_owned();
+
+        let host = &self.config.master.server;
+        let port = 5672;
+
+        let addr = format!("amqp://{}:{}@{}:{}/%2f", user, auth_key, &**host, port);
+
+        telemetry_update!(node: &|node: &mut telemetry::Node| {
+            *node = telemetry::Node {
+                name: host.to_owned(),
+                port: port,
+                connected: false,
+                connected_since: None
+            };
         });
 
-        (stop_tx, handle)
-    }
+        info!("Connecting to {}:{}...", host, port);
 
-    pub fn run(&mut self) -> Result<()> {
-        let version = env!("CARGO_PKG_VERSION");
-        let id = format!(
-            "[UniPager-{} v{} {} {}]",
-            self.id,
-            version,
-            self.call,
-            self.auth
-        );
+        let conn = Connection::connect(
+            &addr,
+            ConnectionProperties::default().with_tokio()
+        ).await?;
 
-        self.send(&*id)?;
+        let channel = conn.create_channel().await?;
 
-        let mut buffer = String::new();
+        let queue = channel
+            .queue_declare(
+                &call,
+                QueueDeclareOptions::default(),
+                FieldTable::default()
+            )
+            .await?;
 
-        while self.reader.read_line(&mut buffer)? > 0 {
-            self.handle(&*buffer)?;
-            buffer.clear();
-        }
+        channel
+            .queue_bind(
+                &*queue.name().to_string(),
+                "dapnet.local_calls",
+                &*self.routing_key,
+                QueueBindOptions::default(),
+                FieldTable::default()
+            )
+            .await?;
 
-        Ok(())
-    }
+        let mut consumer = channel
+            .basic_consume(
+                &*queue.name().to_string(),
+                "consumer",
+                BasicConsumeOptions::default(),
+                FieldTable::default()
+            )
+            .await?;
 
-    fn send(&mut self, data: &str) -> Result<()> {
-        debug!("Response: {}", data);
-        self.writer.write_all(data.as_bytes())?;
-        self.writer.write_all(b"\r\n")?;
-        self.writer.flush()?;
-        Ok(())
-    }
+        info!("Connected to RabbitMQ. Listening for incoming calls.");
 
-    fn ack(&mut self, status: AckStatus) -> Result<()> {
-        let response = match status {
-            AckStatus::Success => b"+\r\n",
-            AckStatus::Error => b"-\r\n",
-            AckStatus::Retry => b"%\r\n",
-            AckStatus::Nothing => return Ok(()),
-        };
-        self.writer.write_all(response)?;
-        self.writer.flush()?;
-        Ok(())
-    }
+        telemetry_update!(node: &|node: &mut telemetry::Node| {
+            node.connected = true;
+            node.connected_since = Some(::chrono::Utc::now());
+        });
 
-    fn handle(&mut self, data: &str) -> Result<()> {
-        let data = data.trim();
-        debug!("Received data: {}", data);
+        loop {
+            let next_delivery = consumer.next().fuse();
+            let next_event = self.event_receiver.next().fuse();
 
-        if data.len() < 1 {
-            return Ok(());
-        }
+            pin_mut!(next_delivery, next_event);
 
-        let status = match &data[0..1] {
-            "#" => self.handle_message(data),
-            "2" => self.handle_ident(data),
-            "3" => Ok(AckStatus::Success),
-            "4" => self.handle_timeslots(data),
-            "7" => self.handle_failedlogin(data),
-            other => {
-                error!(
-                    "Unknown message received from server (type: {})",
-                    other
-                );
-                Ok(AckStatus::Error)
+            select! {
+                delivery = next_delivery => {
+                    if let Some(Ok(delivery)) = delivery {
+                        self.handle_delivery(delivery, &*channel).await?;
+                    }
+                    else {
+                        break;
+                    }
+                },
+                event = next_event => {
+                    if let Some(event) = event {
+                        self.handle_event(event, Some(&*conn), Some(&*channel)).await?;
+                    }
+                    else {
+                        break;
+                    }
+                },
+                complete => {
+                    break;
+                }
             }
-        };
+        }
 
-        if let Ok(status) = status {
-            self.ack(status)?;
+        telemetry_update!(node: &|node: &mut telemetry::Node| {
+            node.connected = false;
+            node.connected_since = None;
+        });
+
+        Ok(())
+    }
+
+    async fn handle_delivery(&mut self, delivery: Delivery, channel: &Channel) -> Result<(), lapin::Error> {
+        let msg: Option<Message> = ::std::str::from_utf8(&delivery.data)
+            .ok()
+            .and_then(|str| serde_json::from_str(&str).ok());
+
+        if let Some(msg) = msg {
+            info!("Message received: {:?}", msg);
+            self.event_handler.publish(Event::MessageReceived(msg));
+        }
+        else {
+            warn!("Could not decode incoming message");
+        }
+
+        channel
+            .basic_ack(
+                delivery.delivery_tag,
+                BasicAckOptions::default()
+            )
+            .map(|_| ())
+            .await;
+
+        Ok(())
+    }
+
+    async fn handle_events(&mut self, conn: Option<&Connection>, channel: Option<&Channel>) -> Result<(), lapin::Error> {
+        while let Ok(Some(event)) = self.event_receiver.try_next() {
+            self.handle_event(event, conn, channel).await?;
         }
         Ok(())
     }
 
-    fn handle_message(&mut self, data: &str) -> Result<AckStatus> {
-        let mut parts = data.split(':').peekable();
-
-        let msg_id = parts.peek().and_then(
-            |s| u8::from_str_radix(&s[1..3], 16).ok()
-        );
-        let msg_type = parts.next().and_then(
-            |s| MessageType::from_str(&s[4..5]).ok()
-        );
-        let msg_speed =
-            parts.next().and_then(|s| MessageSpeed::from_str(s).ok());
-        let msg_addr =
-            parts.next().and_then(|s| u32::from_str_radix(s, 16).ok());
-        let msg_func = parts.next().and_then(|s| MessageFunc::from_str(s).ok());
-        let msg_data: String = parts.collect::<Vec<&str>>().join(":");
-
-        if msg_id.is_some() && msg_type.is_some() && msg_addr.is_some() &&
-            msg_func.is_some()
-        {
-            let msg = Message {
-                id: msg_id.unwrap(),
-                mtype: msg_type.unwrap(),
-                speed: msg_speed.unwrap_or(MessageSpeed::Baud(1200)),
-                addr: msg_addr.unwrap(),
-                func: msg_func.unwrap(),
-                data: msg_data
-            };
-
-            let next_id = (msg.id as u16 + 1) % 256;
-            self.scheduler.message(msg);
-            self.send(&*format!("#{:02x} +", next_id))?;
-            Ok(AckStatus::Nothing)
-        } else {
-            error!("Malformed message received: {}", data);
-            Ok(AckStatus::Error)
-        }
+    async fn handle_event(&mut self, event: Event, conn: Option<&Connection>, channel: Option<&Channel>) -> Result<(), lapin::Error> {
+        match event {
+            Event::TelemetryUpdate(telemetry) => {
+                if let Some(channel) = channel {
+                    self.send_telemetry(channel, serde_json::to_vec(&telemetry).unwrap()).await?;
+                }
+            }
+            Event::TelemetryPartialUpdate(telemetry) => {
+                if let Some(channel) = channel {
+                    self.send_telemetry(channel, serde_json::to_vec(&telemetry).unwrap()).await?;
+                }
+            }
+            Event::ConfigUpdate(new_config) => {
+                self.restart = true;
+                self.config = new_config;
+                if let Some(conn) = conn {
+                    conn.close(0, "reconfig").await?;
+                }
+            }
+            Event::Restart => {
+                self.restart = true;
+                if let Some(conn) = conn {
+                    conn.close(0, "restart").await?;
+                }
+            }
+            Event::Shutdown => {
+                self.restart = false;
+                if let Some(conn) = conn {
+                    conn.close(0, "shutdown").await?;
+                }
+            }
+            _ => {}
+        };
+        Ok(())
     }
 
-    fn handle_ident(&mut self, data: &str) -> Result<AckStatus> {
-        let ident = data.split(':').nth(1).unwrap_or("");
-        self.send(&*format!("2:{}:{:04x}", ident, 0))?;
-        Ok(AckStatus::Success)
+    async fn send_telemetry(&self, channel: &Channel, data: Vec<u8>) -> Result<(), lapin::Error> {
+        channel
+            .basic_publish(
+                "dapnet.telemetry",
+                &*self.telemetry_routing_key,
+                BasicPublishOptions::default(),
+                data,
+                BasicProperties::default()
+            ).map(|_| Ok(())).await
     }
+}
 
-    fn handle_timeslots(&mut self, data: &str) -> Result<AckStatus> {
-        if let Some(slots) = data.split(':').nth(1) {
-            let time_slots = TimeSlots::from_str(slots).unwrap();
-            self.scheduler.set_time_slots(time_slots);
-            Ok(AckStatus::Success)
-        } else {
-            Ok(AckStatus::Error)
-        }
-    }
-
-    fn handle_failedlogin(&mut self, data: &str) -> Result<AckStatus> {
-        error!("Transmitter login failed. Reason: {}", &data[2..]);
-        Ok(AckStatus::Error)
-    }
+pub fn start(runtime: &Runtime, config: &Config, event_handler: EventHandler) {
+    let mut conn = CoreConnection::new(config.clone(), event_handler.clone());
+    runtime.spawn(async move { conn.start().await; });
 }

@@ -1,16 +1,16 @@
-use config::{PttConfig, PttMethod};
+use crate::config::{PttConfig, PttMethod};
 use raspi::{Direction, Gpio, Model, Pin};
 use serial;
 use std::ffi::CString;
 
 pub enum Ptt {
-    Gpio { pin: Box<Pin>, inverted: bool },
+    Gpio { pin: Box<dyn Pin>, inverted: bool },
     SerialDtr {
-        port: Box<serial::SerialPort>,
+        port: Box<dyn serial::SerialPort>,
         inverted: bool
     },
     SerialRts {
-        port: Box<serial::SerialPort>,
+        port: Box<dyn serial::SerialPort>,
         inverted: bool
     },
     HidRaw {

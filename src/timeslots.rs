@@ -2,6 +2,12 @@ use std::fmt;
 use std::str::FromStr;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use async_std::future;
+use async_std::prelude::*;
+use tokio::runtime::Runtime;
+
+use crate::event::{Event, EventHandler};
+
 // Returns the time in deciseconds since the unix epoch
 fn deciseconds(duration: Duration) -> u64 {
     let seconds = duration.as_secs();
@@ -50,7 +56,8 @@ impl TimeSlot {
         // if the slot is already over use the next block
         if this_slot == current_slot {
             return Duration::new(0, 0);
-        } else if this_slot < current_slot {
+        }
+        else if this_slot < current_slot {
             block_start += 1 << 10;
         }
 
@@ -62,7 +69,8 @@ impl TimeSlot {
 
         let start = Duration::new(seconds, nanoseconds);
 
-        match start.checked_sub(now) {
+        match start.checked_sub(now)
+        {
             Some(duration) => duration,
             None => {
                 error!("TimeSlot calculation broken");
@@ -75,7 +83,8 @@ impl TimeSlot {
                 error!("Start: {:?}", start);
                 if !self.active() {
                     Duration::new(1, 0)
-                } else {
+                }
+                else {
                     Duration::new(0, 0)
                 }
             }
@@ -89,6 +98,12 @@ pub struct TimeSlots([bool; 16]);
 impl TimeSlots {
     pub fn new() -> TimeSlots {
         TimeSlots([false; 16])
+    }
+
+    pub fn from_vec(slots: Vec<bool>) -> TimeSlots {
+        let mut timeslots = [false; 16];
+        timeslots.copy_from_slice(&slots[0..16]);
+        TimeSlots(timeslots)
     }
 
     pub fn is_allowed(&self, slot: TimeSlot) -> bool {
@@ -136,6 +151,12 @@ impl TimeSlots {
     }
 }
 
+impl Default for TimeSlots {
+    fn default() -> TimeSlots {
+        TimeSlots([false; 16])
+    }
+}
+
 impl FromStr for TimeSlots {
     type Err = ();
 
@@ -166,6 +187,18 @@ impl fmt::Debug for TimeSlots {
         }
         write!(f, " }}")
     }
+}
+
+pub fn start(runtime: &Runtime, event_handler: EventHandler) {
+    runtime.spawn(async move {
+        let mut timeslot = TimeSlot::current();
+
+        loop {
+            timeslot = timeslot.next();
+            future::ready(1).delay(timeslot.duration_until()).await;
+            event_handler.publish(Event::Timeslot(timeslot));
+        }
+    });
 }
 
 #[test]

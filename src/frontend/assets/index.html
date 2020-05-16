@@ -258,38 +258,38 @@
             <div class="box-content">
               <div class="form-row">
                 <div class="form-group">
-                  <label for="message-addr">Address</label>
-                  <input type="number" id="message-addr" v-model.number="message.addr"
+                  <label for="message-ric">Address</label>
+                  <input type="number" id="message-ric" v-model.number="message.message.ric"
                     class="u16-number">
                 </div>
                 <div class="form-group">
                   <label for="message-data">Data</label>
-                  <input type="text" id="message-data" v-model="message.data">
+                  <input type="text" id="message-data" v-model="message.message.data">
                 </div>
               </div>
               <div class="form-row">
                 <div class="form-group">
                   <label for="message-speed">Baudrate</label>
-                  <select id="message-speed" v-model="message.speed">
-                    <option v-bind:value="{'Baud': 512}">512</option>
-                    <option v-bind:value="{'Baud': 1200}">1200</option>
-                    <option v-bind:value="{'Baud': 2400}">2400</option>
+                  <select id="message-speed" v-model.number="message.message.speed">
+                    <option>512</option>
+                    <option>1200</option>
+                    <option>2400</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label for="message-mtype">Type</label>
-                  <select id="message-mtype" v-model="message.mtype">
-                    <option>AlphaNum</option>
-                    <option>Numeric</option>
+                  <select id="message-mtype" v-model="message.message.type">
+                    <option value="alphanum">AlphaNum</option>
+                    <option value="numeric">Numeric</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label for="message-func">Function</label>
-                  <select id="message-func" v-model="message.func">
-                    <option value="Func0">0</option>
-                    <option value="Func1">1</option>
-                    <option value="Func2">2</option>
-                    <option value="Func3">3</option>
+                  <select id="message-func" v-model.number="message.message.func">
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
                   </select>
                 </div>
                 <button @click="send_message">Send</button>
@@ -316,27 +316,48 @@
 
           <div class="box">
             <div class="box-header">
-              <h3>Status</h3>
+              <h3>Telemetry</h3>
             </div>
             <div class="box-content">
-              <div class="status" v-bind:class="{ 'on-air': status.transmitting }">
+              <div class="telemetry" v-bind:class="{ 'onair': telemetry.onair }">
                 On Air
               </div>
-              <div class="status" v-bind:class="{ 'connected': status.connected }">
-                {{status.master ? status.master : "No master connection"}}
+              <div class="telemetry" v-bind:class="{ 'connected': telemetry.node.connected }">
+                {{telemetry.node.name ? telemetry.node.name : "No master connection"}}
               </div>
-              <div class="status" v-bind:class="{ 'active': status.queue > 0, 'critical': status.queue > 30 }">
-                Queue: {{status.queue}}
+              <div class="telemetry">
+                <span v-for="(queue, index) in telemetry.messages.queued">
+                  {{queue}}
+                </span>
               </div>
               <div class="timeslots">
-                <span v-for="(timeslot, index) in status.timeslots">
-                  <div class="timeslot" v-bind:class="{ 'enabled': timeslot, 'active': index == status.timeslot}">
+                <span v-for="(slot, index) in telemetry.timeslots">
+                  <div class="timeslot" v-bind:class="{ 'enabled': slot, 'active': index == timeslot}">
                     {{index.toString(16).toUpperCase()}}
                   </div>
                 </span>
               </div>
             </div>
           </div>
+        </div>
+
+        <div id="messages">
+          <table>
+            <tr>
+              <th>Protocol</th>
+              <th>Priority</th>
+              <th>RIC</th>
+              <th>Type</th>
+              <th width="100%">Data</th>
+            </tr>
+            <tr v-for="message in messages">
+              <td>{{message.protocol}}</td>
+              <td>{{message.priority}}</td>
+              <td>{{message.message.ric}}</td>
+              <td>{{message.message.type}}</td>
+              <td>{{message.message.data}}</td>
+            </tr>
+          </table>
         </div>
 
         <div id="log">
@@ -355,7 +376,7 @@
               <b>UniPager {{version}}</b>
             </p>
             <p>
-              &copy; 2017 RWTH Amateurfunkgruppe
+              &copy; 2017-2020 RWTH Amateurfunkgruppe
             </p>
             <p>
               <a href="https://github.com/rwth-afu/UniPager">GitHub</a>

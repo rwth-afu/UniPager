@@ -7,7 +7,7 @@ pub struct Encoding {
 
 fn encode_alphanum(byte: u8) -> u8 {
     match byte {
-        0...127 => byte,
+        0..=127 => byte,
         _ => 0x3F,
     }
 }

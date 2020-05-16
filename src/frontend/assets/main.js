@@ -1,6 +1,7 @@
 var vm = new Vue({
     el: "#app",
     mounted() {
+        console.log("Mounted.");
         this.connect();
     },
     data: {
@@ -15,16 +16,29 @@ var vm = new Vue({
             c9000: {},
             raspager: {}
         },
-        status: {},
+        telemetry: {
+            node: {},
+            config: {},
+            messages: {},
+            timeslots: []
+        },
+        timeslot: 0,
         message: {
-            addr: localStorage ? (parseInt(localStorage.pager_addr) || 0) : 0,
-            data: "",
-            speed: {"Baud": 1200},
-            mtype: "AlphaNum",
-            func: "Func3"
+            id: "test",
+            protocol: "pocsag",
+            priority: 5,
+            origin: "unipager.local",
+            message: {
+                ric: localStorage ? (parseInt(localStorage.ric) || 0) : 0,
+                speed: 1200,
+                type: "alphanum",
+                func: 3,
+                data: ""
+            }
         },
         auth: false,
-        password: null
+        password: localStorage ? (localStorage.password || null) : null,
+        messages: []
     },
     watch: {
         config: {
@@ -42,10 +56,12 @@ var vm = new Vue({
     },
     methods: {
         connect: function(event) {
+            console.log("Connecting to the websocket.");
             this.socket = new WebSocket("ws://" + location.hostname + ":8055");
             this.socket.onopen = this.onopen;
             this.socket.onmessage = this.onmessage;
             this.socket.onclose = this.onclose;
+            this.socket.onerror = this.onerror;
         },
         onopen: function(event) {
             this.connected = true;
@@ -60,9 +76,16 @@ var vm = new Vue({
                     case "Log": this.log_add(value); break;
                     case "Version": this.version = value; break;
                     case "Config": this.config = value; break;
-                    case "Status": this.status = value; break;
-                    case "StatusUpdate": this.status[value[0]] = value[1]; break;
+                    case "Telemetry": this.telemetry = value; break;
+                    case "TelemetryUpdate": {
+                        for (key in value) {
+                            this.telemetry[key] = value[key];
+                        };
+                        break;
+                    }
+                    case "Timeslot": this.timeslot = value; break;
                     case "Authenticated": this.authenticated(value); break;
+                    case "Message": this.message_add(value); break;
                     default: console.log("Unknown Key: ", key);
                 }
             }
@@ -72,8 +95,15 @@ var vm = new Vue({
                 this.log.unshift({msg: "Disconnected from UniPager.", time: new Date()});
             }
             this.connected = false;
-            this.status = {};
+            this.telemetry = {
+                node: {},
+                config: {},
+                messages: {}
+            };
             setTimeout(function() { this.connect(); }.bind(this), 1000);
+        },
+        onerror: function(event) {
+            console.log("Failed to connect to the websocket.");
         },
         send: function(data) {
             this.socket.send(JSON.stringify(data));
@@ -92,11 +122,9 @@ var vm = new Vue({
             this.log.unshift({level: level, msg: msg, time: new Date()});
             this.log = this.log.slice(0, 50);
         },
-        restart: function(event) {
-            this.send("Restart");
-        },
-        shutdown: function(event) {
-            this.send("Shutdown");
+        message_add: function(message) {
+            this.messages.unshift(message);
+            this.messages = this.messages.slice(0, 50);
         },
         save_config: function(event) {
             if (this.config) {
@@ -107,25 +135,35 @@ var vm = new Vue({
             this.send("DefaultConfig");
         },
         send_message: function(event) {
-            localStorage && (localStorage.pager_addr = this.message.addr);
+            localStorage && (localStorage.ric = this.message.message.ric);
             this.send({"SendMessage": this.message});
         },
         test_submission: function(event) {
             this.send("Test");
         },
+        restart: function(event) {
+            this.send("Restart");
+        },
+        shutdown: function(event) {
+            this.send("Shutdown");
+        },
         authenticate: function(event) {
             this.send({"Authenticate": this.password});
+            if (localStorage) {
+                localStorage.password = this.password;
+            }
         },
         authenticated: function(auth) {
+            this.auth = auth;
             if (auth) {
                 this.send("GetVersion");
                 this.send("GetConfig");
-                this.send("GetStatus");
+                this.send("GetTelemetry");
+                this.send("GetTimeslot");
             }
             else {
                 this.password = "";
             }
-            this.auth = auth;
         }
     }
 });
