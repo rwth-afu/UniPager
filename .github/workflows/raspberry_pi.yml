@@ -10,6 +10,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Install cross compiler
+      run: sudo apt-get install gcc-arm-linux-gnueabihf
+    - name: Create cargo config
+      run: |
+      mkdir -p ~/.cargo
+      echo >> ~/.cargo/config
+      echo "[target.armv7-unknown-linux-gnueabihf]" >> ~/.cargo/config
+      echo "linker = \"arm-linux-gnueabihf-gcc\"" >> ~/.cargo/config
     - uses: actions/checkout@v2
     - uses: actions-rs/toolchain@v1
       with:
