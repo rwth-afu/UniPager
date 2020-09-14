@@ -19,6 +19,7 @@ jobs:
         wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb
         sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
         sudo mkdir -p /var/cache/pbuilder/raspbian-buster-armhf/aptcache/
+        debuild -i -us -uc -S
         sudo OS="raspbian" DIST="buster" ARCH="armhf" pbuilder --create
         sudo OS="raspbian" DIST="buster" ARCH="armhf" pbuilder build *.dsc
         ls /var/cache/pbuilder/result/
