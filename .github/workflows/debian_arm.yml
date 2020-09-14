@@ -16,7 +16,7 @@ jobs:
       env:
         PBUILDERSATISFYDEPENDSCMD: "/usr/lib/pbuilder/pbuilder-satisfydepends-apt"
       run: |
-        sudo pbuilder create --distribution squeeze --mirror http://ftp.us.debian.org/debian/ --debootstrapopts "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
+        sudo pbuilder create --distribution buster --mirror http://ftp.us.debian.org/debian/ --debootstrapopts "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
         sudo cowbuilder --create
         sudo pbuilder build *.dsc
         ls /var/cache/pbuilder/result/
