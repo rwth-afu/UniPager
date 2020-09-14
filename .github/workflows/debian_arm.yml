@@ -21,8 +21,8 @@ jobs:
         rm -f raspbian-archive-keyring_20120528.2_all.deb
         debuild -i -us -uc -S --lintian-opts --profile debian
         cd ..
-        mkdir -p /var/cache/pbuilder/build/
-        sudo mount -t tmpfs -o size=2048m tmpfs /var/cache/pbuilder/build/
+        mkdir -p /var/cache/pbuilder/
+        sudo mount -t tmpfs -o size=4096m tmpfs /var/cache/pbuilder/
         sudo OS="raspbian" DIST="buster" ARCH="armhf" pbuilder --create
         sudo OS="raspbian" DIST="buster" ARCH="armhf" pbuilder build *.dsc
         ls /var/cache/pbuilder/result/
