@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install dependencies
-      run:  sudo apt-get devscripts build-essential lintian pbuilder qemu-user-static qemu-system-arm debhelper
+      run:  sudo apt-get install devscripts build-essential lintian pbuilder qemu-user-static qemu-system-arm debhelper
     - name: Build debian package
       env:
         OS: "raspbian"
