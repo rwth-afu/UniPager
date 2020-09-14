@@ -12,16 +12,14 @@ jobs:
     steps:
     - name: Install dependencies
       run:  sudo apt-get install devscripts build-essential lintian pbuilder qemu-user-static qemu-system-arm debhelper
+    - uses: actions/checkout@v2
     - name: Build debian package
       env:
         OS: "raspbian"
         DIST: "buster"
         ARCH: "armhf"
       run: |
-        pwd
-        ls ./
-        ls ../
-        sudo cp UniPager/debian/pbuilderrc /root/.pbuilderrc
+        sudo cp debian/pbuilderrc /root/.pbuilderrc
         wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb
         sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
         sudo mkdir -p /var/cache/pbuilder/raspbian-buster-armhf/aptcache/
