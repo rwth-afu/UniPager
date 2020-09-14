@@ -11,11 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install dependencies
-      run: sudo apt-get install pbuilder debootstrap devscripts debian-archive-keyring qemu-user-static
+      run:  sudo apt-get devscripts build-essential lintian pbuilder qemu-user-static qemu-system-arm debhelper
     - name: Build debian package
+      env:
+        OS: "raspbian"
+        DIST: "buster"
+        ARCH: "armhf"
       run: |
+        sudo cp debian/pbuilderrc /root/.pbuilderrc
         wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb
         sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
-        sudo pbuilder create --architecture armhf --distribution buster --mirror "http://ftp.acc.umu.se/mirror/raspbian/raspbian/" --components "main contrib non-free" --debootstrapopts --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg
-        pdebuild
+        sudo mkdir -p /var/cache/pbuilder/raspbian-buster-armhf/aptcache/
+        sudo pbuilder --create
+        sudo pbuilder build *.dsc
         ls /var/cache/pbuilder/result/
