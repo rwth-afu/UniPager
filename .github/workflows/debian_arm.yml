@@ -19,7 +19,9 @@ jobs:
         ARCH: "armhf"
       run: |
         pwd
-        sudo cp ./debian/pbuilderrc /root/.pbuilderrc
+        ls ./
+        ls ../
+        sudo cp UniPager/debian/pbuilderrc /root/.pbuilderrc
         wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb
         sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
         sudo mkdir -p /var/cache/pbuilder/raspbian-buster-armhf/aptcache/
