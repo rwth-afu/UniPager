@@ -11,12 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install dependencies
-      run: sudo apt-get install pbuilder debootstrap devscripts debian-archive-keyring
+      run: sudo apt-get install pbuilder debootstrap devscripts debian-archive-keyring qemu-user-static
     - name: Build debian package
       env:
-        PBUILDERSATISFYDEPENDSCMD: "/usr/lib/pbuilder/pbuilder-satisfydepends-apt"
+        MIRRORSITE: "http://ftp.acc.umu.se/mirror/raspbian/raspbian/"
+        COMPONENTS: "main contrib non-free"
+        DEBOOTSTRAPOPTS: "--arch armhf --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg"
+        ARCH: "armhf"
+        DIST: "buster"
       run: |
-        sudo pbuilder create --distribution buster --mirror http://ftp.us.debian.org/debian/ --debootstrapopts "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
-        sudo cowbuilder --create
-        sudo pbuilder build *.dsc
+        wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb
+        sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
+        sudo pbuilder create --distribution buster
+        pdebuild
         ls /var/cache/pbuilder/result/
