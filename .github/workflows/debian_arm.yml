@@ -16,6 +16,6 @@ jobs:
       run: |
         wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb
         sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
-        sudo pbuilder create --architecture armhf --distribution buster --mirror "http://ftp.acc.umu.se/mirror/raspbian/raspbian/" --components "main contrib non-free" --debootstrapopts "--arch armhf --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg"  
+        sudo pbuilder create --architecture armhf --distribution buster --mirror "http://ftp.acc.umu.se/mirror/raspbian/raspbian/" --components "main contrib non-free" --debootstrapopts --keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg
         pdebuild
         ls /var/cache/pbuilder/result/
