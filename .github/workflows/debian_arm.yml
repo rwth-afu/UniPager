@@ -22,7 +22,7 @@ jobs:
         debuild -i -us -uc -S --lintian-opts --profile debian
         cd ..
         mkdir -p /var/cache/pbuilder/build/
-        mount -t tmpfs -o size=2048m tmpfs /var/cache/pbuilder/build/
+        sudo mount -t tmpfs -o size=2048m tmpfs /var/cache/pbuilder/build/
         sudo OS="raspbian" DIST="buster" ARCH="armhf" pbuilder --create
         sudo OS="raspbian" DIST="buster" ARCH="armhf" pbuilder build *.dsc
         ls /var/cache/pbuilder/result/
