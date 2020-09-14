@@ -47,3 +47,4 @@ APTCACHE="/var/cache/pbuilder/$NAME/aptcache/"
 BUILDPLACE="/var/cache/pbuilder/build"
 HOOKDIR="/var/cache/pbuilder/hook.d/"
 USENETWORK=yes
+BUILD_HOME=/build
