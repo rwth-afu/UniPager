@@ -18,6 +18,7 @@ jobs:
         cp debian/pbuilderrc /home/runner/.pbuilderrc
         wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb
         sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
+        rm -f raspbian-archive-keyring_20120528.2_all.deb
         sudo mkdir -p /var/cache/pbuilder/raspbian-buster-armhf/aptcache/
         debuild -i -us -uc -S --lintian-opts --profile debian
         cd ..
