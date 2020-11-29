@@ -34,8 +34,8 @@ pub fn start(config: Config, event_handler: EventHandler) {
 impl Scheduler {
     pub fn new(config: Config, rx: Receiver<Event>) -> Scheduler {
         Scheduler {
-            config: config,
-            rx: rx,
+            config,
+            rx,
             slots: TimeSlots::new(),
             queue: Queue::new(),
             budget: 0,

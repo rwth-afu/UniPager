@@ -1,8 +1,9 @@
-use serde_json;
 use std::fmt;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::RwLock;
+
+use serde_json;
 
 const CONFIG_FILE: &'static str = "config.json";
 
@@ -29,7 +30,7 @@ pub struct C9000Config {
     pub baudrate: u32,
     pub dummy_enabled: bool,
     pub dummy_port: String,
-    pub dummy_pa_output_level: u8
+    pub dummy_pa_output_level: u8,
 }
 
 impl Default for C9000Config {
@@ -38,7 +39,7 @@ impl Default for C9000Config {
             baudrate: 38400,
             dummy_enabled: false,
             dummy_port: String::from("/dev/ttyUSB0"),
-            dummy_pa_output_level: 0
+            dummy_pa_output_level: 0,
         }
     }
 }
@@ -58,7 +59,7 @@ impl Default for RaspagerConfig {
             freq: 439987500,
             freq_corr: 0,
             pa_output_level: 63,
-            mod_deviation: default_mod_deviation()
+            mod_deviation: default_mod_deviation(),
         }
     }
 }
@@ -83,7 +84,8 @@ pub struct AudioConfig {
     pub level: u8,
     pub inverted: bool,
     #[serde(default)]
-    pub tx_delay: usize
+    pub tx_delay: usize,
+    pub baudrate: usize,
 }
 
 impl Default for AudioConfig {
@@ -92,7 +94,8 @@ impl Default for AudioConfig {
             device: String::from("default"),
             level: 127,
             inverted: false,
-            tx_delay: 0
+            tx_delay: 0,
+            baudrate: 1200,
         }
     }
 }
@@ -103,7 +106,7 @@ pub enum PttMethod {
     SerialDtr,
     SerialRts,
     #[cfg(hid_ptt)]
-    HidRaw
+    HidRaw,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -141,7 +144,7 @@ pub struct MasterConfig {
     pub port: u16,
     pub call: String,
     pub auth: String,
-    pub fallback: Vec<(String, u16)>
+    pub fallback: Vec<(String, u16)>,
 }
 
 impl Default for MasterConfig {
@@ -151,7 +154,7 @@ impl Default for MasterConfig {
             port: 80,
             call: String::from(""),
             auth: String::from(""),
-            fallback: default_fallback_servers()
+            fallback: default_fallback_servers(),
         }
     }
 }
@@ -163,7 +166,7 @@ pub enum Transmitter {
     C9000,
     Raspager,
     Raspager2,
-    RFM69
+    RFM69,
 }
 
 impl Default for Transmitter {
@@ -195,7 +198,7 @@ pub struct Config {
     pub raspager: RaspagerConfig,
     pub c9000: C9000Config,
     pub audio: AudioConfig,
-    pub rfm69: RFM69Config
+    pub rfm69: RFM69Config,
 }
 
 pub fn get() -> Config {
