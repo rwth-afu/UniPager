@@ -143,6 +143,7 @@ button.red:active { background-color: ##B71C1C; }
     margin: 5px;
     border-radius: 2px;
     box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    max-width: 480px;
 }
 
 .box-header {
