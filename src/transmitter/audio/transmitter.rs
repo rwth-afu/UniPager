@@ -29,7 +29,7 @@ impl AudioTransmitter {
         };
 
         let mut transmitter = AudioTransmitter {
-            device: device,
+            device,
             ptt: Ptt::from_config(&config.ptt),
             inverted: config.audio.inverted,
             level: config.audio.level,
