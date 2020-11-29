@@ -1,3 +1,6 @@
 target
 config.json
 password
+
+# IntelliJ Project Files
+.idea/

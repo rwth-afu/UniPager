@@ -1,36 +1,43 @@
-use crate::config::{PttConfig, PttMethod};
-use raspi::{Direction, Gpio, Model, Pin};
-use serial;
 use std::ffi::CString;
 
+use raspi::{Direction, Gpio, Model, Pin};
+use serial;
+
+use crate::config::{PttConfig, PttMethod};
+
 pub enum Ptt {
-    Gpio { pin: Box<dyn Pin>, inverted: bool },
+    Gpio {
+        pin: Box<dyn Pin>,
+        inverted: bool,
+    },
     SerialDtr {
         port: Box<dyn serial::SerialPort>,
-        inverted: bool
+        inverted: bool,
     },
     SerialRts {
         port: Box<dyn serial::SerialPort>,
-        inverted: bool
+        inverted: bool,
     },
     #[cfg(hid_ptt)]
     HidRaw {
         device: Box<hidapi::HidDevice>,
         gpio: u8,
-        inverted: bool
-    }
+        inverted: bool,
+    },
 }
 
 impl Ptt {
     pub fn from_config(config: &PttConfig) -> Ptt {
         match config.method {
             PttMethod::Gpio => {
-                info!("Detected {}", Model::get());
+                info!(
+                    "Detected hardware model: {} (GPIOs are only supported on correctly matched hardware)",
+                    Model::get());
                 let gpio = Gpio::new().expect("Failed to map GPIO");
 
                 Ptt::Gpio {
                     pin: gpio.pin(config.gpio_pin, Direction::Output),
-                    inverted: config.inverted
+                    inverted: config.inverted,
                 }
             }
             PttMethod::SerialDtr => {
@@ -40,7 +47,7 @@ impl Ptt {
 
                 Ptt::SerialDtr {
                     port: Box::new(port),
-                    inverted: config.inverted
+                    inverted: config.inverted,
                 }
             }
 
@@ -51,7 +58,7 @@ impl Ptt {
 
                 Ptt::SerialRts {
                     port: Box::new(port),
-                    inverted: config.inverted
+                    inverted: config.inverted,
                 }
             }
 
@@ -78,44 +85,46 @@ impl Ptt {
                 let manufacturer = cm108device.get_manufacturer_string().unwrap();
                 match manufacturer {
                     Some(x) => string.push_str(&x.trim()),
-                    None    => string.push_str("n/a"),
+                    None => string.push_str("n/a"),
                 }
                 string.push_str("\", product \"");
                 let product = cm108device.get_product_string().unwrap();
                 match product {
                     Some(x) => string.push_str(&x.trim()),
-                    None    => string.push_str("n/a"),
+                    None => string.push_str("n/a"),
                 }
                 info!("{}\"", string);
 
                 let gpio = config.hidraw_gpio_pin;
-                let mut pin = 0x00;
-                let mut string = "PTT GPIO pin: ".to_string();
+                let pin;
+                const GPIO_PIN_LOG_PREFIX: &str = "Configured PTT GPIO pin: {}";
                 match gpio {
-                    1 =>  {
+                    1 => {
                         pin = 0x01;
-                        string.push_str("1");
+                        info!(GPIO_PIN_LOG_PREFIX, 1);
                     }
                     2 => {
                         pin = 0x02;
-                        string.push_str("2");
+                        info!(GPIO_PIN_LOG_PREFIX, 2);
                     }
                     3 => {
                         pin = 0x04;
-                        string.push_str("3");
+                        info!(GPIO_PIN_LOG_PREFIX, 3);
                     }
                     4 => {
                         pin = 0x08;
-                        string.push_str("4");
+                        info!(GPIO_PIN_LOG_PREFIX, 4);
                     }
-                    _ => error!("Invalid GPIO pin!")
+                    _ => {
+                        pin = 0x00;
+                        error!("Invalid GPIO pin!")
+                    }
                 }
-                info!("{}", string);
 
                 Ptt::HidRaw {
                     device: Box::new(cm108device),
                     gpio: pin,
-                    inverted: config.inverted
+                    inverted: config.inverted,
                 }
             }
         }

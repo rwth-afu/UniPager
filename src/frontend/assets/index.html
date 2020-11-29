@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>UniPager</title>
@@ -39,7 +39,7 @@
                     v-model="config.master.server">
                 </div>
                 <div class="form-group">
-                  <label for="master">Port</label>
+                  <label for="master-port">Port</label>
                   <input type="number" id="master-port"
                     v-model.number="config.master.port" class="u16-number"
                     step="1" min="0" max="65535">
@@ -60,7 +60,7 @@
             </div>
           </div>
 
-          <div class="box" v-if="config.transmitter && config.transmitter.indexOf('Raspager') == 0">
+          <div class="box" v-if="config.transmitter && config.transmitter.indexOf('Raspager') === 0">
             <div class="box-header">
               <h3>Raspager Config</h3>
             </div>
@@ -80,7 +80,7 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label for="raspager-pa-output-Level">PA Output Level</label>
+                  <label for="raspager-pa-output-level">PA Output Level</label>
                   <input type="number" id="raspager-pa-output-level"
                     v-model.number="config.raspager.pa_output_level"
                     step="1" min="0" max="63" class="u8-number">
@@ -94,7 +94,7 @@
               </div>
             </div>
           </div>
-          <div class="box" v-if="config.transmitter == 'C9000'">
+          <div class="box" v-if="config.transmitter === 'C9000'">
             <div class="box-header">
               <h3>Compact9000 Config</h3>
             </div>
@@ -141,7 +141,7 @@
             </div>
           </div>
 
-          <div class="box" v-if="config.transmitter == 'RFM69'">
+          <div class="box" v-if="config.transmitter === 'RFM69'">
             <div class="box-header">
               <h3>RFM69 Config</h3>
             </div>
@@ -156,7 +156,7 @@
             </div>
           </div>
 
-          <div class="box" v-if="config.transmitter == 'Audio'">
+          <div class="box" v-if="config.transmitter === 'Audio'">
             <div class="box-header">
               <h3>Audio Config</h3>
             </div>
@@ -195,7 +195,7 @@
             </div>
           </div>
 
-          <div class="box" v-if="config.transmitter == 'Audio'">
+          <div class="box" v-if="config.transmitter === 'Audio'">
             <div class="box-header">
               <h3>PTT Config</h3>
             </div>
@@ -212,7 +212,7 @@
                 </div>
               </div>
               <div class="form-row">
-                <div class="form-group" v-if="config.ptt.method == 'Gpio'">
+                <div class="form-group" v-if="config.ptt.method === 'Gpio'">
                   <label for="ptt-gpio-pin">
                     GPIO Pin
                     <a href="/pin_numbers.png" target="_blank" class="help"
@@ -223,17 +223,17 @@
                     step="1" min="0" class="u8-number">
                 </div>
 
-                <div class="form-group" v-if="config.ptt.method == 'SerialDtr' || config.ptt.method == 'SerialRts'">
+                <div class="form-group" v-if="config.ptt.method === 'SerialDtr' || config.ptt.method === 'SerialRts'">
                   <label for="ptt-serial-port">Serial Port</label>
                   <input type="text" id="ptt-serial-port"
                     v-model="config.ptt.serial_port">
                 </div>
-                <div class="form-group" v-if="config.ptt.method == 'HidRaw'">
+                <div class="form-group" v-if="config.ptt.method === 'HidRaw'">
                   <label for="ptt-hidraw-device">Hidraw Device</label>
                   <input type="text" id="ptt-hidraw-device"
                     v-model="config.ptt.hidraw_device">
                 </div>
-                <div class="form-group" v-if="config.ptt.method == 'HidRaw'">
+                <div class="form-group" v-if="config.ptt.method === 'HidRaw'">
                   <label for="ptt-hidraw-gpio-pin">
                     GPIO Pin
                   </label>
@@ -332,7 +332,7 @@
               </div>
               <div class="timeslots">
                 <span v-for="(slot, index) in telemetry.timeslots">
-                  <div class="timeslot" v-bind:class="{ 'enabled': slot, 'active': index == timeslot}">
+                  <div class="timeslot" v-bind:class="{ 'enabled': slot, 'active': index === timeslot}">
                     {{index.toString(16).toUpperCase()}}
                   </div>
                 </span>

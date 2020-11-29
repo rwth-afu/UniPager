@@ -15,7 +15,7 @@ enum State {
     Completed
 }
 
-/// POCASG Generator
+/// POCSAG Generator
 ///
 /// Generates 32-bit POCSAG codewords from a Message vector.
 pub struct Generator<'a> {
@@ -37,7 +37,7 @@ impl<'a> Generator<'a> {
         -> Generator<'a> {
         Generator {
             state: State::Preamble,
-            messages: messages,
+            messages,
             message: Some(first_msg),
             codewords: PREAMBLE_LENGTH,
             count: 0

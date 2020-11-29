@@ -79,7 +79,7 @@ select:focus {
 
 .form-group label {
     display: block;
-    padding-left: 2px 0;
+    padding: 2px 0;
     font-size: 0.75rem;
     color: #555;
     align-self: flex-start;
@@ -128,7 +128,7 @@ button.orange:active { background-color: #FF6F00; }
 
 button.red { background-color: #F44336; }
 button.red:hover { background-color: #D32F2F; }
-button.red:active { background-color: ##B71C1C; }
+button.red:active { background-color: #B71C1C; }
 
 #boxes {
     display: flex;
