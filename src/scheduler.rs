@@ -18,7 +18,7 @@ struct Scheduler {
     budget: usize,
     test: bool,
     stop: bool,
-    restart: bool
+    restart: bool,
 }
 
 pub fn start(config: Config, event_handler: EventHandler) {
@@ -41,7 +41,7 @@ impl Scheduler {
             budget: 0,
             test: false,
             stop: false,
-            restart: true
+            restart: true,
         }
     }
 
@@ -51,16 +51,14 @@ impl Scheduler {
             if self.test {
                 self.test(transmitter);
                 self.test = false;
-            }
-            else {
+            } else {
                 self.run(transmitter);
             }
 
             if !self.restart {
                 info!("Shutting down the scheduler...");
                 return;
-            }
-            else {
+            } else {
                 info!("Restarting the scheduler...");
                 self.stop = false;
             }
@@ -77,7 +75,7 @@ impl Scheduler {
                 if self.stop { return; }
             }
 
-            info!("Queue not empty, waiting for next Timeslot.");
+            info!("Queue not empty, waiting for next Timeslot. {} messages waiting.", self.queue.len());
             self.wait_for_next_timeslot();
             if self.stop { return; }
 
@@ -164,7 +162,6 @@ impl Scheduler {
             }
             _ => {}
         }
-
     }
 
     fn recv_event(&mut self) -> Option<Event> {

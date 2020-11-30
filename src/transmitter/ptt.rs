@@ -26,7 +26,8 @@ impl Ptt {
         match config.method {
             PttMethod::Gpio => {
                 info!("Detected {}", Model::get());
-                let gpio = Gpio::new().expect("Failed to map GPIO");
+                let gpio = Gpio::new()
+                    .expect("Failed to map GPIO. Do you have sufficient permissions to access GPIO pins?");
 
                 Ptt::Gpio {
                     pin: gpio.pin(config.gpio_pin, Direction::Output),
@@ -34,9 +35,8 @@ impl Ptt {
                 }
             }
             PttMethod::SerialDtr => {
-                let port = serial::open(&*config.serial_port).expect(
-                    "Unable to open serial port"
-                );
+                let port = serial::open(&*config.serial_port)
+                    .expect("Unable to open serial port");
 
                 Ptt::SerialDtr {
                     port: Box::new(port),
@@ -45,9 +45,8 @@ impl Ptt {
             }
 
             PttMethod::SerialRts => {
-                let port = serial::open(&*config.serial_port).expect(
-                    "Unable to open serial port"
-                );
+                let port = serial::open(&*config.serial_port)
+                    .expect("Unable to open serial port");
 
                 Ptt::SerialRts {
                     port: Box::new(port),
@@ -57,23 +56,23 @@ impl Ptt {
 
             #[cfg(hid_ptt)]
             PttMethod::HidRaw => {
-                let api = hidapi::HidApi::new().expect(
-                    "Unable to initialize HID API"
-                );
+                let api = hidapi::HidApi::new()
+                    .expect("Unable to initialize HID API");
                 info!("Using device {}", &*config.hidraw_device);
                 let path = CString::new(&*config.hidraw_device).unwrap();
                 for device in api.devices() {
                     if device.path == path {
-                        if device.vendor_id == 0x0d8c && (device.product_id == 0x013c || device.product_id == 0x000c) {
+                        if device.vendor_id == 0x0d8c
+                            && (device.product_id == 0x013c || device.product_id == 0x000c) {
                             info!("Found CM108 device {:#06x}/{:#06x}", device.vendor_id, device.product_id);
                         } else {
                             error!("Unsupported device {:#06x}/{:#06x}!", device.vendor_id, device.product_id);
                         }
                     }
                 }
-                let cm108device = api.open_path(&path).expect(
-                    "Unable to open HIDraw device"
-                );
+
+                let cm108device = api.open_path(&path)
+                    .expect("Unable to open HIDraw device");
                 let mut string = "Device data: manufacturer \"".to_string();
                 let manufacturer = cm108device.get_manufacturer_string().unwrap();
                 match manufacturer {

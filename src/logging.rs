@@ -1,5 +1,5 @@
-//use frontend::{Responder, Response};
-use log::{self, Log, Level, LevelFilter, Metadata, Record};
+use log::{self, Level, LevelFilter, Log, Metadata, Record};
+
 use crate::event::{Event, EventHandler};
 
 struct Logger {
@@ -30,8 +30,7 @@ impl Log for Logger {
 }
 
 pub fn init(event_handler: EventHandler) {
-    log::set_boxed_logger(Box::new(
-        Logger { event_handler: event_handler }
-    )).expect("Unable to setup logger");
+    log::set_boxed_logger(Box::new(Logger { event_handler }))
+        .expect("Unable to setup logger");
     log::set_max_level(LevelFilter::Trace);
 }

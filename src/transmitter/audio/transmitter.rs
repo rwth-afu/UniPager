@@ -108,7 +108,7 @@ impl Transmitter for AudioTransmitter {
 
 fn create_bit_sample(sample_size: usize, constant_value: u8) -> Vec<u8> {
     let mut bit_sample: Vec<u8> = Vec::with_capacity(sample_size);
-    for s in 0..sample_size {
+    for _s in 0..sample_size {
         bit_sample.push(constant_value);
     }
 
