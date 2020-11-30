@@ -1,3 +1,4 @@
+use chrono::Utc;
 use log::{self, Level, LevelFilter, Log, Metadata, Record};
 
 use crate::event::{Event, EventHandler};
@@ -20,7 +21,14 @@ impl Log for Logger {
                 Level::Info => "\x1B[32m",
                 _ => "",
             };
-            println!("{}{}\x1B[39m - {}", color, record.level(), record.args());
+
+            let time = Utc::now();
+            println!(
+                "{} {}{}\x1B[39m - {}",
+                time.format("%H:%M:%S%.f"),
+                color,
+                record.level(),
+                record.args());
             let event = Event::Log(record.level() as u8, record.args().to_string());
             self.event_handler.publish(event);
         }

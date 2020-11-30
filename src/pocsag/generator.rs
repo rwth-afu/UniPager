@@ -86,7 +86,7 @@ impl<'a> Iterator for Generator<'a> {
     type Item = u32;
 
     fn next(&mut self) -> Option<u32> {
-        debug!("({}, {:?})", self.codewords, self.state);
+        trace!("Next generated codeword: ({}, {:?})", self.codewords, self.state);
         self.count += 1;
 
         match (self.codewords, self.state)

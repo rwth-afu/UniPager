@@ -75,7 +75,7 @@ impl Scheduler {
                 if self.stop { return; }
             }
 
-            info!("Queue not empty, waiting for next Timeslot. {} messages waiting.", self.queue.len());
+            info!("Queue not empty, waiting for next Timeslot. {} message(s) waiting.", self.queue.len());
             self.wait_for_next_timeslot();
             if self.stop { return; }
 
