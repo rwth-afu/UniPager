@@ -75,13 +75,16 @@ impl Scheduler {
                 if self.stop { return; }
             }
 
-            info!("Queue not empty, waiting for next Timeslot. {} message(s) waiting.", self.queue.len());
-            self.wait_for_next_timeslot();
-            if self.stop { return; }
+            if self.config.master.standalone_mode {
+                debug!("Sending message in standalone mode without synchronization of time slots.");
+            } else {
+                info!("Queue not empty, waiting for next Timeslot. {} message(s) waiting.", self.queue.len());
+                self.wait_for_next_timeslot();
+                if self.stop { return; }
+                info!("Available time budget: {}", self.budget);
+            }
 
-            info!("Available time budget: {}", self.budget);
             let message = self.queue.dequeue().unwrap();
-
             telemetry_update!(messages: |m| {
                 self.queue.telemetry_update(m);
             });

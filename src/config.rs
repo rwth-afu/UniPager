@@ -145,6 +145,9 @@ pub struct MasterConfig {
     pub call: String,
     pub auth: String,
     pub fallback: Vec<(String, u16)>,
+    pub reconnect_timeout: u64,
+    // In standalone mode no connection to a server is attempated and the time slots are overwritten.
+    pub standalone_mode: bool,
 }
 
 impl Default for MasterConfig {
@@ -155,6 +158,8 @@ impl Default for MasterConfig {
             call: String::from(""),
             auth: String::from(""),
             fallback: default_fallback_servers(),
+            reconnect_timeout: 30,
+            standalone_mode: false,
         }
     }
 }

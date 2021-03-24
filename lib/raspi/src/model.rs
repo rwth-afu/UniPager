@@ -12,6 +12,8 @@ pub enum Model {
     V2B,
     V3B,
     V3Bplus,
+    V4B,
+    Pi400,
     Zero,
     ZeroW,
     OrangePi,
@@ -43,6 +45,7 @@ impl Model {
             .and_then(|line| line.split(':').nth(1))
             .map(str::trim);
 
+        // See https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
         match revision {
             0x2..=0x3 => Model::V1B { rev: 1 },
             0x4..=0x6 | 0xd..=0x0f => Model::V1B { rev: 2 },
@@ -51,11 +54,13 @@ impl Model {
             0x10 | 0x13 | 0x900032 => Model::V1Bplus,
             0xA01040 | 0xA01041 => Model::V2B,
             0xA21041 => Model::V2B,
-            0xA22042 => Model::V2B, // with BCM2837
+            0xA22042 | 0xA02042 => Model::V2B, // with BCM2837
             0x900092 | 0x900093 | 0x920093 => Model::Zero,
             0x9000C1 => Model::ZeroW,
             0xA02082 | 0xA22082 | 0xA32082 => Model::V3B,
             0xA020D3 => Model::V3Bplus,
+            0xA03111 | 0xB03111..=0xB03114 | 0xC03111..=0xC03114 | 0xD03114 => Model::V4B,
+            0xC03130 => Model::Pi400,
             _ => match hardware {
                 Some("Allwinner sun8i Family") => Model::OrangePi,
                 Some("sun8i") => Model::OrangePi,
@@ -71,6 +76,7 @@ impl Model {
                 => Some(0x20200000),
             &Model::V2B => Some(0x3F200000),
             &Model::V3B | &Model::V3Bplus => Some(0x3F200000),
+            &Model::V4B | &Model::Pi400 => Some(0xFE200000),
             &Model::Zero | &Model::ZeroW => Some(0x20200000),
             &Model::OrangePi => None,
             &Model::Unknown => None
@@ -87,7 +93,7 @@ impl Model {
             &Model::Zero | &Model::ZeroW =>
                 Some(vec![17, 18, 27, 22, 23, 24, 25, 4,
                           2, 3, 8, 7, 10, 9, 11, 14, 15]),
-            &Model::V3B | &Model::V3Bplus =>
+            &Model::V3B | &Model::V3Bplus | &Model::V4B | &Model::Pi400 =>
                 Some(vec![17, 18, 27, 22, 23, 24, 25, 4,
                      2, 3, 8, 7, 10, 9, 11, 14, 15,
                      0, 0, 0, 0, 5, 6, 13, 19, 26,
@@ -112,6 +118,8 @@ impl fmt::Display for Model {
             &Model::V2B => write!(f, "Raspberry Pi 2 Model B"),
             &Model::V3B => write!(f, "Raspberry Pi 3 Model B"),
             &Model::V3Bplus => write!(f, "Raspberry Pi 3 Model B+"),
+            &Model::V4B => write!(f, "Raspberry Pi 4 Model B"),
+            &Model::Pi400 => write!(f, "Raspberry Pi 400"),
             &Model::Zero => write!(f, "Raspberry Pi Zero"),
             &Model::ZeroW => write!(f, "Raspberry Pi Zero W"),
             &Model::OrangePi => write!(f, "Orange Pi"),
