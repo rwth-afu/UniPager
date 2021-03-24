@@ -30,8 +30,8 @@ impl CoreConnection {
         event_handler.publish(Event::RegisterConnection(tx));
 
         CoreConnection {
-            config: config,
-            event_handler: event_handler,
+            config,
+            event_handler,
             event_receiver: rx,
             routing_key: "".to_owned(),
             telemetry_routing_key: "".to_owned(),
@@ -56,9 +56,10 @@ impl CoreConnection {
             }
             else {
                 error!(
-                    "Bootstrap connection failed. Retrying in 10 Seconds..."
+                    "Bootstrap connection failed. Retrying in {} Seconds...",
+                    self.config.master.reconnect_timeout
                 );
-                Delay::new(Duration::from_secs(10)).await;
+                Delay::new(Duration::from_secs(self.config.master.reconnect_timeout)).await;
             }
         }
     }

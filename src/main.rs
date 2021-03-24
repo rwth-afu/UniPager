@@ -70,11 +70,15 @@ fn main() {
     logging::init(event_handler.clone());
     scheduler::start(config.clone(), event_handler.clone());
     telemetry::start(&runtime, event_handler.clone());
-    timeslots::start(&runtime, event_handler.clone());
     frontend::websocket::start(&runtime, pass, event_handler.clone());
     frontend::http::start(&runtime, event_handler.clone());
-    connection::start(&runtime, &config, event_handler.clone());
-    core::start(&runtime, &config, event_handler.clone());
+    if config.master.standalone_mode {
+        info!("Starting up in standalone mode. Connection to server is skipped.")
+    } else {
+        timeslots::start(&runtime, event_handler.clone());
+        connection::start(&runtime, &config, event_handler.clone());
+        core::start(&runtime, &config, event_handler.clone());
+    }
 
     runtime.block_on(async move {
         let (tx, mut rx) = event::channel();

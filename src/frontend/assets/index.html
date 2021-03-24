@@ -32,30 +32,36 @@
                   <option>RFM69</option>
                 </select>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="master-server">Master IP</label>
-                  <input type="text" id="master-server"
-                    v-model="config.master.server">
+              <div v-if="config.master.standalone_mode !== true">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="master-server">Master IP</label>
+                    <input type="text" id="master-server"
+                           v-model="config.master.server">
+                  </div>
+                  <div class="form-group">
+                    <label for="master-port">Port</label>
+                    <input type="number" id="master-port"
+                           v-model.number="config.master.port" class="u16-number"
+                           step="1" min="0" max="65535">
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="master-port">Port</label>
-                  <input type="number" id="master-port"
-                    v-model.number="config.master.port" class="u16-number"
-                    step="1" min="0" max="65535">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="master-call">Callsign</label>
+                    <input type="text" id="master-call"
+                           v-model="config.master.call">
+                  </div>
+                  <div class="form-group">
+                    <label for="master-auth">Auth Key</label>
+                    <input type="text" id="master-auth"
+                           v-model="config.master.auth">
+                  </div>
                 </div>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="master-call">Callsign</label>
-                  <input type="text" id="master-call"
-                    v-model="config.master.call">
-                </div>
-                <div class="form-group">
-                  <label for="master-auth">Auth Key</label>
-                  <input type="text" id="master-auth"
-                    v-model="config.master.auth">
-                </div>
+              <div v-if="config.master.standalone_mode === true">
+                Unipager is configured in 'standalone' mode. No server connection is attempted.
+                To change the configuration edit the config.js file and restart the service.
               </div>
             </div>
           </div>
