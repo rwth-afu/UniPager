@@ -1,5 +1,6 @@
-//use frontend::{Responder, Response};
-use log::{self, Log, Level, LevelFilter, Metadata, Record};
+use chrono::Utc;
+use log::{self, Level, LevelFilter, Log, Metadata, Record};
+
 use crate::event::{Event, EventHandler};
 
 struct Logger {
@@ -20,7 +21,14 @@ impl Log for Logger {
                 Level::Info => "\x1B[32m",
                 _ => "",
             };
-            println!("{}{}\x1B[39m - {}", color, record.level(), record.args());
+
+            let time = Utc::now();
+            println!(
+                "{} {}{}\x1B[39m - {}",
+                time.format("%H:%M:%S%.f"),
+                color,
+                record.level(),
+                record.args());
             let event = Event::Log(record.level() as u8, record.args().to_string());
             self.event_handler.publish(event);
         }
@@ -30,8 +38,7 @@ impl Log for Logger {
 }
 
 pub fn init(event_handler: EventHandler) {
-    log::set_boxed_logger(Box::new(
-        Logger { event_handler: event_handler }
-    )).expect("Unable to setup logger");
+    log::set_boxed_logger(Box::new(Logger { event_handler }))
+        .expect("Unable to setup logger");
     log::set_max_level(LevelFilter::Trace);
 }
