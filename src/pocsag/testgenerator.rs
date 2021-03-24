@@ -4,7 +4,7 @@ pub struct TestGenerator {
 
 impl<'a> TestGenerator {
     pub fn new(length: usize) -> TestGenerator {
-        TestGenerator { length: length }
+        TestGenerator { length }
     }
 }
 
