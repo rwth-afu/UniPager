@@ -201,11 +201,12 @@ automatically after booting enter `sudo systemctl enable unipager`.
 - Florian Wolters (DF2ET)
 - Ralf Wilke (DH3WR)
 - Johannes Gierlach (DJ7LC)
+- Robert Wittek (OE1RXW)
 
 ## License
 
     UniPager
-    Copyright (C) 2017  RWTH Amateurfunkgruppe
+    Copyright (C) 2017-2021  RWTH Amateurfunkgruppe
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
