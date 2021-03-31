@@ -5,7 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,3 +29,9 @@ jobs:
         use-cross: true
         command: build
         args: --release --target armv7-unknown-linux-gnueabihf
+    - name: Archive binary
+      uses: actions/upload-artifact@v2
+      with:
+        name: unipager
+        path: target/armv7-unknown-linux-gnueabihf/release/unipager
+        retention-days: 30
