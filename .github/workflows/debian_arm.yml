@@ -14,4 +14,4 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build debian package
       run: |
-        debuild -i -us -uc -S --lintian-opts --profile debian
+        dpkg-buildpackage -us -uc
