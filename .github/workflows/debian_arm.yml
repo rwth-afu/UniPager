@@ -1,28 +1,16 @@
 name: Debian Package for ARM
-
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [linux, ARM]
     steps:
     - name: Install dependencies
-      run:  sudo apt-get install devscripts build-essential lintian pbuilder qemu-user-static qemu-system-arm debhelper dh-systemd libudev-dev
+      run:  sudo apt-get install devscripts build-essential lintian debhelper dh-systemd libudev-dev
     - uses: actions/checkout@v2
     - name: Build debian package
       run: |
-        cp debian/pbuilderrc /home/runner/.pbuilderrc
-        wget http://archive.raspbian.org/raspbian/pool/main/r/raspbian-archive-keyring/raspbian-archive-keyring_20120528.2_all.deb
-        sudo dpkg -i raspbian-archive-keyring_20120528.2_all.deb
-        rm -f raspbian-archive-keyring_20120528.2_all.deb
         debuild -i -us -uc -S --lintian-opts --profile debian
-        cd ..
-        mkdir -p /var/cache/pbuilder/
-        sudo mount -t tmpfs -o size=4096m tmpfs /var/cache/pbuilder/
-        sudo OS="raspbian" DIST="buster" ARCH="armhf" pbuilder --create
-        sudo OS="raspbian" DIST="buster" ARCH="armhf" pbuilder build *.dsc
-        ls /var/cache/pbuilder/result/
