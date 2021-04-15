@@ -25,7 +25,7 @@ jobs:
         format: 'deb'
         owner: 'rwth-afu'
         repo: 'unipager'
-        distro: 'debian'
+        distro: 'raspbian'
         release: 'buster'
         republish: 'true'
         file: './package/*.deb'
