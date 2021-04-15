@@ -15,3 +15,17 @@ jobs:
     - name: Build debian package
       run: |
         dpkg-buildpackage -us -uc
+        mkdir package/
+        mv ../unipager_*.deb package/
+    - name: Push to cloudsmith.io
+      uses: cloudsmith-io/action@master
+      with:
+        api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+        command: 'push'
+        format: 'deb'
+        owner: 'rwth-afu'
+        repo: 'unipager'
+        distro: 'debian'
+        release: 'buster'
+        republish: 'true'
+        file: './package/*.deb'
