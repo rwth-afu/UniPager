@@ -13,9 +13,15 @@ lazy_static! {
 
 fn default_fallback_servers() -> Vec<(String, u16)> {
     [
+        ("dapnet.db0ffl.ampr.org", 5672),
+        ("db0rhb.ampr.org", 5672),
+        ("dapnet.db0sda.ampr.org", 5672),
         ("dapnetdc1.db0sda.ampr.org", 5672),
         ("dapnetdc2.db0sda.ampr.org", 5672),
-        ("dapnetdc3.db0sda.ampr.org", 5672)
+        ("dapnetdc3.db0sda.ampr.org", 5672),
+        ("dapnet.db0vvs.ampr.org", 5672),
+        ("db0dbn.ig-funk-siebengebirge.de", 5672),
+        ("dapnet.db0luh.ampr.org", 5672)
     ]
         .iter()
         .map(|&(ref host, port)| (host.to_string(), port))
