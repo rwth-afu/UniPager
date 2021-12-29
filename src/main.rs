@@ -38,6 +38,7 @@ mod event;
 use std::fs::File;
 use std::io::Read;
 
+use tokio::runtime::Runtime;
 use async_std::prelude::*;
 
 fn print_version() {
@@ -62,7 +63,7 @@ fn main() {
         .map_err(|_| eprintln!("Failed to load password file."))
         .ok();
 
-    let mut runtime = tokio::runtime::Runtime::new().unwrap();
+    let mut runtime = Runtime::new().unwrap();
 
     let config = config::get();
     let event_handler = event::start(&runtime);

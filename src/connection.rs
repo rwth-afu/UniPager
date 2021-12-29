@@ -138,8 +138,8 @@ impl CoreConnection {
 
             select! {
                 delivery = next_delivery => {
-                    if let Some(Ok(delivery)) = delivery {
-                        self.handle_delivery(delivery, &*channel).await?;
+                    if let Some(Ok((_, delivery))) = delivery {
+                        self.handle_delivery(delivery, &channel).await?;
                     }
                     else {
                         break;
@@ -147,7 +147,7 @@ impl CoreConnection {
                 },
                 event = next_event => {
                     if let Some(event) = event {
-                        self.handle_event(event, Some(&*conn), Some(&*channel)).await?;
+                        self.handle_event(event, Some(&conn), Some(&channel)).await?;
                     }
                     else {
                         break;

@@ -71,9 +71,9 @@ async fn response(req: Request<Body>, event_handler: EventHandler) -> Result<Res
             )
         }
         (&Method::POST, "/message") => {
-            let mut body = hyper::body::aggregate(req).await.unwrap();
+            let body = hyper::body::to_bytes(req).await.unwrap();
 
-            if let Ok(msg) = serde_json::from_slice(body.to_bytes().bytes()) {
+            if let Ok(msg) = serde_json::from_slice(&body) {
                 event_handler.publish(Event::MessageReceived(msg));
                 let body = Body::from("{\"ok\": true}");
                 Ok(Response::builder().body(body).unwrap())

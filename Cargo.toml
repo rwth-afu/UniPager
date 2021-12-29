@@ -9,7 +9,7 @@ default = []
 ptt_hid = ["hidapi"]
 
 [dependencies]
-bytes = "^0.5"
+bytes = "^1.1"
 serial = "^0.4"
 serde = "^1.0"
 serde_derive = "^1.0"
@@ -20,14 +20,19 @@ futures = "^0.3"
 futures-core = "^0.3"
 futures-util = "^0.3"
 futures-timer = "^3.0.1"
-tokio = "^0.2.11"
+
+[dependencies.tokio]
+version = "^1.15.0"
+default-features = false
+features = ["rt", "rt-multi-thread"]
 
 [dependencies.hyper]
-version = "^0.13.1"
+version = "^0.14.6"
 default-features = false
+features = ["server"]
 
 [dependencies.tokio-amqp]
-version = "^0.1.0-rc1"
+version = "^1.0.0"
 default-features = false
 
 [dependencies.lapin]
@@ -35,7 +40,7 @@ version = "^1.0.0-rc1"
 default-features = false
 
 [dependencies.reqwest]
-version = "^0.10.4"
+version = "^0.11.8"
 default-features = false
 features = ["json"]
 
@@ -44,15 +49,15 @@ version = "^1.4"
 features = ["unstable", "attributes"]
 
 [dependencies.tungstenite]
-version = "^0.10"
+version = "^0.16"
 default-features = false
 
 [dependencies.tokio-tungstenite]
-version = "^0.10.0"
+version = "^0.16.0"
 default-features = false
 
 [dependencies.tcp-stream]
-version = "^0.18.0"
+version = "^0.23.0"
 default-features = false
 
 [dependencies.raspi]
