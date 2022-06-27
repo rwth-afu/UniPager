@@ -5,7 +5,7 @@ After=network.target
 [Service]
 ExecStart=/usr/bin/unipager
 WorkingDirectory=/var/lib/unipager
-Environment=RUST_BACKTRACE=1
+Environment="RUST_BACKTRACE=1"
 
 [Install]
 WantedBy=multi-user.target

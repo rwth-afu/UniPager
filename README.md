@@ -6,6 +6,8 @@
 
 Universal POCSAG transmitter controller written in Rust.
 
+**This is the v1 legacy branch**
+
 ## Automatic Installation
 
 This script installs UniPager fully automatically on Debian/Raspbian systems.
@@ -75,13 +77,23 @@ sudo apt-get install unipager
 
 ## Local Compilation from source
 
-Install rust:
+Install rust. Since *v1* depends on old, now removed rust features we have to use an old nightly toolchain:
 
 ```bash
-curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
+curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly-2019-05-19
 ```
 
 Now reboot OR log out to make the rust toolchain available.
+
+
+Install [cross](https://github.com/cross-rs/cross):
+
+```bash
+cargo install cross
+```
+
+Cross depends on [Docker](https://docs.docker.com/engine/install/). Make sure it's installed.
+
 
 Log in again and clone the source:
 
@@ -95,77 +107,23 @@ If this command fails, you may need to install git and try again:
 sudo apt-get install git
 ```
 
-Start the build:
+
+This application can be cross-compiled for these targets:
+- `arm-unknown-linux-gnueabihf`(Raspberry Pi 1 & Zero). Doesn't work out of the box, see `cross-armhf.dockerfile` for instructions.
+- `armv7-unknown-linux-gnueabihf`(Raspberry Pi 2)
+- `aarch64-unknown-linux-gnu`(Raspberry Pi 3 & 4)
+- `i686-unknown-linux-gnu`(32-bit)
+- `x86_64-unknown-linux-gnu`(64-bit)
+
+Start the build for `<target>`:
 
 ```bash
 cd UniPager
-cargo build --release
+cross build +nightly-2019-05-19 --target <target> --release
 ```
-The compiled binary will be created at `./target/release/unipager`.
+The compiled binary will be created at `./target/release/unipager/<target>`.
 
 Be aware: Must be run with root privileges for GPIO access. Secondly it may be required to disable Bluetooth on newer Raspberry Pi models to make the GPIO UART usable.
-
-## Local Cross Compilation from source
-
-Install rust:
-
-```bash
-curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly
-```
-
-Install the GCC cross compiler:
-
-```bash
-sudo apt-get install -qq gcc-arm-linux-gnueabi # for soft float
-sudo apt-get install -qq gcc-arm-linux-gnueabihf # for hard float
-```
-
-Define the target:
-
-```bash
-# ARMv6 with soft float
-export TARGET="arm-unknown-linux-gnueabi"
-
-# ARMv6 with hard float (e.g. Raspberry Pi 1)
-export TARGET="arm-unknown-linux-gnueabihf"
-
-# ARMv7 with hard float (e.g. Raspberry Pi 2 and 3)
-export TARGET="armv7-unknown-linux-gnueabihf"
-```
-
-Install the cross-compiled rust libraries:
-
-```bash
-rustup target add $TARGET
-```
-
-Create the file `~/.cargo/config` with the following content:
-
-```toml
-[target.arm-unknown-linux-gnueabi]
-linker = "arm-linux-gnueabi-gcc"
-
-[target.arm-unknown-linux-gnueabihf]
-linker = "arm-linux-gnueabihf-gcc"
-
-[target.armv7-unknown-linux-gnueabihf]
-linker = "arm-linux-gnueabihf-gcc"
-```
-
-Clone the source:
-
-```bash
-git clone https://github.com/rwth-afu/UniPager.git
-```
-
-Start the build:
-
-```bash
-cd UniPager
-cargo build --target $TARGET --release
-```
-
-The cross-compiled binary will be created at `./target/$TARGET/release/unipager`.
 
 ## Manual Installation after compilation
 

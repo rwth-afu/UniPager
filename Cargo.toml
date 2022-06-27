@@ -1,6 +1,6 @@
 [package]
 name = "unipager"
-version = "1.0.3"
+version = "1.0.5"
 authors = ["Thomas Gatzweiler <mail@thomasgatzweiler.com>"]
 
 [dependencies]
@@ -17,6 +17,6 @@ lazy_static = "^1.0"
 path = "lib/raspi"
 
 [dependencies.hidapi]
-version = "0.5.0"
+version = "0.5.2"
 default-features = false
 features = ["linux-static-hidraw"] # linux-shared-hidraw will not build
