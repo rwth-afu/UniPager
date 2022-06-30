@@ -59,7 +59,7 @@ impl Model {
             0x9000C1 => Model::ZeroW,
             0xA02082 | 0xA22082 | 0xA32082 => Model::V3B,
             0xA020D3 => Model::V3Bplus,
-            0xA03111 | 0xB03111..=0xB03114 | 0xC03111..=0xC03114 | 0xD03114 => Model::V4B,
+            0xA03111 | 0xB03111..=0xB03115 | 0xC03111..=0xC03115 | 0xD03114..=0xD03115 => Model::V4B,
             0xC03130 => Model::Pi400,
             _ => match hardware {
                 Some("Allwinner sun8i Family") => Model::OrangePi,
