@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: [linux, ARM]
+    container:
+      image: debian:bullseye
     steps:
     - name: Install dependencies
       run:  sudo apt-get install devscripts build-essential lintian debhelper dh-systemd libudev-dev
