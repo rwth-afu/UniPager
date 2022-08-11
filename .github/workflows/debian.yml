@@ -15,7 +15,7 @@ jobs:
     - name: Update packet sources
       run:  apt update -y
     - name: Install dependencies
-      run:  apt install -y devscripts build-essential lintian debhelper libudev-dev
+      run:  apt install -y devscripts build-essential lintian debhelper libudev-dev cargo dh-cargo rustc
     - uses: actions/checkout@v2
     - name: Build debian package
       run: |
