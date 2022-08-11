@@ -11,8 +11,9 @@ jobs:
     container:
       image: ubuntu:latest
     steps:
-    - name: Install dependencies
+    - name: Update packet sources
       run:  apt update
+    - name: Install dependencies
       run:  apt install devscripts build-essential lintian debhelper dh-systemd libudev-dev
     - uses: actions/checkout@v2
     - name: Build debian package
