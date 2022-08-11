@@ -9,7 +9,8 @@ jobs:
   build:
     runs-on: [linux, ARM]
     container:
-      image: ubuntu:latest
+      # image: ubuntu:latest
+      image: rust:1.63-bullseye
     steps:
     - name: Update packet sources
       run:  apt update -y
