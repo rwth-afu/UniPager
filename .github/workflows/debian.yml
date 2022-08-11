@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: [linux, ARM]
     container:
-      image: ubuntu-latest
+      image: ubuntu:latest
     steps:
     - name: Install dependencies
       run:  sudo apt-get install devscripts build-essential lintian debhelper dh-systemd libudev-dev
