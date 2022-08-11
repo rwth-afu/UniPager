@@ -12,9 +12,9 @@ jobs:
       image: ubuntu:latest
     steps:
     - name: Update packet sources
-      run:  apt update
+      run:  apt update -y
     - name: Install dependencies
-      run:  apt install devscripts build-essential lintian debhelper dh-systemd libudev-dev
+      run:  apt install -y devscripts build-essential lintian debhelper libudev-dev
     - uses: actions/checkout@v2
     - name: Build debian package
       run: |
