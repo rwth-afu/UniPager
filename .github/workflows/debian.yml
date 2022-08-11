@@ -12,7 +12,7 @@ jobs:
       image: ubuntu:latest
     steps:
     - name: Install dependencies
-      run:  sudo apt-get install devscripts build-essential lintian debhelper dh-systemd libudev-dev
+      run:  apt-get install devscripts build-essential lintian debhelper dh-systemd libudev-dev
     - uses: actions/checkout@v2
     - name: Build debian package
       run: |
