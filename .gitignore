@@ -4,3 +4,6 @@ password
 
 # IntelliJ Project Files
 .idea/
+
+# Apple files
+.DS_Store
