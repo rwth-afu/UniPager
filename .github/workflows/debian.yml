@@ -8,13 +8,18 @@ on:
 jobs:
   build:
     runs-on: [linux, ARM]
+    container:
+      # image: ubuntu:latest
+      image: rust:1.63-bullseye
     steps:
+    - name: Update packet sources
+      run:  apt update -y
     - name: Install dependencies
-      run:  sudo apt-get install devscripts build-essential lintian debhelper dh-systemd libudev-dev
+      run:  apt install -y devscripts build-essential lintian debhelper libudev-dev cargo dh-cargo rustc
     - uses: actions/checkout@v2
     - name: Build debian package
       run: |
-        dpkg-buildpackage -us -uc
+        dpkg-buildpackage -b -us -uc
         mkdir package/
         mv ../unipager_*.deb package/
     - name: Push to cloudsmith.io
