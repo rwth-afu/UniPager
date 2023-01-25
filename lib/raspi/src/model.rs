@@ -11,6 +11,7 @@ pub enum Model {
     V1Bplus,
     V2B,
     V3B,
+	V3Aplus
     V3Bplus,
     V4B,
     Pi400,
@@ -58,7 +59,8 @@ impl Model {
             0x900092 | 0x900093 | 0x920093 => Model::Zero,
             0x9000C1 => Model::ZeroW,
             0xA02082 | 0xA22082 | 0xA32082 => Model::V3B,
-            0xA020D3 => Model::V3Bplus,
+            0x9020E0 => Model::V3Aplus,
+			0xA020D3 => Model::V3Bplus,
             0xA03111 | 0xB03111..=0xB03115 | 0xC03111..=0xC03115 | 0xD03114..=0xD03115 => Model::V4B,
             0xC03130 => Model::Pi400,
             _ => match hardware {
@@ -75,7 +77,7 @@ impl Model {
             &Model::V1Aplus | &Model::V1Bplus
                 => Some(0x20200000),
             &Model::V2B => Some(0x3F200000),
-            &Model::V3B | &Model::V3Bplus => Some(0x3F200000),
+            &Model::V3B | &Model::V3Aplus | &Model::V3Bplus => Some(0x3F200000),
             &Model::V4B | &Model::Pi400 => Some(0xFE200000),
             &Model::Zero | &Model::ZeroW => Some(0x20200000),
             &Model::OrangePi => None,
@@ -93,7 +95,7 @@ impl Model {
             &Model::Zero | &Model::ZeroW =>
                 Some(vec![17, 18, 27, 22, 23, 24, 25, 4,
                           2, 3, 8, 7, 10, 9, 11, 14, 15]),
-            &Model::V3B | &Model::V3Bplus | &Model::V4B | &Model::Pi400 =>
+            &Model::V3B | &Model::V3Aplus | &Model::V3Bplus | &Model::V4B | &Model::Pi400 =>
                 Some(vec![17, 18, 27, 22, 23, 24, 25, 4,
                      2, 3, 8, 7, 10, 9, 11, 14, 15,
                      0, 0, 0, 0, 5, 6, 13, 19, 26,
@@ -117,6 +119,7 @@ impl fmt::Display for Model {
             &Model::V1Bplus => write!(f, "Raspberry Pi 1 Model B+"),
             &Model::V2B => write!(f, "Raspberry Pi 2 Model B"),
             &Model::V3B => write!(f, "Raspberry Pi 3 Model B"),
+			&Model::V3Aplus => write!(f, "Raspberry Pi 3 Model A+"),
             &Model::V3Bplus => write!(f, "Raspberry Pi 3 Model B+"),
             &Model::V4B => write!(f, "Raspberry Pi 4 Model B"),
             &Model::Pi400 => write!(f, "Raspberry Pi 400"),
