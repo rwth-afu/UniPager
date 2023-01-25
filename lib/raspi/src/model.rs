@@ -46,7 +46,7 @@ impl Model {
             .and_then(|line| line.split(':').nth(1))
             .map(str::trim);
 
-        // See https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+        // See https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-revision-codes
         match revision {
             0x2..=0x3 => Model::V1B { rev: 1 },
             0x4..=0x6 | 0xd..=0x0f => Model::V1B { rev: 2 },
