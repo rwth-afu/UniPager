@@ -11,7 +11,7 @@ pub enum Model {
     V1Bplus,
     V2B,
     V3B,
-	V3Aplus
+    V3Aplus,
     V3Bplus,
     V4B,
     Pi400,
