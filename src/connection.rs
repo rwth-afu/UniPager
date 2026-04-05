@@ -69,7 +69,7 @@ impl Connection {
 
     pub fn start(config: Config, scheduler: Scheduler)
         -> (Sender<()>, JoinHandle<()>) {
-        let (stop_tx, stop_rx) = channel();
+        let (outside_stop_tx, outside_stop_rx) = channel();
 
         let handle = thread::spawn(move || {
             let mut reconnect = true;
@@ -106,10 +106,17 @@ impl Connection {
                         stopped_tx.send(()).unwrap();
                     });
 
-                    select! {
-                        _ = stopped_rx.recv() => reconnect = true,
-                        _ = stop_rx.recv() => reconnect = false
+                    loop {
+                        if let Ok(_) = outside_stop_rx.try_recv() {
+                            reconnect = false;
+                            break
+                        }
+                        else if let Ok(_) = stopped_rx.recv_timeout(Duration::from_millis(500)) {
+                            reconnect = true;
+                            break
+                        }
                     }
+
 
                     stream.shutdown(Shutdown::Both).ok();
                     handle.join().unwrap();
@@ -128,14 +135,14 @@ impl Connection {
                 };
 
                 if reconnect {
-                    if let Ok(()) = stop_rx.recv_timeout(delay) {
+                    if let Ok(()) = outside_stop_rx.recv_timeout(delay) {
                         reconnect = false;
                     }
                 }
             }
         });
 
-        (stop_tx, handle)
+        (outside_stop_tx, handle)
     }
 
     pub fn run(&mut self) -> Result<()> {
