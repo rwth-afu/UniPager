@@ -12,7 +12,14 @@ enum State {
     Preamble,
     AddressWord,
     MessageWord(usize, Encoding),
-    Completed
+    // Fill the rest of the current batch with idles, then transition to
+    // Terminator on the batch boundary.
+    Completed,
+    // Emit idle words in a final batch following a trailing sync word, then
+    // end the iterator. Guarantees at least one full sync+idle batch follows
+    // the last message word so receivers see a clear end-of-message and the
+    // carrier stays up long enough to commit it.
+    Terminator
 }
 
 /// POCSAG Generator
@@ -91,8 +98,16 @@ impl<'a> Iterator for Generator<'a> {
 
         match (self.codewords, self.state)
         {
-            // Stop if no codewords are left and everything is completed.
-            (0, State::Completed) => None,
+            // Terminator batch finished: end the iterator.
+            (0, State::Terminator) => None,
+
+            // End of the last batch with a pending message-end: emit the
+            // trailing sync word and enter the terminator batch.
+            (0, State::Completed) => {
+                self.codewords = 16;
+                self.state = State::Terminator;
+                Some(SYNC_WORD)
+            }
 
             // The preamble is completed.
             // Send the sync word and start a new batch with 16 codewords.
@@ -207,10 +222,73 @@ impl<'a> Iterator for Generator<'a> {
                 Some(parity(crc(0x80000000 | (codeword << 11))))
             }
 
-            // Everything is done. Send idle words until the batch is complete.
-            (_, State::Completed) => {
+            // No more messages. Fill the rest of the current batch (Completed)
+            // or the terminator batch (Terminator) with idle words.
+            (_, State::Completed) | (_, State::Terminator) => {
                 self.codewords -= 1;
                 Some(IDLE_WORD)
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::message::{Message as OuterMessage, MessageProvider};
+    use crate::pocsag::{Message, MessageType};
+
+    struct EmptyProvider;
+
+    impl MessageProvider for EmptyProvider {
+        fn next(&mut self, _count: usize) -> Option<OuterMessage> {
+            None
+        }
+    }
+
+    fn collect_all(ric: u32, length: usize) -> Vec<u32> {
+        let data: String = std::iter::repeat('A').take(length).collect();
+        let msg = Message {
+            mtype: MessageType::AlphaNum,
+            speed: 1200,
+            ric,
+            func: 3,
+            data,
+        };
+        let mut provider = EmptyProvider;
+        Generator::new(&mut provider, msg).collect()
+    }
+
+    #[test]
+    fn terminator_follows_last_message_word() {
+        for length in 1..=60usize {
+            for ric_lower in 0..=7u32 {
+                // Build a RIC where the lower three bits vary; the upper bits
+                // are arbitrary but valid.
+                let ric = 0x0010_0000 | ric_lower;
+                let cws = collect_all(ric, length);
+
+                assert!(!cws.is_empty(),
+                    "no codewords produced (length={}, ric_lower={})",
+                    length, ric_lower);
+
+                // The final codeword in the stream must not be a message word.
+                let last = *cws.last().unwrap();
+                assert_eq!(last & 0x80000000, 0,
+                    "last codeword is a message word \
+                     (length={}, ric_lower={}, last=0x{:08X})",
+                    length, ric_lower, last);
+
+                // At least one IDLE_WORD must appear between the last message
+                // word in the stream and the end.
+                let last_msg_idx = cws.iter()
+                    .rposition(|&w| w & 0x80000000 != 0)
+                    .expect("stream must contain at least one message word");
+                let after = &cws[last_msg_idx + 1..];
+                assert!(after.iter().any(|&w| w == IDLE_WORD),
+                    "no idle word follows the last message word \
+                     (length={}, ric_lower={}, tail_len={})",
+                    length, ric_lower, after.len());
             }
         }
     }
